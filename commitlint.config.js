@@ -15,19 +15,7 @@ module.exports = {
     'type-enum': [
       2,
       'always',
-      [
-        'build',
-        'chore',
-        'ci',
-        'docs',
-        'feat',
-        'fix',
-        'perf',
-        'refactor',
-        'revert',
-        'style',
-        'test'
-      ]
+      ['build', 'chore', 'ci', 'docs', 'feat', 'fix', 'perf', 'refactor', 'revert', 'style', 'test']
     ]
   },
   prompt: {
@@ -79,7 +67,7 @@ module.exports = {
           },
           ci: {
             description: 'Changes to our CI configuration files and scripts',
-            title: 'Continuous Integration',
+            title: 'Continuous Integrations',
             emoji: '⚙️'
           },
           chore: {
@@ -95,20 +83,19 @@ module.exports = {
         }
       },
       scope: {
-        description: 'What is the scope of this change? (e.g. component, file name, or module)'
+        description: 'What is the scope of this change (e.g. component or file name)'
       },
       subject: {
         description: 'Write a short, imperative tense description of the change'
       },
       body: {
-        description: 'Provide a longer description of the change (optional)'
+        description: 'Provide a longer description of the change'
       },
       isBreaking: {
         description: 'Are there any breaking changes?'
       },
       breakingBody: {
-        description:
-          'A BREAKING CHANGE commit requires a body. Please enter a longer description of the commit itself'
+        description: 'A BREAKING CHANGE commit requires a body. Please enter a longer description of the commit itself'
       },
       breaking: {
         description: 'Describe the breaking changes'
@@ -121,8 +108,8 @@ module.exports = {
           'If issues are closed, the commit requires a body. Please enter a longer description of the commit itself'
       },
       issues: {
-        description: 'Add issue references (e.g. "fix #123", "re #123")'
+        description: 'Add issue references (e.g. "fix #123", "re #123".)'
       }
     }
   }
-};
+}
