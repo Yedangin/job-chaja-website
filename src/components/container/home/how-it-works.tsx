@@ -1,108 +1,113 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 export default function HowItWorks() {
+  const t = useTranslations("HomePage.HowItWorksSection");
+
   const steps = [
     {
-      number: "1",
-      title: "Sign up to line up or login",
-      description: "Get verified to participate in our secure interview system",
+      number: 1,
+      title: t("steps.one.title"),
+      description: t("steps.one.desc"),
+      bg: "#D5E6FF",
+      image: "/home/phone.png",
+      imageW: 220,
+      imageH: 330,
     },
     {
-      number: "2",
-      title: "Find the best jobs for you",
-      description:
-        "Browse available positions matched to your skills and preferences",
+      number: 2,
+      title: t("steps.two.title"),
+      description: t("steps.two.desc"),
+      bg: "#CFF5FF",
+      image: "/home/searchBar.png",
+      imageW: 300,
+      imageH: 100,
     },
     {
-      number: "3",
-      title: "Apply to the best jobs for you",
-      description:
-        "Submit your application and complete the deposit requirement",
+      number: 3,
+      title: t("steps.three.title"),
+      description: t("steps.three.desc"),
+      bg: "#F4E4FF",
+      image: "/home/orangeSquare.png",
+      imageW: 300,
+      imageH: 100,
     },
   ];
 
   return (
     <section className="bg-white py-3 md:py-10">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Localized heading with span */}
         <h2 className="text-[52px] font-bold text-center mb-12 text-foreground">
-          How <span className="text-primary">Jobchaja</span> Works
+          {t("titleBefore")}
+          <span className="text-primary">Jobchaja</span>
+          {t("titleAfter")}
         </h2>
 
-        {/* <div className="grid md:grid-cols-3 gap-8">
-          {steps.map((step, index) => (
-            <div key={index} className="text-center">
-              <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-                {step.number}
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                {step.title}
-              </h3>
-              <p className="text-muted-foreground">{step.description}</p>
-            </div>
-          ))}
-        </div> */}
-
         <div className="flex gap-3 max-w-5xl mx-auto">
-          {/* 1st */}
+          {/* FIRST COLUMN */}
           <div className="bg-[#D5E6FF] rounded-2xl">
             <div className="p-10">
               <h2 className="font-[700] text-[24px] mb-5">
-                1.{""} Sign Up to hire up or login
+                1. {steps[0].title}
               </h2>
               <p className="max-w-sm leading-6 mb-[60px]">
-                Job seekers and companies create verified profiles. Both parties
-                deposit according to their needs.
+                {steps[0].description}
               </p>
+
               <div className="flex items-center justify-center">
                 <Image
-                  src={"/home/phone.png"}
-                  alt="JobChaPhoneApp"
-                  width={100}
-                  height={100}
+                  src={steps[0].image}
+                  alt="StepOneImage"
+                  width={steps[0].imageW}
+                  height={steps[0].imageH}
                   unoptimized
-                  className="w-[220px] h-[330px] "
+                  className="w-[220px] h-[330px]"
                 />
               </div>
             </div>
           </div>
 
-          {/* 2nd */}
-          <div className="">
+          {/* RIGHT COLUMN */}
+          <div>
+            {/* STEP 2 */}
             <div className="bg-[#CFF5FF] rounded-2xl mb-3">
               <div className="p-10">
                 <h2 className="font-[700] text-[24px] mb-5">
-                  2.{""} Find the best jobs for you
+                  2. {steps[1].title}
                 </h2>
                 <p className="max-w-sm leading-6 mb-5">
-                  Get the perfect job based on your preference and the best
-                  salary you can get from it to support your future.
+                  {steps[1].description}
                 </p>
+
                 <div className="flex items-center justify-center">
                   <Image
-                    src={"/home/searchBar.png"}
-                    alt="JobChaPhoneApp"
-                    width={300}
-                    height={100}
+                    src={steps[1].image}
+                    alt="StepTwoImage"
+                    width={steps[1].imageW}
+                    height={steps[1].imageH}
                     unoptimized
                   />
                 </div>
               </div>
             </div>
+
+            {/* STEP 3 */}
             <div className="bg-[#F4E4FF] rounded-2xl">
               <div className="p-10">
                 <h2 className="font-[700] text-[24px] mb-5">
-                  3.{""} Apply to the best jobs for you
+                  3. {steps[2].title}
                 </h2>
                 <p className="max-w-sm leading-6 mb-5">
-                  We only provide work from trusted companies with superior
-                  quality and satisfying salary offers for you.
+                  {steps[2].description}
                 </p>
+
                 <div className="flex items-center justify-center">
                   <Image
-                    src={"/home/orangeSquare.png"}
-                    alt="JobChaPhoneApp"
-                    width={300}
-                    height={100}
+                    src={steps[2].image}
+                    alt="StepThreeImage"
+                    width={steps[2].imageW}
+                    height={steps[2].imageH}
                     unoptimized
                   />
                 </div>

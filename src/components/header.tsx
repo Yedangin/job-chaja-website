@@ -1,7 +1,12 @@
+"use client";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { LanguageSwitcher } from "./language-switcher";
 
 export default function Header() {
+  const t = useTranslations("Header");
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-border">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
@@ -22,9 +27,12 @@ export default function Header() {
         {/* <button className="bg-secondary text-primary px-6 py-2 rounded-full text-sm font-medium hover:bg-opacity-80 transition">
           Get Started
         </button> */}
-        <Button className="bg-[#5FA8FF57] py-2 px-4 text-white font-medium hover:bg-opacity-90 transition">
-          <span className="text-primary text-[15px]">Get Start</span>
-        </Button>
+        <div className="flex gap-3 items-center justify-center">
+          <Button className="bg-[#5FA8FF57] py-2 px-4 text-white font-medium hover:bg-opacity-90 transition">
+            <span className="text-primary text-[15px]">{t("title")}</span>
+          </Button>
+          <LanguageSwitcher />
+        </div>
       </div>
     </header>
   );

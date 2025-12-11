@@ -82,3 +82,6 @@ export const HomeAboutJobs: HomeJobType[] = [
     ],
   },
 ];
+
+
+
