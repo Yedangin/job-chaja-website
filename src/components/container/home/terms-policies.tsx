@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function TermsPolicies() {
   type TermPolicyType = {
@@ -6,6 +7,7 @@ export default function TermsPolicies() {
     title: string;
     description: string;
     icon: string;
+    url: string;
   };
 
   const data: TermPolicyType[] = [
@@ -15,6 +17,7 @@ export default function TermsPolicies() {
       description:
         "Detailed terms covering deposit requirements, refund policies, user responsibilities, and platform rules",
       icon: "/home/termsNpoliciesIcons/1.png",
+      url: "/terms-and-conditions",
     },
     {
       id: 2,
@@ -22,6 +25,7 @@ export default function TermsPolicies() {
       description:
         "How we protect your personal information, data usage, and your security rights",
       icon: "/home/termsNpoliciesIcons/1.png",
+      url: "/privacy-policy",
     },
   ];
 
@@ -52,12 +56,12 @@ export default function TermsPolicies() {
                 <p className="text-muted-foreground text-sm mb-4">
                   {termPolicy?.description}
                 </p>
-                <a
-                  href="#"
+                <Link
+                  href={termPolicy?.url}
                   className="text-primary font-medium hover:underline"
                 >
                   Read More →
-                </a>
+                </Link>
               </div>
             </div>
           ))}

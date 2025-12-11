@@ -1,11 +1,11 @@
 import Header from "@/components/header"
-import HeroSection from "@/components/hero-section"
-import FeaturesSection from "@/components/features-section"
-import HowItWorks from "@/components/how-it-works"
-import DepositSystem from "@/components/deposit-system"
-import WhySystem from "@/components/why-system"
-import TermsPolicies from "@/components/terms-policies"
-import MobileApp from "@/components/mobile-app"
+import HeroSection from "@/components/container/home/hero-section"
+import FeaturesSection from "@/components/container/home/features-section"
+import HowItWorks from "@/components/container/home/how-it-works"
+import DepositSystem from "@/components/container/home/deposit-system"
+import WhySystem from "@/components/container/home/why-system"
+import TermsPolicies from "@/components/container/home/terms-policies"
+import MobileApp from "@/components/container/home/mobile-app"
 import Footer from "@/components/footer"
 
 export const metadata = {

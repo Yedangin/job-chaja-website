@@ -1,5 +1,3 @@
-"use client";
-
 export default function WhySystem() {
   return (
     <section className="max-w-7xl mx-auto bg-primary text-white py-16 md:py-24 rounded-2xl">
