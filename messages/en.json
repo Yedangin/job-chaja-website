@@ -339,5 +339,11 @@
         ]
       }
     ]
+  },
+  "NotFoundPage": {
+    "title": "404 - Page Not Found",
+    "description": " Sorry we couldn't find this page.",
+    "description2": " But don't worry, you can find plenty of other things on our homepage.",
+    "btn": "Back to Homepage"
   }
 }
