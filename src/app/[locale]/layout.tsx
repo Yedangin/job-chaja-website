@@ -14,24 +14,17 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Jobchaja - Secure Job Application Platform",
-  description: "Created with v0",
-  generator: "v0.app",
+  description:
+    "A trusted and secure platform for seamless job searching, hiring, and applications.",
+  generator: "Jobchaja Platform System",
   icons: {
     icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
+      { url: "/icon/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/icon/favicon-16x16.png", type: "image/png", sizes: "16x16" },
     ],
-    apple: "/apple-icon.png",
+    shortcut: "/icon/favicon.ico",
+    apple: "/icon/apple-touch-icon.png",
+    other: [{ rel: "manifest", url: "/site.webmanifest" }],
   },
 };
 
