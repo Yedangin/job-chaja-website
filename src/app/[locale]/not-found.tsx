@@ -1,22 +1,24 @@
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 export default function NotFound() {
+  const t = useTranslations("NotFoundPage");
+
   return (
     <div className="">
       <div className="h-screen w-screen bg-gray-100 flex items-center">
-        <div className="container flex flex-col md:flex-row items-center justify-center px-5 text-gray-700 mx-auto">
+        <div className="container flex flex-col md:flex-row items-center justify-center px-5 text-gray-700 mx-auto gap-[100px]">
           <div className="max-w-md">
-            <div className="text-5xl font-dark font-bold">404</div>
+            <div className="text-5xl font-dark font-bold mb-3 lg:text-nowrap ">
+              {t("title")}
+            </div>
             <p className="text-2xl md:text-3xl font-light leading-normal">
-              Sorry we couldn't find this page.{" "}
+              {t("description")}
             </p>
-            <p className="mb-8">
-              But dont worry, you can find plenty of other things on our
-              homepage.
-            </p>
+            <p className="mb-8">{t("description2")}</p>
             <Link href="/" className="h-32 ">
-              <button className="cursor-pointer px-4 inline py-2 text-sm font-medium leading-5 shadow text-white transition-colors border border-transparent rounded-lg focus:outline-none focus:shadow-outline-blue bg-blue-400 hover:bg-blue-500/75 duration-200 ease-in-out hover:translate-y-0.5 hover:pt-1.5 hover:pe-3.5">
-                back to homepage
+              <button className="cursor-pointer px-4 inline py-2 text-sm font-medium leading-5 shadow text-white transition-colors border border-transparent rounded-lg focus:outline-none focus:shadow-outline-blue bg-primary hover:bg-blue-500/75 duration-200 ease-in-out hover:translate-y-0.5 hover:pt-1.5 hover:pe-3.5 ">
+                {t("btn")}
               </button>
             </Link>
           </div>
