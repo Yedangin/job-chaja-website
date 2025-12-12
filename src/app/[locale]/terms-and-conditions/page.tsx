@@ -2,10 +2,14 @@ import { TermsAndConditionsHeader } from "@/components/container/terms-and-condi
 import { TermsAndConditionsSection } from "@/components/container/terms-and-conditions/terms-and-condtions-section";
 import Footer from "@/components/footer";
 import Header from "@/components/header";
-import { privacyPolicyData } from "@/data/privacy-policy";
+import { useTranslations } from "next-intl";
 
-export default function page() {
-  const { header, sections } = privacyPolicyData;
+export default function Page() {
+  const t = useTranslations("TermsAndConditions");
+
+  const header = t.raw("header");
+  const sections = t.raw("sections");
+
   return (
     <>
       <Header />

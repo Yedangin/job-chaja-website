@@ -1,67 +1,53 @@
+import { useTranslations } from "next-intl";
+
 export default function Footer() {
+  const t = useTranslations("Footer");
+
   return (
-    <footer className=" text-white">
+    <footer className="text-white">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 bg-primary py-16">
         <div className="grid md:grid-cols-4 gap-8 mb-8">
           <div>
-            <h3 className="text-2xl font-bold mb-4">Jobchaja</h3>
-            <p className="text-sm text-opacity-80">
-              Fair job interviews with secure deposits
-            </p>
+            <h3 className="text-2xl font-bold mb-4">{t("brand.title")}</h3>
+            <p className="text-sm text-opacity-80">{t("brand.description")}</p>
           </div>
+
           <div>
-            <h4 className="font-semibold mb-4">Platform</h4>
+            <h4 className="font-semibold mb-4">{t("platform.title")}</h4>
             <ul className="space-y-2 text-sm text-opacity-90">
-              <li>
-                <a href="#" className="hover:underline">
-                  For Job Seekers
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:underline">
-                  For Companies
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:underline">
-                  Pricing
-                </a>
-              </li>
+              {t.raw("platform.links").map((link: any, idx: number) => (
+                <li key={idx}>
+                  <a href={link.url} className="hover:underline">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
+
           <div>
-            <h4 className="font-semibold mb-4">Support</h4>
+            <h4 className="font-semibold mb-4">{t("support.title")}</h4>
             <ul className="space-y-2 text-sm text-opacity-90">
-              <li>
-                <a href="#" className="hover:underline">
-                  Help Center
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:underline">
-                  Contact Support
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:underline">
-                  Phone: +82 2-1234-5678
-                </a>
-              </li>
+              {t.raw("support.links").map((link: any, idx: number) => (
+                <li key={idx}>
+                  <a href={link.url} className="hover:underline">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
+
           <div>
-            <h4 className="font-semibold mb-4">Legal</h4>
+            <h4 className="font-semibold mb-4">{t("legal.title")}</h4>
             <ul className="space-y-2 text-sm text-opacity-90">
-              <li>
-                <a href="#" className="hover:underline">
-                  Terms & Conditions
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:underline">
-                  Privacy Policy
-                </a>
-              </li>
+              {t.raw("legal.links").map((link: any, idx: number) => (
+                <li key={idx}>
+                  <a href={link.url} className="hover:underline">
+                    {link.label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

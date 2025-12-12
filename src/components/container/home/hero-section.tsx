@@ -1,28 +1,26 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 
 export default function HeroSection() {
+  const t = useTranslations("HomePage.HeroSection");
   return (
     <section className="bg-white py-5 md:py-10">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <div className="space-y-6 w-full">
             <h1 className="text-4xl md:text-5xl font-bold text-foreground text-balance">
-              Choose your
+              {t("h1")}
             </h1>
             <h2 className="text-4xl md:text-5xl font-bold text-foreground text-balance">
-              <span className="text-primary">best job</span> with us
+              <span className="text-primary">{t("span")}</span> {t("h2")}
             </h2>
-            <p className="text-lg text-[#5FA8FF]">
-              Discover a platform tailored for passionate job seekers interested
-              in startups. Find your next career opportunity and connect with
-              like-minded individuals.
-            </p>
+            <p className="text-lg text-[#5FA8FF]">{t("description")}</p>
             {/* <button className="bg-primary text-white px-8 py-3 rounded-full font-medium hover:bg-opacity-90 transition">
               Explore Jobs
             </button> */}
             <Button className="bg-primary text-white py-6 font-medium hover:bg-opacity-90 transition text-[24px]">
-              Browse Jobs
+              {t("btn")}
             </Button>
           </div>
           <div className="relative w-full h-96 md:h-[500px] lg:h-[600px]">
