@@ -54,7 +54,7 @@ export default async function RootLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`font-sans antialiased overflow-x-hidden`}>
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
         <Analytics />

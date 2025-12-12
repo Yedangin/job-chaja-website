@@ -5,14 +5,13 @@ import Header from "@/components/header";
 import { useTranslations } from "next-intl";
 
 export default function Page() {
-  const t = useTranslations("PrivacyPolicy");
+  const t = useTranslations("TermsAndConditions");
 
   const header = t.raw("header");
   const sections = t.raw("sections");
 
   return (
     <>
-      <Header />
       <TermsAndConditionsHeader
         title={header.title}
         lastUpdated={header.lastUpdated}
@@ -29,7 +28,6 @@ export default function Page() {
           subsections={section.subsections}
         />
       ))}
-      <Footer />
     </>
   );
 }

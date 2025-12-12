@@ -124,7 +124,7 @@ export default function HeroSection() {
             {/* Professional Woman Image */}
             <div className="relative z-10 flex justify-center items-end">
               <Image
-                src={"/home/heroImage.png"}
+                src="/home/heroImage.png"
                 alt="JobChaJa HeroSection Image"
                 width={200}
                 height={200}
