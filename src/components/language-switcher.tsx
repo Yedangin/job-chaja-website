@@ -24,11 +24,21 @@ export function LanguageSwitcher() {
   const currentLocale = params.locale || "en";
 
   const changeLanguage = (locale: string) => {
-    // Get the path without the locale prefix
-    const pathWithoutLocale = pathname.replace(/^\/[^/]+/, "");
+    // Get the current path segments
+    const pathSegments = pathname.split("/").filter(Boolean);
+
+    // Check if the first segment is a locale
+    const isFirstSegmentLocale = locales.includes(pathSegments[0] as Locale);
+
+    // Get the path without the current locale prefix
+    const pathWithoutLocale = isFirstSegmentLocale
+      ? pathSegments.slice(1).join("/")
+      : pathSegments.join("/");
 
     // Create the new path with the selected locale
-    const newPath = `/${locale}${pathWithoutLocale || "/"}`;
+    const newPath = `/${locale}${
+      pathWithoutLocale ? `/${pathWithoutLocale}` : ""
+    }`;
 
     // Set the NEXT_LOCALE cookie
     document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=31536000`; // 1 year
