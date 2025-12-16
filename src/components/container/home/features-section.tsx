@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
@@ -30,44 +30,54 @@ export default function FeaturesSection() {
   ];
 
   return (
-    <section>
-      <div className="border border-gray-100 mb-4"></div>
-      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="padding-responsive-sm">
+      {/* <div className="border border-gray-100 mb-6 sm:mb-8"></div> */}
+      <div className="container-responsive">
         {/* Badge */}
-        <div className="bg-[#5FA8FF4A] w-fit px-3 py-3 rounded-xl text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-          <Image src="/home/lock.png" alt="Icon" width={24} height={24} />
+        <div className="bg-[#5FA8FF4A] w-fit px-3 py-2 sm:py-3 rounded-xl text-sm sm:text-lg font-semibold text-primary mb-4 sm:mb-6 flex items-center gap-2">
+          <Image
+            src="/home/lock.png"
+            alt="Icon"
+            width={20}
+            height={20}
+            className="sm:w-6 sm:h-6"
+          />
           <p>{t("badge")}</p>
         </div>
 
         {/* Title */}
-        <h2 className="text-[38px] font-bold mb-4 text-foreground">
+        <h2 className="text-responsive-lg font-bold mb-4 sm:mb-6 text-foreground">
           {t("title")}
         </h2>
 
         {/* Description */}
-        <p className="mb-12 max-w-3xl text-primary text-[18px] leading-8">
+        <p className="mb-8 sm:mb-12 max-w-3xl text-primary text-responsive-sm leading-relaxed">
           {t("description")}
         </p>
 
         {/* Features List */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid-responsive-2">
           {features.map((feature, index) => (
-            <Card key={index} className="p-6 bg-white border border-border">
-              <div className="flex items-center gap-6">
-                <div className="mb-4 flex items-center h-[120px] w-fit bg-[#5FA8FF] p-9 rounded-lg">
+            <Card
+              key={index}
+              className="p-4 sm:p-6 bg-white border border-border"
+            >
+              <div className="flex items-start sm:items-center gap-4 sm:gap-6">
+                <div className="flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 lg:h-24 lg:w-24 bg-[#5FA8FF] p-3 sm:p-4 lg:p-6 rounded-lg flex-shrink-0">
                   <Image
                     src={feature.icon}
                     alt={feature.title}
-                    width={48}
-                    height={48}
+                    width={32}
+                    height={32}
+                    className="sm:w-10 sm:h-10 lg:w-12 lg:h-12"
                   />
                 </div>
 
-                <div>
-                  <h3 className="text-[25px] font-[600] text-foreground mb-2">
+                <div className="flex-1">
+                  <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-foreground mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-muted-foreground font-[400] text-[18px]">
+                  <p className="text-muted-foreground text-sm sm:text-base lg:text-lg leading-relaxed">
                     {feature.description}
                   </p>
                 </div>

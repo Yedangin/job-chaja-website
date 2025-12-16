@@ -85,22 +85,22 @@ export function LanguageSwitcher() {
         <Button
           variant="outline"
           size="icon"
-          className="rounded-full h-9 w-9 border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+          className="rounded-full h-8 w-8 sm:h-9 sm:w-9 border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors cursor-pointer"
           aria-label={`Current language: ${localeNames[activeLocale]}`}
         >
-          <Globe className="h-[1.1rem] w-[1.1rem] text-muted-foreground" />
+          <Globe className="h-4 w-4 sm:h-[1.1rem] sm:w-[1.1rem] text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-40">
-        <div className="py-1 px-2 text-sm font-medium text-gray-500 border-b dark:text-gray-400 dark:border-gray-700">
+      <DropdownMenuContent align="end" className="w-36 sm:w-40">
+        <div className="py-1 px-2 text-xs sm:text-sm font-medium text-gray-500 border-b dark:text-gray-400 dark:border-gray-700">
           Select Language
         </div>
         {locales.map((locale) => (
           <DropdownMenuItem
             key={locale}
             onClick={() => changeLanguage(locale)}
-            className={`cursor-pointer flex items-center gap-3 py-2 ${
+            className={`cursor-pointer flex items-center gap-2 sm:gap-3 py-2 ${
               locale === activeLocale
                 ? "bg-gray-100 font-semibold dark:bg-gray-800 text-primary"
                 : "text-gray-700 dark:text-gray-200"
@@ -110,7 +110,9 @@ export function LanguageSwitcher() {
             <FlagIcon code={localeToFlagCode[locale]} />
 
             {/* Display the Language Name */}
-            <span className="flex-grow">{localeNames[locale]}</span>
+            <span className="flex-grow text-sm sm:text-base">
+              {localeNames[locale]}
+            </span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

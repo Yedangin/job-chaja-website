@@ -35,23 +35,24 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section className="bg-white py-3 md:py-10">
-      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="bg-white padding-responsive-sm">
+      <div className="container-responsive">
         {/* Localized heading with span */}
-        <h2 className="text-[52px] font-bold text-center mb-12 text-foreground">
+        <h2 className="text-responsive-lg font-bold text-center mb-8 sm:mb-12 text-foreground">
           {t("titleBefore")}
           <span className="text-primary">Jobchaja</span>
           {t("titleAfter")}
         </h2>
 
-        <div className="flex gap-3 max-w-5xl mx-auto">
-          {/* FIRST COLUMN */}
-          <div className="bg-[#D5E6FF] rounded-2xl">
-            <div className="p-10">
-              <h2 className="font-[700] text-[24px] mb-5">
+        {/* Mobile: Stack vertically, Desktop: Two-column layout */}
+        <div className="flex flex-col lg:flex-row gap-3 sm:gap-4 max-w-5xl mx-auto">
+          {/* FIRST COLUMN - Step 1 */}
+          <div className="bg-[#D5E6FF] rounded-xl sm:rounded-2xl flex-1">
+            <div className="p-4 sm:p-6 lg:p-10">
+              <h3 className="font-bold text-lg sm:text-xl lg:text-2xl mb-3 sm:mb-5">
                 1. {steps[0].title}
-              </h2>
-              <p className="max-w-sm leading-6 mb-[60px]">
+              </h3>
+              <p className="text-sm sm:text-base leading-relaxed mb-6 sm:mb-8 lg:mb-[60px] max-w-sm">
                 {steps[0].description}
               </p>
 
@@ -62,21 +63,21 @@ export default function HowItWorks() {
                   width={steps[0].imageW}
                   height={steps[0].imageH}
                   unoptimized
-                  className="w-[220px] h-[330px]"
+                  className="w-32 h-48 sm:w-40 sm:h-60 lg:w-[220px] lg:h-[330px] object-contain"
                 />
               </div>
             </div>
           </div>
 
-          {/* RIGHT COLUMN */}
-          <div>
+          {/* RIGHT COLUMN - Steps 2 & 3 */}
+          <div className="flex-1 space-y-3 sm:space-y-4">
             {/* STEP 2 */}
-            <div className="bg-[#CFF5FF] rounded-2xl mb-3">
-              <div className="p-10">
-                <h2 className="font-[700] text-[24px] mb-5">
+            <div className="bg-[#CFF5FF] rounded-xl sm:rounded-2xl">
+              <div className="p-4 sm:p-6 lg:p-10">
+                <h3 className="font-bold text-lg sm:text-xl lg:text-2xl mb-3 sm:mb-5">
                   2. {steps[1].title}
-                </h2>
-                <p className="max-w-sm leading-6 mb-5">
+                </h3>
+                <p className="text-sm sm:text-base leading-relaxed mb-4 sm:mb-5 max-w-sm">
                   {steps[1].description}
                 </p>
 
@@ -87,18 +88,19 @@ export default function HowItWorks() {
                     width={steps[1].imageW}
                     height={steps[1].imageH}
                     unoptimized
+                    className="w-48 h-16 sm:w-60 sm:h-20 lg:w-[300px] lg:h-[100px] object-contain"
                   />
                 </div>
               </div>
             </div>
 
             {/* STEP 3 */}
-            <div className="bg-[#F4E4FF] rounded-2xl">
-              <div className="p-10">
-                <h2 className="font-[700] text-[24px] mb-5">
+            <div className="bg-[#F4E4FF] rounded-xl sm:rounded-2xl">
+              <div className="p-4 sm:p-6 lg:p-10">
+                <h3 className="font-bold text-lg sm:text-xl lg:text-2xl mb-3 sm:mb-5">
                   3. {steps[2].title}
-                </h2>
-                <p className="max-w-sm leading-6 mb-5">
+                </h3>
+                <p className="text-sm sm:text-base leading-relaxed mb-4 sm:mb-5 max-w-sm">
                   {steps[2].description}
                 </p>
 
@@ -109,6 +111,7 @@ export default function HowItWorks() {
                     width={steps[2].imageW}
                     height={steps[2].imageH}
                     unoptimized
+                    className="w-48 h-16 sm:w-60 sm:h-20 lg:w-[300px] lg:h-[100px] object-contain"
                   />
                 </div>
               </div>

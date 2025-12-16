@@ -124,3 +124,79 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* Responsive container utilities */
+  .container-responsive {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Responsive text utilities */
+  .text-responsive-xs {
+    @apply text-sm sm:text-base;
+  }
+
+  .text-responsive-sm {
+    @apply text-base sm:text-lg;
+  }
+
+  .text-responsive-md {
+    @apply text-lg sm:text-xl lg:text-2xl;
+  }
+
+  .text-responsive-lg {
+    @apply text-xl sm:text-2xl lg:text-3xl xl:text-4xl;
+  }
+
+  .text-responsive-xl {
+    @apply text-2xl sm:text-3xl lg:text-4xl xl:text-5xl;
+  }
+
+  /* Responsive spacing utilities */
+  .spacing-responsive-sm {
+    @apply space-y-4 sm:space-y-6;
+  }
+
+  .spacing-responsive-md {
+    @apply space-y-6 sm:space-y-8 lg:space-y-10;
+  }
+
+  .spacing-responsive-lg {
+    @apply space-y-8 sm:space-y-12 lg:space-y-16;
+  }
+
+  /* Responsive padding utilities */
+  .padding-responsive-sm {
+    @apply py-8 sm:py-12 lg:py-16;
+  }
+
+  .padding-responsive-md {
+    @apply py-12 sm:py-16 lg:py-20;
+  }
+
+  .padding-responsive-lg {
+    @apply py-16 sm:py-20 lg:py-24 xl:py-32;
+  }
+
+  /* Mobile-first grid utilities */
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .grid-responsive-4 {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  /* Responsive flex utilities */
+  .flex-responsive-col {
+    @apply flex flex-col sm:flex-row gap-4 sm:gap-6 lg:gap-8;
+  }
+
+  .flex-responsive-center {
+    @apply flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-4 sm:gap-6;
+  }
+}

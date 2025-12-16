@@ -22,7 +22,7 @@ export default function DepositSystem() {
   ];
 
   return (
-    <section className="bg-white py-16 md:py-24 max-w-8xl mx-auto">
+    <section className="bg-white py-16 md:py-24 container mx-auto">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl font-bold text-center mb-12 text-foreground">
           {t("title")}
@@ -89,7 +89,7 @@ export default function DepositSystem() {
             <div
               className={`bg-[#D5E6FF] rounded-xl ${
                 jobType.id === 2 && "bg-[#CFF5FF] px-3"
-              } w-1/4 flex items-center justify-center`}
+              } w-1/4 flex items-center justify-center hidden md:flex`}
             >
               <Image
                 src={jobType.image}
