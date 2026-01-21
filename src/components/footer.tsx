@@ -77,19 +77,26 @@ export default function Footer() {
 
       <div className="border-t border-white border-opacity-20 bg-gray-50 text-black py-4 sm:py-6">
         <div className="container-responsive">
-          <div className="text-center space-y-2 sm:space-y-3">
-            <p className="text-xs sm:text-sm text-opacity-80">
-              &copy; {new Date().getFullYear()} Jobchaja. All rights reserved. |
-              Design by Jobchaja
-            </p>
+          <div className="text-center space-y-3 sm:space-y-4">
+
             <p className="text-xs sm:text-sm text-opacity-70 leading-relaxed max-w-4xl mx-auto">
-              Deposit System: Job Seeker ₩50,000 per application (win ₩50,000
-              when hired) | Corporate: ₩50,000 opening + ₩30,000 per post +
-              ₩50,000 per interview
+              <span className="font-medium">{t("company.name")}</span> <br />
+              {t("company.ceo")} <br />
+              {t("company.address")} <br />
+              {t("company.registration")} | {t("company.contact")}
             </p>
+
+            {/* <p className="text-xs sm:text-sm text-opacity-70 leading-relaxed max-w-4xl mx-auto">
+              {t("depositInfo")}
+            </p> */}
+            <p className="text-xs sm:text-sm text-opacity-80">
+              {t("copyright", { year: new Date().getFullYear() })}
+            </p>
+
           </div>
         </div>
       </div>
+
     </footer>
   );
 }

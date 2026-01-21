@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 export default function HeroSection() {
   const t = useTranslations("HomePage.HeroSection");
@@ -26,7 +27,7 @@ export default function HeroSection() {
             </p>
 
             <Button className="bg-primary text-white py-4 sm:py-6 px-6 sm:px-8 font-medium hover:bg-opacity-90 transition text-lg sm:text-xl lg:text-2xl w-full sm:w-auto">
-              {t("btn")}
+              <Link href={"/job"}>{t("btn")}</Link>
             </Button>
           </div>
 

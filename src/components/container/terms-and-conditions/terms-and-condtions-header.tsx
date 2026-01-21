@@ -23,7 +23,7 @@ export function TermsAndConditionsHeader({
           <p className="text-blue-100 mb-2 text-sm sm:text-base">
             Last updated: {lastUpdated}
           </p>
-          <p className="text-blue-50 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
+          <p className="text-blue-50 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed text-justify">
             {description}
           </p>
         </div>

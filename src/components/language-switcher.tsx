@@ -68,9 +68,8 @@ export function LanguageSwitcher() {
       ? pathSegments.slice(1).join("/")
       : pathSegments.join("/");
 
-    const newPath = `/${locale}${
-      pathWithoutLocale ? `/${pathWithoutLocale}` : ""
-    }`;
+    const newPath = `/${locale}${pathWithoutLocale ? `/${pathWithoutLocale}` : ""
+      }`;
 
     // Set the NEXT_LOCALE cookie
     document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=31536000; Secure; SameSite=Lax`;
@@ -100,11 +99,10 @@ export function LanguageSwitcher() {
           <DropdownMenuItem
             key={locale}
             onClick={() => changeLanguage(locale)}
-            className={`cursor-pointer flex items-center gap-2 sm:gap-3 py-2 ${
-              locale === activeLocale
+            className={`cursor-pointer flex items-center gap-2 sm:gap-3 py-2 ${locale === activeLocale
                 ? "bg-gray-100 font-semibold dark:bg-gray-800 text-primary"
                 : "text-gray-700 dark:text-gray-200"
-            }`}
+              }`}
           >
             {/* Display the Flag Icon */}
             <FlagIcon code={localeToFlagCode[locale]} />
