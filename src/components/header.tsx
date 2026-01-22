@@ -1,41 +1,58 @@
-"use client";
-import { Button } from "@/components/ui/button";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { LanguageSwitcher } from "./language-switcher";
+'use client';
 
-export default function Header() {
-  const t = useTranslations("Header");
+import { Button } from '@/components/ui/button';
+import { ChevronRight, Paperclip as PaperPlane } from 'lucide-react';
+
+import Link from 'next/link';
+import { useState } from 'react';
+
+interface HeaderProps {
+  isCompanyMode: boolean;
+  onToggleMode: () => void;
+  onLogoClick: () => void;
+}
+
+export default function Header({ isCompanyMode, onToggleMode, onLogoClick }: HeaderProps) {
+
+  const [item, setItem] = useState(null)
+  const [paymentStatus, setPaymentStatus] = useState({
+    status: "IDLE"
+  })
+
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-border">
-      <div className="container-responsive py-3 sm:py-4">
-        <div className="flex items-center justify-between">
-          <Link
-            href={"/"}
-            className="text-xl sm:text-2xl font-bold text-primary flex-shrink-0"
-          >
-            <svg
-              className="h-8 sm:h-10 w-auto"
-              viewBox="0 0 252 72"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M18.4375 13.3125V45.125C18.4375 53.7083 12.5521 58 0.78125 58V50.8125C7.03125 50.8125 10.1562 48.9167 10.1562 45.125V13.3125H18.4375ZM33.75 41.4688C33.75 48.3229 36.4062 51.75 41.7188 51.75C47.0312 51.75 49.6875 48.3229 49.6875 41.4688C49.6875 34.7812 47.0312 31.4375 41.7188 31.4375C36.4062 31.4375 33.75 34.7812 33.75 41.4688ZM25.4688 41.5938C25.4688 30.5938 30.8854 25.0938 41.7188 25.0938C52.5521 25.0938 57.9688 30.5938 57.9688 41.5938C57.9688 52.5729 52.5521 58.0625 41.7188 58.0625C30.9271 58.0625 25.5104 52.5729 25.4688 41.5938ZM72.5 50.4062C74.3958 51.0104 76.5938 51.3125 79.0938 51.3125C84.0938 51.3125 86.5938 47.7812 86.5938 40.7188C86.5938 34.9479 84.4375 32.0625 80.125 32.0625C77.3333 32.0625 74.7917 32.625 72.5 33.75V50.4062ZM64.2188 13.3125H72.5V27.6875C74.9792 26.0208 77.7396 25.1875 80.7812 25.1875C90.1146 25.1875 94.7812 30.4375 94.7812 40.9375C94.7812 52.3125 89.4375 58 78.75 58C74.25 58 69.4062 57.5521 64.2188 56.6562V13.3125ZM125.25 57.0625C122.542 57.6875 119.729 58 116.812 58C105.146 58 99.3125 52.3229 99.3125 40.9688C99.3125 30.4479 105.146 25.1875 116.812 25.1875C119.729 25.1875 122.542 25.5 125.25 26.125V32.6875C122.542 32.0625 119.938 31.75 117.438 31.75C110.875 31.75 107.594 34.8229 107.594 40.9688C107.594 47.9479 110.875 51.4375 117.438 51.4375C119.938 51.4375 122.542 51.125 125.25 50.5V57.0625ZM130.719 58V13.3125H139V29.375C141.583 26.5833 144.885 25.1875 148.906 25.1875C156.677 25.1875 160.562 29.2292 160.562 37.3125V58H152.281V37.3125C152.281 33.6875 150.479 31.875 146.875 31.875C144.188 31.875 141.562 32.9479 139 35.0938V58H130.719ZM166.844 47.7812C166.844 41.2604 171.594 38 181.094 38C183.323 38 185.552 38.2083 187.781 38.625V36.1562C187.781 33.2188 185.667 31.75 181.438 31.75C177.854 31.75 173.875 32.2708 169.5 33.3125V26.75C173.875 25.7083 177.854 25.1875 181.438 25.1875C191.188 25.1875 196.062 28.7917 196.062 36V58H191.25L188.312 55.0625C185.458 57.0208 182.312 58 178.875 58C170.854 58 166.844 54.5938 166.844 47.7812ZM187.781 44.25C185.698 43.8333 183.469 43.625 181.094 43.625C177.115 43.625 175.125 44.9792 175.125 47.6875C175.125 50.6042 176.792 52.0625 180.125 52.0625C182.875 52.0625 185.427 51.2083 187.781 49.5V44.25ZM212.188 13.3125V19.875H203.906V13.3125H212.188ZM212.188 25.1875V55.5C212.188 62.125 210.292 67.5208 206.5 71.6875L200 67.1562C202.604 64.3438 203.906 60.4583 203.906 55.5V25.1875H212.188ZM218.469 47.7812C218.469 41.2604 223.219 38 232.719 38C234.948 38 237.177 38.2083 239.406 38.625V36.1562C239.406 33.2188 237.292 31.75 233.062 31.75C229.479 31.75 225.5 32.2708 221.125 33.3125V26.75C225.5 25.7083 229.479 25.1875 233.062 25.1875C242.812 25.1875 247.688 28.7917 247.688 36V58H242.875L239.938 55.0625C237.083 57.0208 233.938 58 230.5 58C222.479 58 218.469 54.5938 218.469 47.7812ZM239.406 44.25C237.323 43.8333 235.094 43.625 232.719 43.625C228.74 43.625 226.75 44.9792 226.75 47.6875C226.75 50.6042 228.417 52.0625 231.75 52.0625C234.5 52.0625 237.052 51.2083 239.406 49.5V44.25Z"
-                fill="#5FA8FF"
-              />
-            </svg>
-          </Link>
-
-          <div className="flex gap-2 sm:gap-3 items-center">
-            <Button className="bg-[#5FA8FF57] py-2 px-3 sm:px-4 text-white font-medium hover:bg-opacity-90 transition">
-              <span className="text-primary text-sm sm:text-[15px]">
-                {t("title")}
-              </span>
-            </Button>
-            <LanguageSwitcher />
+    <header className="sticky top-0 z-50 glass border-b border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        {/* Logo */}
+        <div
+          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition"
+          onClick={onLogoClick}
+        >
+          <div className="w-8 h-8 bg-[#0ea5e9] rounded-lg flex items-center justify-center text-white">
+            <PaperPlane size={18} />
           </div>
+          <span className="text-xl font-bold tracking-tight text-slate-900">JobChaja</span>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={onToggleMode}
+            variant="ghost"
+            className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-slate-600 hover:bg-slate-100"
+          >
+            <span>{isCompanyMode ? '구직자 서비스' : '기업서비스'}</span>
+            <ChevronRight size={14} />
+          </Button>
+          <div className="h-4 w-px bg-gray-200 hidden md:block"></div>
+          <Button variant="ghost" className="text-slate-600 font-medium text-sm px-2">
+            로그인
+          </Button>
+          <Button className="bg-slate-900 text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-slate-800 shadow-lg shadow-slate-200" asChild>
+            <Link href={"/payment"} target='_blank' >
+              회원가입
+            </Link>
+          </Button>
         </div>
       </div>
     </header>
