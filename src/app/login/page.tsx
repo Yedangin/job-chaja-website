@@ -15,12 +15,8 @@ export default function LoginPage() {
     setCurrentType(type);
   };
 
-  const handleLogin = (provider: 'kakao' | 'google') => {
-    const providerName = provider === 'kakao' ? '카카오' : '구글';
-    const userType = currentType === 'seeker' ? '개인' : '기업';
-
-    alert(`[${providerName} 로그인 시뮬레이션]\n\n${userType} 회원으로 로그인을 진행합니다.\n실제 구현 시 OAuth 인증 창이 팝업됩니다.`);
-  };
+  const KAKAO_LOGIN_URL = 'http://jobchaja.com:8000/auth/kakao';
+  const GOOGLE_LOGIN_URL = 'http://jobchaja.com:8000/auth/google';
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
@@ -133,7 +129,9 @@ export default function LoginPage() {
               asChild
               className="w-full h-14 bg-yellow-300 hover:bg-yellow-400 text-yellow-900 font-bold rounded-2xl flex items-center justify-center gap-3"
             >
-              <Link href={"/"}>💬 카카오로 3초 만에 시작하기</Link>
+              <Link href={KAKAO_LOGIN_URL}>
+                💬 카카오로 3초 만에 시작하기
+              </Link>
             </Button>
 
             {/* Google Login */}
@@ -142,7 +140,7 @@ export default function LoginPage() {
               asChild
               className="w-full h-14 border border-gray-200 hover:bg-gray-50 text-slate-700 font-bold rounded-2xl flex items-center justify-center gap-3"
             >
-              <Link href={"/"}>
+              <Link href={GOOGLE_LOGIN_URL}>
                 <svg className="w-6 h-6" viewBox="0 0 24 24">
                   <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />

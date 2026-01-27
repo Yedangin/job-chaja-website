@@ -2,9 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Paperclip as PaperPlane } from 'lucide-react';
-
 import Link from 'next/link';
-import { useState } from 'react';
 
 interface HeaderProps {
   isCompanyMode: boolean;
@@ -13,13 +11,6 @@ interface HeaderProps {
 }
 
 export default function Header({ isCompanyMode, onToggleMode, onLogoClick }: HeaderProps) {
-
-  const [item, setItem] = useState(null)
-  const [paymentStatus, setPaymentStatus] = useState({
-    status: "IDLE"
-  })
-
-
   return (
     <header className="sticky top-0 z-50 glass border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -36,20 +27,20 @@ export default function Header({ isCompanyMode, onToggleMode, onLogoClick }: Hea
 
         {/* Actions */}
         <div className="flex items-center gap-3">
-          <Button
-            onClick={onToggleMode}
-            variant="ghost"
-            className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-slate-600 hover:bg-slate-100"
-          >
-            <span>{isCompanyMode ? '구직자 서비스' : '기업서비스'}</span>
-            <ChevronRight size={14} />
-          </Button>
+          {!isCompanyMode && (
+            <Button asChild variant="ghost" className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-slate-600 hover:bg-slate-100">
+              <Link href="/payment" onClick={onToggleMode}>
+                <span>기업서비스</span>
+                <ChevronRight size={14} />
+              </Link>
+            </Button>
+          )}
           <div className="h-4 w-px bg-gray-200 hidden md:block"></div>
-          <Button variant="ghost" className="text-slate-600 font-medium text-sm px-2">
-            로그인
+          <Button asChild variant="ghost" className="text-slate-600 font-medium text-sm px-2">
+            <Link href="/login">로그인</Link>
           </Button>
           <Button className="bg-slate-900 text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-slate-800 shadow-lg shadow-slate-200" asChild>
-            <Link href={"/payment"} target='_blank' >
+            <Link href={"/register"} target='_blank' >
               회원가입
             </Link>
           </Button>

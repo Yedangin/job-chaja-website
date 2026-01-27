@@ -11,12 +11,13 @@ import {
 import { Globe } from "lucide-react";
 
 // --- Configuration ---
-export const locales = ["en", "kr"] as const;
+export const locales = ["en", "kr", "my"] as const;
 export type Locale = (typeof locales)[number];
 
 export const localeNames: Record<Locale, string> = {
   en: "English",
   kr: "Korean",
+  my: "Myanmar",
 };
 
 // Base path for flags in the public directory (Assumes /public/flags/...)
@@ -26,6 +27,7 @@ const FLAG_BASE_PATH = "/flag";
 const localeToFlagCode: Record<Locale, string> = {
   en: "gb", // Assuming you've changed the English flag from 'us' to 'gb'
   kr: "kr",
+  my: "mm",
 };
 // --- End Configuration ---
 
