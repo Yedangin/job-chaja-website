@@ -2,6 +2,7 @@ import React from "react"
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import Script from 'next/script' // ၁။ Script component ကို import လုပ်ပါ
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -37,6 +38,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* ၂။ PortOne V1 Script ကို ဤနေရာတွင် ထည့်ပါ */}
+        <Script 
+          src="https://cdn.iamport.kr/v1/iamport.js" 
+          strategy="beforeInteractive" 
+        />
+      </head>
       <body className={`font-sans antialiased`}>
         {children}
         <Analytics />

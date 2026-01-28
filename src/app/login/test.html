@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobChaja Auth Flow v5 (Review Carousel)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hidden-page { display: none !important; }
+        
+        /* Custom Checkbox Style */
+        .custom-checkbox:checked {
+            background-color: #0ea5e9; /* Sky-500 */
+            border-color: #0ea5e9;
+        }
+        .custom-checkbox:checked::after {
+            content: '✔';
+            display: block;
+            color: white;
+            font-size: 10px;
+            text-align: center;
+            line-height: 14px;
+        }
+
+        /* Review Card Transitions */
+        .review-card-content {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .review-card-hidden {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <div class="min-h-screen flex items-center justify-center p-4">
+        
+        <!-- Main Container Card -->
+        <div id="main-card" class="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[800px] relative transition-all duration-300">
+            
+            <!-- Language Switcher -->
+            <div class="absolute top-6 right-6 z-50">
+                <select onchange="changeLanguage(this.value)" class="bg-white border border-slate-200 text-slate-600 text-xs font-bold py-1 px-3 rounded-full hover:border-sky-500 outline-none cursor-pointer shadow-sm">
+                    <option value="ko">🇰🇷 한국어</option>
+                    <option value="en">🇺🇸 English</option>
+                    <option value="cn">🇨🇳 中文</option>
+                </select>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 1. 로그인 뷰 (Login View) -->
+            <!-- ========================================== -->
+            <div id="view-login" class="w-full flex flex-col md:flex-row h-full absolute inset-0 bg-white fade-in z-10">
+                <!-- Left Side -->
+                <div class="hidden md:flex md:w-1/2 bg-slate-900 relative flex-col justify-between p-12 text-white overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900"></div>
+                    <div class="absolute top-0 right-0 w-96 h-96 bg-sky-500 rounded-full blur-3xl opacity-10"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-2 mb-6">
+                            <div class="w-10 h-10 bg-sky-500 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-sky-500/30">✈</div>
+                            <span class="text-xl font-bold tracking-tight">JobChaja</span>
+                        </div>
+                    </div>
+                    
+                    <div class="relative z-10 space-y-6">
+                        <h2 class="text-4xl font-bold leading-tight" data-i18n="slogan">Global Talent,<br />Korea Opportunity.</h2>
+                        <p class="text-slate-300 font-light text-lg leading-relaxed" data-i18n="subSlogan">국경 없는 채용의 시작.<br />검증된 기업과 인재를 안전하게 연결합니다.</p>
+                        
+                        <!-- Review Card Carousel -->
+                        <div class="mt-8 bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/10 min-h-[88px] flex items-center">
+                            <div id="review-container" class="flex items-center gap-4 review-card-content w-full">
+                                <!-- Dynamic Content will be injected here -->
+                                <div id="review-avatar" class="w-10 h-10 rounded-full bg-green-500 flex-shrink-0 flex items-center justify-center font-bold text-white text-sm">K</div>
+                                <div>
+                                    <p id="review-text" class="text-sm font-medium text-white">"비자 문제 없이 바로 취업했어요!"</p>
+                                    <p id="review-author" class="text-xs text-slate-400">Kevin, E-9 비자 근로자</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side -->
+                <div class="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white h-full">
+                    <div class="text-center mb-6 mt-8">
+                        <h1 class="text-2xl md:text-3xl font-bold text-slate-900 mb-2" data-i18n="welcome">환영합니다! 👋</h1>
+                        <p class="text-slate-500 text-sm" data-i18n="welcomeSub">3초 만에 시작하고 맞춤 일자리를 찾으세요.</p>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div class="flex p-1 bg-gray-100 rounded-2xl mb-4 relative">
+                        <div id="login-tab-slider" class="absolute left-1 top-1 bottom-1 w-[calc(50%-4px)] bg-white rounded-xl shadow-sm transition-all duration-300"></div>
+                        <button onclick="switchLoginTab('seeker')" id="login-btn-seeker" class="relative z-10 w-1/2 py-3 text-sm font-bold transition-colors duration-300 text-slate-900" data-i18n="tabSeeker">👤 개인 회원</button>
+                        <button onclick="switchLoginTab('company')" id="login-btn-company" class="relative z-10 w-1/2 py-3 text-sm font-bold transition-colors duration-300 text-slate-500" data-i18n="tabCompany">🏢 기업 회원</button>
+                    </div>
+
+                    <!-- Helper Text -->
+                    <p id="login-helper-text" class="text-xs text-center text-sky-600 mb-6 font-medium h-4 transition-all">개인회원은 추가 절차 없이 바로 시작 가능해요.</p>
+
+                    <!-- Form -->
+                    <form class="space-y-3" onsubmit="event.preventDefault(); alert('로그인 시도');">
+                        <input type="email" placeholder="이메일 주소" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm" data-i18n-ph="emailPh">
+                        <input type="password" placeholder="비밀번호" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm" data-i18n-ph="pwPh">
+                        <button type="submit" class="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg" data-i18n="btnLogin">로그인</button>
+                    </form>
+
+                    <div class="flex items-center justify-between text-xs text-slate-500 pt-3 pb-2">
+                        <a href="javascript:void(0)" onclick="navigateTo('view-forgot-password')" class="hover:text-slate-800" data-i18n="forgotPw">비밀번호 찾기</a>
+                        <a href="javascript:void(0)" onclick="navigateTo('view-signup')" class="text-sky-600 font-bold hover:text-sky-700" data-i18n="signupLink">이메일로 회원가입</a>
+                    </div>
+
+                    <div class="relative py-4">
+                        <div class="absolute inset-0 flex items-center"><span class="w-full border-t border-slate-200"></span></div>
+                        <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-slate-400" data-i18n="orSocial">또는 소셜 계정으로 로그인</span></div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <!-- Kakao -->
+                        <button class="w-full h-12 bg-[#FEE500] hover:bg-[#FDD835] text-[#3c1e1e] font-bold rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
+                             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C5.925 3 1 6.925 1 11.775c0 3.325 2.275 6.225 5.675 7.7-.2 1.45-1.125 4.125-1.3 4.8 0 0-.1.2.1.275.2.075.425.025.425.025 2.75-1.925 5.75-4.025 6.6-4.625.5.075 1.025.125 1.5.125 6.075 0 11-3.925 11-8.775S17.075 3 12 3z"/></svg>
+                            <span data-i18n="kakaoBtn">카카오로 시작하기</span>
+                        </button>
+                        <!-- Google -->
+                        <button class="w-full h-12 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                            <span data-i18n="googleBtn">Google로 계속하기</span>
+                        </button>
+                    </div>
+
+                    <!-- Footer Terms -->
+                    <div class="mt-6 text-center">
+                         <p class="text-[10px] text-slate-400 leading-relaxed">
+                            <span data-i18n="termLoginPrefix">로그인 시</span> 
+                            <a href="#" class="underline hover:text-slate-600" data-i18n="termService">이용약관</a> 
+                            <span data-i18n="termAnd">및</span> 
+                            <a href="#" class="underline hover:text-slate-600" data-i18n="termPrivacy">개인정보처리방침</a>
+                            <span data-i18n="termSuffix">에 동의하게 됩니다.</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ========================================== -->
+            <!-- 2. 회원가입 뷰 (Sign Up View) -->
+            <!-- ========================================== -->
+            <div id="view-signup" class="w-full flex flex-col md:flex-row h-full absolute inset-0 bg-white hidden-page fade-in z-20">
+                <!-- Left Side -->
+                <div class="hidden md:flex md:w-1/2 bg-sky-900 relative flex-col justify-between p-12 text-white overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-b from-sky-900 via-sky-800 to-sky-900"></div>
+                    <div class="absolute bottom-0 left-0 w-80 h-80 bg-slate-100 rounded-full blur-3xl opacity-10"></div>
+                    
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-2 mb-6">
+                            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-sky-900 text-lg font-bold">✈</div>
+                            <span class="text-xl font-bold tracking-tight">JobChaja</span>
+                        </div>
+                    </div>
+                    <div class="relative z-10 space-y-6">
+                        <h2 class="text-4xl font-bold leading-tight" data-i18n="signupSlogan">Join the<br />New Era.</h2>
+                        <p class="text-sky-200 font-light text-lg leading-relaxed" data-i18n="signupSub">회원가입을 통해<br />더 넓은 기회와 연결되세요.</p>
+                        <div class="pt-4">
+                            <div class="flex items-center gap-3 text-sm text-sky-100/80">
+                                <span class="w-6 h-6 rounded-full bg-sky-700/50 flex items-center justify-center text-xs">✓</span>
+                                <span data-i18n="benefit1">검증된 기업/인재 매칭</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm text-sky-100/80 mt-2">
+                                <span class="w-6 h-6 rounded-full bg-sky-700/50 flex items-center justify-center text-xs">✓</span>
+                                <span data-i18n="benefit2">Global Visa Support</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side (Signup Form with Compliance) -->
+                <div class="w-full md:w-1/2 p-6 md:p-12 flex flex-col bg-white h-full overflow-y-auto">
+                    <button onclick="navigateTo('view-login')" class="mb-4 text-slate-400 hover:text-slate-800 flex items-center gap-1 text-sm font-medium w-fit">
+                        <span data-i18n="backLogin">← 로그인으로 돌아가기</span>
+                    </button>
+
+                    <div class="mb-6">
+                        <h1 class="text-2xl font-bold text-slate-900 mb-1" data-i18n="createAccount">계정 만들기</h1>
+                        <p class="text-slate-500 text-sm" data-i18n="createSub">안전한 서비스 이용을 위해 정확한 정보를 입력해주세요.</p>
+                    </div>
+
+                    <div class="space-y-4 w-full">
+                        
+                        <!-- 1. 기본 정보 -->
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 ml-1 mb-1 block">
+                                    <span data-i18n="labelName">이름 (여권/영문 이름 권장)</span>
+                                </label>
+                                <input type="text" placeholder="Full Name (Passport Name)" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 ml-1 mb-1 block" data-i18n="labelEmail">이메일 주소</label>
+                                <div class="flex gap-2">
+                                    <input type="email" id="signup-email" placeholder="example@email.com" class="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm">
+                                    <button type="button" onclick="sendAuthCode()" id="btn-send-code" class="px-3 py-3 bg-slate-900 text-white text-xs font-bold rounded-xl whitespace-nowrap hover:bg-slate-800 transition-colors" data-i18n="btnAuth">
+                                        인증요청
+                                    </button>
+                                </div>
+                                <p id="auth-msg" class="text-xs text-green-600 mt-1 hidden" data-i18n="authSent">✅ 인증번호가 발송되었습니다. (123456)</p>
+                            </div>
+                            
+                            <!-- 인증번호 입력창 (숨김 상태) -->
+                            <div id="section-auth-code" class="hidden">
+                                 <div class="flex gap-2">
+                                    <input type="text" id="auth-code-input" placeholder="123456" maxlength="6" class="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm text-center tracking-widest bg-slate-50">
+                                    <button type="button" onclick="verifyAuthCode()" class="px-3 py-3 bg-sky-100 text-sky-700 text-xs font-bold rounded-xl whitespace-nowrap hover:bg-sky-200 transition-colors" data-i18n="btnConfirm">
+                                        확인
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 ml-1 mb-1 block" data-i18n="labelPw">비밀번호</label>
+                                <input type="password" placeholder="" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm mb-2" data-i18n-ph="pwRulePh">
+                                <input type="password" placeholder="" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm" data-i18n-ph="pwConfirmPh">
+                            </div>
+                        </div>
+
+                        <!-- 2. 약관 동의 -->
+                        <div class="pt-4 border-t border-slate-100">
+                            <label class="flex items-center gap-2 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors mb-3">
+                                <input type="checkbox" id="check-all" onchange="toggleAllTerms(this)" class="w-5 h-5 rounded border-slate-300 text-sky-600 focus:ring-sky-500 custom-checkbox appearance-none border bg-white checked:bg-sky-500 checked:border-sky-500 relative">
+                                <span class="text-sm font-bold text-slate-800" data-i18n="agreeAll">전체 약관에 동의합니다</span>
+                            </label>
+                            
+                            <div class="space-y-2 px-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" class="term-check w-4 h-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 custom-checkbox appearance-none border bg-white checked:bg-sky-500 checked:border-sky-500 relative">
+                                        <span class="text-xs text-slate-600" data-i18n="term1">[필수] 서비스 이용약관 동의</span>
+                                    </label>
+                                    <a href="#" class="text-xs text-slate-400 underline" data-i18n="view">보기</a>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" class="term-check w-4 h-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 custom-checkbox appearance-none border bg-white checked:bg-sky-500 checked:border-sky-500 relative">
+                                        <span class="text-xs text-slate-600" data-i18n="term2">[필수] 개인정보 수집 및 이용 동의</span>
+                                    </label>
+                                    <a href="#" class="text-xs text-slate-400 underline" data-i18n="view">보기</a>
+                                </div>
+                                <!-- Revised Term: Cross-border & 3rd Party -->
+                                <div class="flex items-center justify-between">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" class="term-check w-4 h-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 custom-checkbox appearance-none border bg-white checked:bg-sky-500 checked:border-sky-500 relative">
+                                        <span class="text-xs text-slate-600" data-i18n="term3">[필수] 개인정보 국외 이전 및 제3자 제공 동의</span>
+                                    </label>
+                                    <a href="#" class="text-xs text-slate-400 underline" data-i18n="view">보기</a>
+                                </div>
+                                <!-- New Term: Marketing Consent -->
+                                <div class="flex items-center justify-between">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" class="term-check w-4 h-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500 custom-checkbox appearance-none border bg-white checked:bg-sky-500 checked:border-sky-500 relative">
+                                        <span class="text-xs text-slate-600" data-i18n="term4">[선택] 마케팅 정보 수신 동의</span>
+                                    </label>
+                                    <a href="#" class="text-xs text-slate-400 underline" data-i18n="view">보기</a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="w-full h-12 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-200 mt-4 disabled:opacity-50 disabled:cursor-not-allowed" data-i18n="btnComplete">
+                            가입 완료하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- 3. 비밀번호 찾기 (Forgot Password View) -->
+            <!-- ========================================== -->
+            <div id="view-forgot-password" class="w-full flex flex-col md:flex-row h-full absolute inset-0 bg-white hidden-page fade-in z-20 items-center justify-center">
+                <div class="w-full max-w-lg p-8">
+                    <button onclick="navigateTo('view-login')" class="absolute top-8 left-8 text-slate-400 hover:text-slate-800 flex items-center gap-1 text-sm font-medium">
+                        <span data-i18n="backLogin">← 돌아가기</span>
+                    </button>
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔐</div>
+                        <h1 class="text-2xl font-bold text-slate-900 mb-2" data-i18n="findPw">비밀번호 찾기</h1>
+                        <p class="text-slate-500 text-sm px-8" data-i18n="findPwSub">가입하신 이메일 주소를 입력하시면<br/>비밀번호 재설정 링크를 보내드립니다.</p>
+                    </div>
+                    <div class="space-y-4 w-full">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 ml-1 mb-1 block" data-i18n="labelEmail">이메일 주소</label>
+                            <input type="email" id="reset-email" placeholder="example@email.com" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm">
+                        </div>
+                        <button onclick="sendResetLink()" class="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg" data-i18n="btnSendLink">재설정 링크 보내기</button>
+                    </div>
+                    <div id="reset-success-msg" class="hidden mt-6 p-4 bg-green-50 rounded-xl text-center">
+                        <p class="text-green-800 font-bold text-sm" data-i18n="emailSent">이메일 발송 완료!</p>
+                        <p class="text-green-600 text-xs mt-1" data-i18n="emailCheck">메일함을 확인하고 링크를 클릭하세요.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Logic Script -->
+    <script>
+        // --- Translation Data ---
+        const translations = {
+            ko: {
+                slogan: "Global Talent,<br />Korea Opportunity.",
+                subSlogan: "국경 없는 채용의 시작.<br />검증된 기업과 인재를 안전하게 연결합니다.",
+                welcome: "환영합니다! 👋",
+                welcomeSub: "3초 만에 시작하고 맞춤 일자리를 찾으세요.",
+                tabSeeker: "👤 개인 회원",
+                tabCompany: "🏢 기업 회원",
+                helperSeeker: "개인회원은 추가 절차 없이 바로 시작 가능해요.",
+                helperCompany: "기업 회원은 사업자 인증 과정이 필요해요.",
+                emailPh: "이메일 주소",
+                pwPh: "비밀번호",
+                btnLogin: "로그인",
+                forgotPw: "비밀번호 찾기",
+                signupLink: "이메일로 회원가입",
+                orSocial: "또는 소셜 계정으로 로그인",
+                kakaoBtn: "카카오로 시작하기",
+                googleBtn: "Google로 계속하기",
+                termLoginPrefix: "로그인 시",
+                termService: "이용약관",
+                termAnd: "및",
+                termPrivacy: "개인정보처리방침",
+                termSuffix: "에 동의하게 됩니다.",
+                
+                // Signup
+                signupSlogan: "Join the<br />New Era.",
+                signupSub: "회원가입을 통해<br />더 넓은 기회와 연결되세요.",
+                benefit1: "검증된 기업/인재 매칭",
+                benefit2: "Global Visa Support",
+                backLogin: "← 로그인으로 돌아가기",
+                createAccount: "계정 만들기",
+                createSub: "안전한 서비스 이용을 위해 정확한 정보를 입력해주세요.",
+                labelName: "이름 (여권/영문 이름 권장)",
+                labelEmail: "이메일 주소",
+                btnAuth: "인증요청",
+                authSent: "✅ 인증번호가 발송되었습니다. (123456)",
+                btnConfirm: "확인",
+                labelPw: "비밀번호",
+                pwRulePh: "8자 이상 영문, 숫자, 특수문자 조합",
+                pwConfirmPh: "비밀번호 확인",
+                agreeAll: "전체 약관에 동의합니다",
+                term1: "[필수] 서비스 이용약관 동의",
+                term2: "[필수] 개인정보 수집 및 이용 동의",
+                term3: "[필수] 개인정보 국외 이전 및 제3자 제공 동의",
+                term4: "[선택] 마케팅 정보 수신 동의",
+                view: "보기",
+                btnComplete: "가입 완료하기",
+
+                // Forgot PW
+                findPw: "비밀번호 찾기",
+                findPwSub: "가입하신 이메일 주소를 입력하시면<br/>비밀번호 재설정 링크를 보내드립니다.",
+                btnSendLink: "재설정 링크 보내기",
+                emailSent: "이메일 발송 완료!",
+                emailCheck: "메일함을 확인하고 링크를 클릭하세요."
+            },
+            en: {
+                slogan: "Global Talent,<br />Korea Opportunity.",
+                subSlogan: "Start hiring without borders.<br />Securely connecting trusted companies and talent.",
+                welcome: "Welcome Back! 👋",
+                welcomeSub: "Start in 3 seconds and find your perfect job.",
+                tabSeeker: "👤 Job Seeker",
+                tabCompany: "🏢 Company",
+                helperSeeker: "Seekers can start immediately without extra steps.",
+                helperCompany: "Companies require business verification.",
+                emailPh: "Email Address",
+                pwPh: "Password",
+                btnLogin: "Log In",
+                forgotPw: "Forgot Password?",
+                signupLink: "Sign up with Email",
+                orSocial: "Or continue with social",
+                kakaoBtn: "Start with Kakao",
+                googleBtn: "Continue with Google",
+                termLoginPrefix: "By logging in, you agree to our",
+                termService: "Terms",
+                termAnd: "and",
+                termPrivacy: "Privacy Policy",
+                termSuffix: ".",
+
+                // Signup
+                signupSlogan: "Join the<br />New Era.",
+                signupSub: "Connect to wider opportunities<br />through signing up.",
+                benefit1: "Verified Company/Talent Match",
+                benefit2: "Global Visa Support",
+                backLogin: "← Back to Login",
+                createAccount: "Create Account",
+                createSub: "Please enter correct info for safe service usage.",
+                labelName: "Full Name (Passport Name)",
+                labelEmail: "Email Address",
+                btnAuth: "Verify",
+                authSent: "✅ Code sent. (123456)",
+                btnConfirm: "Confirm",
+                labelPw: "Password",
+                pwRulePh: "8+ chars with letters, numbers, symbols",
+                pwConfirmPh: "Confirm Password",
+                agreeAll: "Agree to all terms",
+                term1: "[Required] Terms of Service",
+                term2: "[Required] Privacy Policy",
+                term3: "[Required] Cross-border Transfer & 3rd Party Provision",
+                term4: "[Optional] Marketing Consent",
+                view: "View",
+                btnComplete: "Create Account",
+
+                // Forgot PW
+                findPw: "Reset Password",
+                findPwSub: "Enter your registered email address<br/>to receive a reset link.",
+                btnSendLink: "Send Reset Link",
+                emailSent: "Email Sent!",
+                emailCheck: "Please check your inbox."
+            },
+            cn: {
+                slogan: "Global Talent,<br />Korea Opportunity.",
+                subSlogan: "无国界招聘的开始。<br />安全连接经过验证的企业和人才。",
+                welcome: "欢迎回来！👋",
+                welcomeSub: "3秒开启，寻找最适合您的工作。",
+                tabSeeker: "👤 个人会员",
+                tabCompany: "🏢 企业会员",
+                helperSeeker: "个人会员无需额外步骤即可立即开始。",
+                helperCompany: "企业会员需要进行营业执照认证。",
+                emailPh: "电子邮件地址",
+                pwPh: "密码",
+                btnLogin: "登录",
+                forgotPw: "忘记密码？",
+                signupLink: "邮箱注册",
+                orSocial: "或使用社交账号登录",
+                kakaoBtn: "Kakao 登录",
+                googleBtn: "Google 登录",
+                termLoginPrefix: "登录即代表同意",
+                termService: "服务条款",
+                termAnd: "及",
+                termPrivacy: "个人信息处理方针",
+                termSuffix: "。",
+
+                // Signup
+                signupSlogan: "Join the<br />New Era.",
+                signupSub: "通过注册<br />连接更广阔的机会。",
+                benefit1: "验证企业/人才匹配",
+                benefit2: "全球签证支持",
+                backLogin: "← 返回登录",
+                createAccount: "创建账户",
+                createSub: "为了安全使用服务，请输入准确信息。",
+                labelName: "姓名 (建议使用护照/英文名)",
+                labelEmail: "电子邮件地址",
+                btnAuth: "请求认证",
+                authSent: "✅ 验证码已发送。(123456)",
+                btnConfirm: "确认",
+                labelPw: "密码",
+                pwRulePh: "8位以上英文、数字、特殊符号组合",
+                pwConfirmPh: "确认密码",
+                agreeAll: "同意所有条款",
+                term1: "[必填] 服务使用条款",
+                term2: "[必填] 个人信息收集与使用",
+                term3: "[必填] 个人信息跨境传输及第三方提供同意",
+                term4: "[选填] 营销信息接收同意",
+                view: "查看",
+                btnComplete: "完成注册",
+
+                // Forgot PW
+                findPw: "找回密码",
+                findPwSub: "输入您的注册邮箱<br/>我们将发送重置链接。",
+                btnSendLink: "发送重置链接",
+                emailSent: "邮件已发送！",
+                emailCheck: "请检查您的收件箱。"
+            }
+        };
+
+        // --- Review Data for Carousel ---
+        const reviews = [
+            {
+                initial: "K",
+                color: "bg-green-500",
+                ko: { text: "\"비자 문제 없이 바로 취업했어요!\"", author: "Kevin, E-9 비자 근로자" },
+                en: { text: "\"Got hired without visa issues!\"", author: "Kevin, E-9 Visa Holder" },
+                cn: { text: "\"没有签证问题，直接就业了！\"", author: "Kevin, E-9 签证工人" }
+            },
+            {
+                initial: "S",
+                color: "bg-purple-500",
+                ko: { text: "\"스타트업에서 비자 스폰서를 찾았어요.\"", author: "Sarah, D-10 구직자" },
+                en: { text: "\"Found a startup sponsoring visa.\"", author: "Sarah, D-10 Job Seeker" },
+                cn: { text: "\"找到了愿意赞助签证的初创公司。\"", author: "Sarah, D-10 求职者" }
+            },
+            {
+                initial: "M",
+                color: "bg-blue-500",
+                ko: { text: "\"한국 엔지니어 취업에 최고예요.\"", author: "Minh, E-7 개발자" },
+                en: { text: "\"Best platform for engineering jobs.\"", author: "Minh, E-7 Developer" },
+                cn: { text: "\"韩国工程师就业的最佳平台。\"", author: "Minh, E-7 开发人员" }
+            }
+        ];
+
+        let currentLang = 'ko';
+        let currentTab = 'seeker';
+        let currentReviewIndex = 0;
+
+        // --- Language Logic ---
+        function changeLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            
+            // Update Text Content
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if(t[key]) el.innerHTML = t[key];
+            });
+
+            // Update Placeholders
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                const key = el.getAttribute('data-i18n-ph');
+                if(t[key]) el.placeholder = t[key];
+            });
+
+            // Refresh Helper Text & Review
+            updateHelperText();
+            updateReviewDisplay();
+        }
+
+        // --- Helper Text Logic ---
+        function updateHelperText() {
+            const helper = document.getElementById('login-helper-text');
+            const t = translations[currentLang];
+            if (currentTab === 'seeker') {
+                helper.innerText = t.helperSeeker;
+            } else {
+                helper.innerText = t.helperCompany;
+            }
+        }
+
+        // --- Review Carousel Logic ---
+        function startReviewCarousel() {
+            updateReviewDisplay(); // Set initial
+            setInterval(() => {
+                // Fade out
+                const container = document.getElementById('review-container');
+                container.classList.add('review-card-hidden');
+
+                // Wait for fade out, then swap and fade in
+                setTimeout(() => {
+                    currentReviewIndex = (currentReviewIndex + 1) % reviews.length;
+                    updateReviewDisplay();
+                    container.classList.remove('review-card-hidden');
+                }, 500); // matches CSS transition time
+            }, 4000); // 4 seconds per review
+        }
+
+        function updateReviewDisplay() {
+            const r = reviews[currentReviewIndex];
+            const content = r[currentLang]; // Get text based on current language
+            
+            document.getElementById('review-avatar').className = `w-10 h-10 rounded-full ${r.color} flex-shrink-0 flex items-center justify-center font-bold text-white text-sm`;
+            document.getElementById('review-avatar').innerText = r.initial;
+            document.getElementById('review-text').innerText = content.text;
+            document.getElementById('review-author').innerText = content.author;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            startReviewCarousel();
+        });
+
+
+        // --- Navigation ---
+        function navigateTo(viewId) {
+            ['view-login', 'view-signup', 'view-forgot-password'].forEach(id => {
+                document.getElementById(id).classList.add('hidden-page');
+            });
+            const target = document.getElementById(viewId);
+            target.classList.remove('hidden-page');
+            target.classList.remove('fade-in');
+            void target.offsetWidth;
+            target.classList.add('fade-in');
+        }
+
+        // --- Login Tab Switcher ---
+        function switchLoginTab(type) {
+            currentTab = type;
+            const slider = document.getElementById('login-tab-slider');
+            const btnSeeker = document.getElementById('login-btn-seeker');
+            const btnCompany = document.getElementById('login-btn-company');
+            
+            if (type === 'company') {
+                slider.style.transform = 'translateX(calc(100% + 8px))';
+                btnCompany.classList.replace('text-slate-500', 'text-slate-900');
+                btnSeeker.classList.replace('text-slate-900', 'text-slate-500');
+            } else {
+                slider.style.transform = 'translateX(0)';
+                btnSeeker.classList.replace('text-slate-500', 'text-slate-900');
+                btnCompany.classList.replace('text-slate-900', 'text-slate-500');
+            }
+            updateHelperText();
+        }
+
+        // --- Signup Simulation ---
+        function sendAuthCode() {
+            const email = document.getElementById('signup-email').value;
+            if(!email) { alert('Email required'); return; }
+            
+            const btn = document.getElementById('btn-send-code');
+            btn.innerText = '...';
+            setTimeout(() => {
+                btn.innerText = translations[currentLang].btnAuth; // Reset text
+                document.getElementById('auth-msg').classList.remove('hidden');
+                document.getElementById('section-auth-code').classList.remove('hidden');
+                document.getElementById('auth-code-input').focus();
+            }, 800);
+        }
+
+        function verifyAuthCode() {
+            const code = document.getElementById('auth-code-input').value;
+            if(code === '123456') {
+                document.getElementById('signup-email').readOnly = true;
+                document.getElementById('auth-code-input').readOnly = true;
+                document.getElementById('auth-msg').innerText = 'OK';
+                document.getElementById('auth-msg').className = 'text-xs text-sky-600 mt-1 font-bold';
+            } else {
+                alert('Wrong Code');
+            }
+        }
+
+        // Terms "Select All"
+        function toggleAllTerms(source) {
+            const checkboxes = document.querySelectorAll('.term-check');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+        
+        document.querySelectorAll('.term-check').forEach(cb => {
+            cb.addEventListener('change', function() {
+                if(!this.checked) {
+                    document.getElementById('check-all').checked = false;
+                }
+            });
+        });
+
+        // Reset Password
+        function sendResetLink() {
+            const email = document.getElementById('reset-email').value;
+            if(!email) { return; }
+            document.getElementById('reset-success-msg').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
