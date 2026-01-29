@@ -13,7 +13,7 @@ const vi = {
   helperSeeker: 'Tài khoản cá nhân có thể bắt đầu ngay mà không cần thủ tục thêm.',
   helperCompany: 'Tài khoản doanh nghiệp cần xác minh kinh doanh.',
 
-  emailPh: 'Địa chỉ email',
+  emailPh: 'example@sample.com',
   pwPh: 'Mật khẩu',
 
   btnLogin: 'Đăng nhập',
@@ -63,6 +63,15 @@ const vi = {
 
   btnComplete: 'Hoàn tất đăng ký',
 
+  /* Validation & Errors (Added) */
+  errAuth: 'Vui lòng hoàn tất xác thực email.',
+  errPwMatch: 'Mật khẩu không khớp.',
+  errTerms: 'Bạn phải đồng ý với các điều khoản bắt buộc.',
+  errAuthCode: 'Mã xác thực không đúng.',
+  authVerified: 'Đã xác thực',
+  errEmailRequired: 'Vui lòng nhập địa chỉ email.',
+  errEmailFormat: 'Định dạng email không hợp lệ.',
+  errAuthSendFail: 'Gửi mã xác thực thất bại.',
   findPw: 'Đặt lại mật khẩu',
   findPwSub: 'Nhập email đã đăng ký<br />chúng tôi sẽ gửi liên kết đặt lại mật khẩu.',
 

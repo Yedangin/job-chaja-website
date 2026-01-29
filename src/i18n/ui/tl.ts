@@ -13,7 +13,7 @@ const tl = {
   helperSeeker: 'Maaaring magsimula agad ang indibidwal na account nang walang dagdag na hakbang.',
   helperCompany: 'Kailangan ng business verification ang company account.',
 
-  emailPh: 'Email address',
+  emailPh: 'example@sample.com',
   pwPh: 'Password',
 
   btnLogin: 'Mag-login',
@@ -63,6 +63,15 @@ const tl = {
 
   btnComplete: 'Tapusin ang sign up',
 
+  /* Validation & Errors (Added) */
+  errAuth: 'Pakikumpleto ang email verification.',
+  errPwMatch: 'Hindi magkatugma ang password.',
+  errTerms: 'Kailangang sumang-ayon sa mga required na tuntunin.',
+  errAuthCode: 'Mali ang verification code.',
+  authVerified: 'Beripikado na',
+  errEmailRequired: 'Pakilagay ang iyong email address.',
+  errEmailFormat: 'Hindi wasto ang format ng email.',
+  errAuthSendFail: 'Nabigong ipadala ang verification code.',
   findPw: 'I-reset ang password',
   findPwSub: 'Ilagay ang iyong rehistradong email<br />at magpapadala kami ng reset link.',
 

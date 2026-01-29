@@ -1,18 +1,9 @@
 const en = {
-  /* =====================
-   * Common / Brand
-   * ===================== */
   brand: 'JobChaja',
 
-  /* =====================
-   * Main slogan
-   * ===================== */
   slogan: 'Global Talent,<br />Korea Opportunity.',
   subSlogan: 'The beginning of borderless hiring.<br />We safely connect verified companies and talent.',
 
-  /* =====================
-   * Login screen
-   * ===================== */
   welcome: 'Welcome! 👋',
   welcomeSub: 'Get started in 3 seconds and find the right job for you.',
 
@@ -22,7 +13,7 @@ const en = {
   helperSeeker: 'Job seekers can start immediately without extra steps.',
   helperCompany: 'Company accounts require business verification.',
 
-  emailPh: 'Email address',
+  emailPh: 'example@sample.com',
   pwPh: 'Password',
 
   btnLogin: 'Log in',
@@ -33,27 +24,18 @@ const en = {
   kakaoBtn: 'Start with Kakao',
   googleBtn: 'Continue with Google',
 
-  /* =====================
-   * Login footer terms
-   * ===================== */
   termLoginPrefix: 'By logging in, you agree to the',
   termService: 'Terms of Service',
   termAnd: 'and',
   termPrivacy: 'Privacy Policy',
   termSuffix: '.',
 
-  /* =====================
-   * Sign up screen (left)
-   * ===================== */
   signupSlogan: 'Join the<br />New Era.',
   signupSub: 'Sign up to connect with broader opportunities.',
 
   benefit1: 'Verified company & talent matching',
   benefit2: 'Global visa support',
 
-  /* =====================
-   * Sign up screen (right form)
-   * ===================== */
   backLogin: '← Back to login',
 
   createAccount: 'Create account',
@@ -81,27 +63,29 @@ const en = {
 
   btnComplete: 'Complete sign up',
 
-  /* =====================
-   * Forgot password
-   * ===================== */
+  /* Validation & Errors (Added) */
+  errAuth: 'Please verify your email.',
+  errPwMatch: 'Passwords do not match.',
+  errTerms: 'You must agree to required terms.',
+  errAuthCode: 'Invalid verification code.',
+  authVerified: 'Verified',
+  errEmailRequired: 'Please enter your email address.',
+  errEmailFormat: 'Invalid email format.',
+  errAuthSendFail: 'Failed to send verification code.',
   findPw: 'Reset password',
   findPwSub: 'Enter your registered email address<br />and we will send you a password reset link.',
 
   btnSendLink: 'Send reset link',
   emailSent: 'Email sent!',
   emailCheck: 'Please check your inbox and click the link.',
-  /* =====================
-   * Status / Notification Messages
-   * ===================== */
+
   loginFail: 'Login failed. Please check your email and password.',
   loginLoading: 'Logging in...',
 
   registerFail: 'Sign-up failed. Please try again.',
   registerSuccess: 'Sign-up successful! You can now log in.',
   registerLoading: 'Signing up...',
-  /* =====================
-   * Reviews (carousel)
-   * ===================== */
+
   review1Text: 'I got a job right away without any visa issues!',
   review1Author: 'Kevin, E-9 Visa Worker',
 

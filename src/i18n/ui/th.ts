@@ -13,7 +13,7 @@ const th = {
   helperSeeker: 'บัญชีบุคคลสามารถเริ่มได้ทันทีโดยไม่ต้องมีขั้นตอนเพิ่มเติม',
   helperCompany: 'บัญชีบริษัทต้องผ่านการยืนยันธุรกิจ',
 
-  emailPh: 'อีเมล',
+  emailPh: 'example@sample.com',
   pwPh: 'รหัสผ่าน',
 
   btnLogin: 'เข้าสู่ระบบ',
@@ -63,6 +63,15 @@ const th = {
 
   btnComplete: 'สมัครสมาชิก',
 
+  /* Validation & Errors (Added) */
+  errAuth: 'กรุณายืนยันอีเมลให้เสร็จสมบูรณ์',
+  errPwMatch: 'รหัสผ่านไม่ตรงกัน',
+  errTerms: 'ต้องยอมรับเงื่อนไขที่จำเป็นทั้งหมด',
+  errAuthCode: 'รหัสยืนยันไม่ถูกต้อง',
+  authVerified: 'ยืนยันแล้ว',
+errEmailRequired: 'กรุณากรอกอีเมล',
+  errEmailFormat: 'รูปแบบอีเมลไม่ถูกต้อง',
+  errAuthSendFail: 'ส่งรหัสยืนยันไม่สำเร็จ',
   findPw: 'รีเซ็ตรหัสผ่าน',
   findPwSub: 'กรอกอีเมลที่ลงทะเบียนไว้<br />เราจะส่งลิงก์รีเซ็ตรหัสผ่านให้',
 

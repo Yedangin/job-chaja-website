@@ -13,7 +13,7 @@ const ja = {
   helperSeeker: '個人会員は追加手続きなしですぐに始められます。',
   helperCompany: '企業会員は事業者認証が必要です。',
 
-  emailPh: 'メールアドレス',
+  emailPh: 'example@sample.com',
   pwPh: 'パスワード',
 
   btnLogin: 'ログイン',
@@ -63,6 +63,15 @@ const ja = {
 
   btnComplete: '登録完了',
 
+  /* Validation & Errors (Added) */
+  errAuth: 'メール認証を完了してください。',
+  errPwMatch: 'パスワードが一致しません。',
+  errTerms: '必須項目に同意する必要があります。',
+  errAuthCode: '認証コードが正しくありません。',
+  authVerified: '認証完了',
+errEmailRequired: 'メールアドレスを入力してください。',
+  errEmailFormat: 'メールアドレスの形式が正しくありません。',
+  errAuthSendFail: '認証コードの送信に失敗しました。',
   findPw: 'パスワード再設定',
   findPwSub: '登録したメールアドレスを入力すると<br />再設定リンクを送信します。',
 

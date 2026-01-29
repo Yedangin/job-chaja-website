@@ -1,5 +1,4 @@
-const ko = {
-  /* =====================
+const ko = {/* =====================
    * 공통 / 브랜드
    * ===================== */
   brand: 'JobChaja',
@@ -22,7 +21,7 @@ const ko = {
   helperSeeker: '개인회원은 추가 절차 없이 바로 시작 가능해요.',
   helperCompany: '기업 회원은 사업자 인증 과정이 필요해요.',
 
-  emailPh: '이메일 주소',
+  emailPh: 'example@sample.com',
   pwPh: '비밀번호',
 
   btnLogin: '로그인',
@@ -63,7 +62,7 @@ const ko = {
   labelEmail: '이메일 주소',
 
   btnAuth: '인증요청',
-  authSent: '✅ 인증번호가 발송되었습니다.',
+  authSent: '✅ 인증번호가 발송되었습니다. (123456)',
   btnConfirm: '확인',
 
   labelPw: '비밀번호',
@@ -82,6 +81,17 @@ const ko = {
   btnComplete: '가입 완료하기',
 
   /* =====================
+   * 유효성 검사 및 에러 메시지
+   * ===================== */
+  errAuth: '이메일 인증을 완료해주세요.',
+  errPwMatch: '비밀번호가 일치하지 않습니다.',
+  errTerms: '필수 약관에 모두 동의해야 합니다.',
+  errAuthCode: '인증번호가 올바르지 않습니다.',
+  authVerified: '인증 완료',
+  errEmailRequired: '이메일 주소를 입력해주세요.',
+  errEmailFormat: '올바른 이메일 형식이 아닙니다.',
+  errAuthSendFail: '인증번호 발송에 실패했습니다.',
+  /* =====================
    * 비밀번호 찾기
    * ===================== */
   findPw: '비밀번호 찾기',
@@ -90,6 +100,7 @@ const ko = {
   btnSendLink: '재설정 링크 보내기',
   emailSent: '이메일 발송 완료!',
   emailCheck: '메일함을 확인하고 링크를 클릭하세요.',
+
   /* =====================
    * 상태 / 알림 메시지
    * ===================== */
@@ -99,6 +110,7 @@ const ko = {
   registerFail: '회원가입에 실패했습니다. 다시 시도해주세요.',
   registerSuccess: '회원가입에 성공했습니다! 이제 로그인할 수 있습니다.',
   registerLoading: '가입 중...',
+
   /* =====================
    * 리뷰 (캐러셀)
    * ===================== */
