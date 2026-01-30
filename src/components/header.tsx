@@ -37,6 +37,9 @@ export default function Header({ isCompanyMode, onToggleMode, onLogoClick }: Hea
           )}
           <div className="h-4 w-px bg-gray-200 hidden md:block"></div>
           <Button asChild variant="ghost" className="text-slate-600 font-medium text-sm px-2">
+            <Link href="/biz">비즈페이지</Link>
+          </Button>
+          <Button asChild variant="ghost" className="text-slate-600 font-medium text-sm px-2">
             <Link href="/login">로그인</Link>
           </Button>
           <Button className="bg-slate-900 text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-slate-800 shadow-lg shadow-slate-200" asChild>

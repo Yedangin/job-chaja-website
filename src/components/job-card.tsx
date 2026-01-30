@@ -4,6 +4,7 @@
 import { MapPin, Briefcase, DollarSign, Clock, Star } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 
 interface JobCardProps {
   title: string;
@@ -31,8 +32,14 @@ export default function JobCard({
   return (
     <Card className="border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
       {imageUrl && (
-        <div className="h-32 bg-gradient-to-br from-slate-200 to-slate-300 overflow-hidden">
-          <img src={imageUrl || "/placeholder.svg"} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+        <div className="relative h-32 bg-gradient-to-br from-slate-200 to-slate-300 overflow-hidden">
+          <Image 
+            src={imageUrl} 
+            alt={title} 
+            fill
+            className="object-cover group-hover:scale-105 transition-transform"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
         </div>
       )}
 

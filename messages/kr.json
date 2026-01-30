@@ -12,7 +12,8 @@
       "links": [
         { "label": "작동 방식", "url": "#" },
         { "label": "예치금 시스템", "url": "#" },
-        { "label": "정책", "url": "#" },
+        { "label": "이용 약관", "url": "/terms-and-conditions" },
+        { "label": "개인정보 처리방침", "url": "/privacy-policy" },
         { "label": "앱 다운로드", "url": "#" }
       ]
     },
@@ -31,7 +32,7 @@
         { "label": "도움말 센터", "url": "#" },
         { "label": "지원팀 문의", "url": "#" },
         { "label": "FAQ", "url": "#" },
-        { "label": "전화: +82 2 1234 5678", "url": "#" }
+        { "label": "전화: +82-10-7209-7488", "url": "#" }
       ]
     },
     "company": {

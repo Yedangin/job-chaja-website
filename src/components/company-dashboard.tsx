@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { PenTool, Users, Calendar, Zap, CheckCircle2 } from 'lucide-react';
+import Image from 'next/image';
 
 type NavTab = 'posting' | 'applicants' | 'schedule';
 
@@ -23,10 +24,11 @@ export default function CompanyDashboard() {
         {/* Company Profile Card */}
         <Card className="rounded-3xl p-6 border border-gray-100 shadow-soft text-center">
           <div className="relative w-20 h-20 mx-auto mb-4">
-            <img
+            <Image
               src="https://images.unsplash.com/photo-1552664730-d307ca884978?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80"
               alt="Company"
-              className="w-full h-full rounded-2xl object-cover shadow-md"
+              fill
+              className="rounded-2xl object-cover shadow-md"
             />
             <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 border-2 border-white rounded-full"></div>
           </div>

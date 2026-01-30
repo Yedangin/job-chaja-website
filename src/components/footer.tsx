@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer>
@@ -36,8 +38,8 @@ export default function Footer() {
                 예치금 정보
               </h4>
               <ul className="space-y-2 text-sm sm:text-base text-white text-opacity-90">
-                <li><a href="#" className="hover:underline">구직자를 위한</a></li>
-                <li><a href="#" className="hover:underline">기업을 위한</a></li>
+                <li><Link href="/terms-and-conditions" className="hover:underline">이용 약관</Link></li>
+                <li><Link href="/privacy-policy" className="hover:underline">개인정보 처리방침</Link></li>
                 <li><a href="#" className="hover:underline">환불 정책</a></li>
                 <li><a href="#" className="hover:underline">보너스 시스템</a></li>
               </ul>

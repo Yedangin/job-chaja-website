@@ -1,7 +1,7 @@
 export const termsAndConditionsData = {
   header: {
     title: "Terms & Conditions",
-    lastUpdated: "February 9, 2028",
+    lastUpdated: "February 9, 2025",
     description:
       "Please read these Terms of Service carefully before using Jobchaja platform.",
     disclaimer:

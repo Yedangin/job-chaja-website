@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 
 export default function HeroSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -49,13 +50,17 @@ export default function HeroSlider() {
         {slides.map((slide, idx) => (
           <div
             key={idx}
-            className={`min-w-full h-full ${slide.bgColor} relative flex flex-col justify-center px-10 text-white`}
-            style={{
-              backgroundImage: slide.image ? `url(${slide.image})` : undefined,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
+            className={`min-w-full h-full ${slide.bgColor} relative flex flex-col justify-center px-10 text-white overflow-hidden`}
           >
+            {slide.image && (
+              <Image 
+                src={slide.image} 
+                alt={slide.title} 
+                fill 
+                className="object-cover"
+                priority={idx === 0}
+              />
+            )}
             {slide.image && <div className="absolute inset-0 bg-black/40"></div>}
             <div className="relative z-10 max-w-lg">
               <span

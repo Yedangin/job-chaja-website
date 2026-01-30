@@ -13,7 +13,8 @@
       "links": [
         { "label": "How It Works", "url": "#" },
         { "label": "Deposit System", "url": "#" },
-        { "label": "Policies", "url": "#" },
+        { "label": "Terms & Conditions", "url": "/terms-and-conditions" },
+        { "label": "Privacy Policy", "url": "/privacy-policy" },
         { "label": "Download App", "url": "#" }
       ]
     },
