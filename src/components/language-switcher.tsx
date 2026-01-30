@@ -1,6 +1,5 @@
 "use client";
 
-import { useParams, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,111 +7,101 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Globe } from "lucide-react";
+import { useLanguage, Lang } from "@/i18n/LanguageProvider"; 
+import { ChevronDown, Check } from "lucide-react"; 
 
-// --- Configuration ---
-export const locales = ["en", "kr", "my"] as const;
-export type Locale = (typeof locales)[number];
+/* =====================
+ * Language Config
+ * ===================== */
 
-export const localeNames: Record<Locale, string> = {
-  en: "English",
-  kr: "Korean",
-  my: "Myanmar",
-};
+const LANGUAGES: {
+  code: Lang;
+  label: string;
+  flag: string; // 국가 코드 (ISO 3166-1 alpha-2)
+}[] = [
+  { code: "en", label: "English", flag: "us" }, // 영어 (미국 국기 사용, 필요시 gb로 변경)
+  { code: "ko", label: "한국어", flag: "kr" },
+  { code: "ja", label: "日本語", flag: "jp" },
+  { code: "vi", label: "Tiếng Việt", flag: "vn" },
+  { code: "th", label: "ภาษาไทย", flag: "th" },
+  { code: "tl", label: "Tagalog", flag: "ph" }, // Filipino -> Tagalog (자국어 표기)
+];
 
-// Base path for flags in the public directory (Assumes /public/flags/...)
-const FLAG_BASE_PATH = "/flag";
+/* =====================
+ * Flag Icon Component (CDN 적용)
+ * ===================== */
 
-// 🚩 UPDATED MAPPING: 'en' now maps to 'gb' (Great Britain/UK flag)
-const localeToFlagCode: Record<Locale, string> = {
-  en: "gb", // Assuming you've changed the English flag from 'us' to 'gb'
-  kr: "kr",
-  my: "mm",
-};
-// --- End Configuration ---
-
-// 🚩 FlagIcon Component using the standard <img> tag
-// This assumes your files are at /public/flags/gb.png and /public/flags/kr.png
-const FlagIcon = ({ code }: { code: string }) => {
-  const src = `${FLAG_BASE_PATH}/${code}.png`;
+function FlagIcon({ code, className = "w-5 h-5" }: { code: string; className?: string }) {
+  // FlagCDN 무료 이미지 사용 (w80 사이즈)
+  const cdnUrl = `https://flagcdn.com/w80/${code.toLowerCase()}.png`;
 
   return (
     <img
-      src={src}
-      alt={`${code.toUpperCase()} Flag`}
-      className="w-5 h-5 rounded-sm shadow-sm object-cover flex-shrink-0"
-      width={20}
-      height={20}
-      // Added a small border for visibility, especially if the flag has white edges
-      style={{ border: "1px solid #e5e7eb" }}
-      onError={(e) => {
-        // Optional: Handle case where flag image is missing
-        const target = e.target as HTMLImageElement;
-        target.onerror = null; // prevents looping
-        target.src = "placeholder.png"; // Replace with a generic placeholder image if needed
-        target.alt = "Flag not found";
-      }}
+      src={cdnUrl}
+      alt={`${code} flag`}
+      // object-cover와 rounded-full을 사용하여 직사각형 국기를 원형으로 깔끔하게 자름
+      className={`rounded-full object-cover border border-slate-100 shadow-sm bg-slate-100 ${className}`}
     />
   );
-};
+}
 
-export function LanguageSwitcher() {
-  const pathname = usePathname();
-  const params = useParams();
-  const currentLocale = (params.locale as string) || "en";
-  const activeLocale = currentLocale as Locale;
+/* =====================
+ * Language Switcher
+ * ===================== */
 
-  const changeLanguage = (locale: string) => {
-    const pathSegments = pathname.split("/").filter(Boolean);
-    const isFirstSegmentLocale = locales.includes(pathSegments[0] as Locale);
+export default function LanguageSwitcher() {
+  const { lang, setLang } = useLanguage();
 
-    const pathWithoutLocale = isFirstSegmentLocale
-      ? pathSegments.slice(1).join("/")
-      : pathSegments.join("/");
-
-    const newPath = `/${locale}${pathWithoutLocale ? `/${pathWithoutLocale}` : ""
-      }`;
-
-    // Set the NEXT_LOCALE cookie
-    document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=31536000; Secure; SameSite=Lax`;
-
-    window.location.href = newPath;
-  };
+  // 현재 선택된 언어 객체 찾기
+  const currentLang = LANGUAGES.find((l) => l.code === lang) || LANGUAGES[0];
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        {/* Button Style: Clean, round, icon-only */}
         <Button
           variant="outline"
-          size="icon"
-          className="rounded-full h-8 w-8 sm:h-9 sm:w-9 border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-          aria-label={`Current language: ${localeNames[activeLocale]}`}
+          size="sm"
+          className="h-9 pl-2 pr-3 bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-full shadow-sm transition-all duration-200 flex items-center gap-2 group"
+          aria-label="Change language"
         >
-          <Globe className="h-4 w-4 sm:h-[1.1rem] sm:w-[1.1rem] text-muted-foreground" />
+          {/* 현재 선택된 국기 */}
+          <FlagIcon code={currentLang.flag} />
+          
+          {/* 언어 이름 */}
+          <span className="text-xs font-bold text-slate-700 group-hover:text-slate-900 pt-0.5">
+            {currentLang.label}
+          </span>
+
+          {/* 화살표 아이콘 */}
+          <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 group-data-[state=open]:rotate-180" />
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-36 sm:w-40">
-        <div className="py-1 px-2 text-xs sm:text-sm font-medium text-gray-500 border-b dark:text-gray-400 dark:border-gray-700">
-          Select Language
-        </div>
-        {locales.map((locale) => (
+      <DropdownMenuContent 
+        align="end" 
+        sideOffset={8}
+        className="w-40 bg-white rounded-xl border border-slate-100 shadow-xl p-1.5 animate-in fade-in zoom-in-95 duration-200"
+      >
+        {LANGUAGES.map((l) => (
           <DropdownMenuItem
-            key={locale}
-            onClick={() => changeLanguage(locale)}
-            className={`cursor-pointer flex items-center gap-2 sm:gap-3 py-2 ${locale === activeLocale
-                ? "bg-gray-100 font-semibold dark:bg-gray-800 text-primary"
-                : "text-gray-700 dark:text-gray-200"
-              }`}
+            key={l.code}
+            onClick={() => setLang(l.code)}
+            className={`
+              flex items-center justify-between w-full px-3 py-2.5 rounded-lg cursor-pointer outline-none transition-colors
+              ${l.code === lang ? "bg-slate-50" : "hover:bg-slate-50"}
+            `}
           >
-            {/* Display the Flag Icon */}
-            <FlagIcon code={localeToFlagCode[locale]} />
-
-            {/* Display the Language Name */}
-            <span className="flex-grow text-sm sm:text-base">
-              {localeNames[locale]}
-            </span>
+            <div className="flex items-center gap-3">
+              <FlagIcon code={l.flag} className="w-4 h-4" />
+              <span className={`text-sm pt-0.5 ${l.code === lang ? "font-bold text-slate-900" : "font-medium text-slate-600"}`}>
+                {l.label}
+              </span>
+            </div>
+            
+            {/* 선택된 항목에만 체크 표시 */}
+            {l.code === lang && (
+              <Check className="w-3.5 h-3.5 text-sky-600" />
+            )}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
