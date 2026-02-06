@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/LanguageProvider';
 import LanguageSwitcher from '@/components/language-switcher';
 import { X } from 'lucide-react'; // For close icon (Replaced with text 'X' if not available)
+import { useRouter } from 'next/navigation';
 
 type MemberType = 'seeker' | 'company';
 type ViewType = 'login' | 'signup' | 'forgot-password';
@@ -25,11 +26,12 @@ export default function LoginPage() {
   const [currentType, setCurrentType] = useState<MemberType>('seeker');
   const [currentView, setCurrentView] = useState<ViewType>('login');
   const [reviewIndex, setReviewIndex] = useState(0);
-  
+  const router = useRouter();
+
   // Login Form State
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
+
   // Common State
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +40,7 @@ export default function LoginPage() {
   const [registerFullName, setRegisterFullName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
-  
+
   // Extended Registration Features State
   const [authCode, setAuthCode] = useState('');
   const [isAuthSent, setIsAuthSent] = useState(false);
@@ -74,6 +76,7 @@ export default function LoginPage() {
   // --- Handler Functions ---
   const KAKAO_LOGIN_URL = 'http://jobchaja.com:8000/auth/kakao';
   const GOOGLE_LOGIN_URL = 'http://jobchaja.com:8000/auth/google';
+  const mainUrl = 'http://jobchaja.com:8000'
 
   // 1. Login Logic
   const handleLogin = async (e: FormEvent) => {
@@ -82,20 +85,21 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await fetch('http://jobchaja.com:8000/auth/login', {
+      const response = await fetch('http://localhost:8000/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
-
+      localStorage.setItem("sessionId", data?.sessionId);
       if (!response.ok) {
         throw new Error(data.message || t('loginFail'));
       }
 
       console.log('Login successful:', data);
-      window.location.href = 'http://jobchaja.com';
+      // window.location.href = 'http://jobchaja.com';
+      router.push("/")
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -129,12 +133,12 @@ export default function LoginPage() {
       // TODO: OTP SEND
       // --- [Backend Integration Simulation] ---
       // In reality, await fetch('/api/auth/send-code', ...) would be called here.
-      await new Promise((resolve) => setTimeout(resolve, 500)); 
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       // Logic on success
       setIsAuthSent(true);
       setAuthMsg(t('authSent'));
-      
+
     } catch (error) {
       // (3) Handle sending failure
       console.error(error);
@@ -148,7 +152,7 @@ export default function LoginPage() {
   const handleVerifyAuthCode = () => {
     if (authCode === '123456') {
       setIsAuthVerified(true);
-      setAuthMsg('OK'); 
+      setAuthMsg('OK');
     } else {
       alert(t('errAuthCode') || 'Wrong Code');
     }
@@ -166,7 +170,7 @@ export default function LoginPage() {
   // 5. Registration Logic
   const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
-    
+
     if (!isAuthVerified) {
       setError(t('errAuth'));
       return;
@@ -203,7 +207,7 @@ export default function LoginPage() {
       console.log('Registration successful:', data);
       alert(t('registerSuccess'));
       setCurrentView('login');
-      
+
       setRegisterFullName(''); setRegisterEmail(''); setRegisterPassword('');
       setAuthCode(''); setIsAuthSent(false); setIsAuthVerified(false);
       setTerms({ term1: false, term2: false, term3: false, term4: false });
@@ -216,14 +220,14 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 font-sans relative">
-      
+
       {/* ================= Terms Modal (Layer Popup) ================= */}
       {activeModalTerm && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
           onClick={() => setActiveModalTerm(null)} // Close on background click
         >
-          <div 
+          <div
             className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
           >
@@ -232,15 +236,15 @@ export default function LoginPage() {
               <h3 className="font-bold text-slate-800 text-sm">
                 {t(activeModalTerm as any)}
               </h3>
-              <button 
-                onClick={() => setActiveModalTerm(null)} 
+              <button
+                onClick={() => setActiveModalTerm(null)}
                 className="text-slate-400 hover:text-slate-700 transition-colors"
               >
                 {/* Close Icon (Lucide X icon or text) */}
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            
+
             {/* Modal Content (Scrollable) */}
             <div className="p-6 overflow-y-auto text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
               {termContents[activeModalTerm] || "약관 내용이 없습니다."}
@@ -252,22 +256,22 @@ export default function LoginPage() {
 
 
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[750px] relative transition-all duration-500">
-        
+
         {/* --- LEFT SIDE --- */}
         <div className={`hidden md:flex md:w-1/2 relative flex-col justify-between p-12 text-white overflow-hidden transition-colors duration-700 ${currentView === 'signup' ? 'bg-sky-900' : 'bg-slate-900'}`}>
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
-          
+
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-6">
               <div className="w-10 h-10 bg-sky-500 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-lg">✈</div>
               <span className="text-xl font-bold tracking-tight">{t('brand')}</span>
             </div>
           </div>
-          
+
           <div className="relative z-10 space-y-6">
             <h2 className="text-4xl font-bold leading-tight" dangerouslySetInnerHTML={{ __html: currentView === 'signup' ? t('signupSlogan') : t('slogan') }} />
             <p className="text-slate-300 font-light text-lg leading-relaxed" dangerouslySetInnerHTML={{ __html: currentView === 'signup' ? t('signupSub') : t('subSlogan') }} />
-            
+
             <div className="mt-8 bg-white/10 backdrop-blur-md p-5 rounded-xl border border-white/10 flex items-center gap-4 h-[100px]">
               <div className={`w-10 h-10 rounded-full ${reviews[reviewIndex].color} flex items-center justify-center font-bold text-white text-sm shrink-0 transition-transform duration-500`}>
                 {reviews[reviewIndex].initial}
@@ -286,9 +290,9 @@ export default function LoginPage() {
 
         {/* --- RIGHT SIDE --- */}
         <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white relative">
-          
+
           <div className="absolute top-6 right-6 z-20">
-             <LanguageSwitcher />
+            <LanguageSwitcher />
           </div>
 
           {/* ================= LOGIN VIEW ================= */}
@@ -306,18 +310,18 @@ export default function LoginPage() {
               </div>
 
               <form onSubmit={handleLogin} className="space-y-3 mb-4">
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   placeholder={t('labelEmail')}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm" 
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-                <input 
-                  type="password" 
-                  placeholder={t('pwPh')} 
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm" 
+                <input
+                  type="password"
+                  placeholder={t('pwPh')}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -345,170 +349,169 @@ export default function LoginPage() {
               <div className="space-y-3">
                 <Button asChild className="w-full h-12 bg-[#FEE500] hover:bg-[#FDD835] text-[#3c1e1e] font-bold rounded-xl flex items-center justify-center gap-2 border-none">
                   <a href={KAKAO_LOGIN_URL}>
-                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C5.925 3 1 6.925 1 11.775c0 3.325 2.275 6.225 5.675 7.7-.2 1.45-1.125 4.125-1.3 4.8 0 0-.1.2.1.275.2.075.425.025.425.025 2.75-1.925 5.75-4.025 6.6-4.625.5.075 1.025.125 1.5.125 6.075 0 11-3.925 11-8.775S17.075 3 12 3z"/></svg>
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C5.925 3 1 6.925 1 11.775c0 3.325 2.275 6.225 5.675 7.7-.2 1.45-1.125 4.125-1.3 4.8 0 0-.1.2.1.275.2.075.425.025.425.025 2.75-1.925 5.75-4.025 6.6-4.625.5.075 1.025.125 1.5.125 6.075 0 11-3.925 11-8.775S17.075 3 12 3z" /></svg>
                     {t('kakaoBtn')}
                   </a>
                 </Button>
                 <Button variant="outline" asChild className="w-full h-12 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2">
                   <a href={GOOGLE_LOGIN_URL}>
-                    <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                    <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>
                     {t('googleBtn')}
                   </a>
                 </Button>
               </div>
             </div>
           )}
-          
+
           {/* ================= SIGN UP VIEW ================= */}
           {currentView === 'signup' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-full overflow-y-auto">
               <button onClick={() => { setError(null); setCurrentView('login'); }} className="mb-4 text-slate-400 hover:text-slate-800 flex items-center gap-1 text-sm font-medium w-fit">
                 {t('backLogin')}
               </button>
-              
+
               <h1 className="text-2xl font-bold text-slate-900 mb-1">{t('createAccount')}</h1>
               <p className="text-slate-500 text-sm mb-6">{t('createSub')}</p>
-              
+
               <form onSubmit={handleRegister} className="space-y-4">
-                
+
                 {/* 1. Basic Info Section */}
                 <div className="space-y-3">
-                    {/* Name */}
-                    <div>
-                        <label className="text-xs font-bold text-slate-500 ml-1 mb-1 block">
-                            {t('labelName')}
-                        </label>
-                        <input 
-                          type="text" 
-                          placeholder="Full Name (Passport Name)" 
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm"
-                          value={registerFullName}
-                          onChange={(e) => setRegisterFullName(e.target.value)}
-                        />
-                    </div>
+                  {/* Name */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 ml-1 mb-1 block">
+                      {t('labelName')}
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Full Name (Passport Name)"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm"
+                      value={registerFullName}
+                      onChange={(e) => setRegisterFullName(e.target.value)}
+                    />
+                  </div>
 
-                    {/* Email & Auth Request */}
-                    <div>
-                        <label className="text-xs font-bold text-slate-500 ml-1 mb-1 block">{t('labelEmail')}</label>
-                        <div className="flex gap-2">
-                            <input 
-                              type="email" 
-                              placeholder={t('emailPh')} 
-                              className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm disabled:bg-slate-50 disabled:text-slate-500"
-                              value={registerEmail}
-                              onChange={(e) => setRegisterEmail(e.target.value)}
-                              disabled={isAuthVerified}
-                            />
-                            <button 
-                              type="button" 
-                              onClick={handleSendAuthCode}
-                              disabled={isAuthVerified}
-                              className="px-3 py-3 bg-slate-900 text-white text-xs font-bold rounded-xl whitespace-nowrap hover:bg-slate-800 transition-colors disabled:bg-slate-400"
-                            >
-                                {t('btnAuth')}
-                            </button>
-                        </div>
-                        {authMsg && (
-                           <p className={`text-xs mt-1 font-bold ${isAuthVerified ? 'text-sky-600' : 'text-green-600'}`}>
-                             {authMsg}
-                           </p>
-                        )}
+                  {/* Email & Auth Request */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 ml-1 mb-1 block">{t('labelEmail')}</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        placeholder={t('emailPh')}
+                        className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm disabled:bg-slate-50 disabled:text-slate-500"
+                        value={registerEmail}
+                        onChange={(e) => setRegisterEmail(e.target.value)}
+                        disabled={isAuthVerified}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSendAuthCode}
+                        disabled={isAuthVerified}
+                        className="px-3 py-3 bg-slate-900 text-white text-xs font-bold rounded-xl whitespace-nowrap hover:bg-slate-800 transition-colors disabled:bg-slate-400"
+                      >
+                        {t('btnAuth')}
+                      </button>
                     </div>
-
-                    {/* Auth Code Input */}
-                    {isAuthSent && !isAuthVerified && (
-                        <div className="flex gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                            <input 
-                              type="text" 
-                              placeholder="123456" 
-                              maxLength={6} 
-                              className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm text-center tracking-widest bg-slate-50"
-                              value={authCode}
-                              onChange={(e) => setAuthCode(e.target.value)}
-                            />
-                            <button 
-                              type="button" 
-                              onClick={handleVerifyAuthCode}
-                              className="px-3 py-3 bg-sky-100 text-sky-700 text-xs font-bold rounded-xl whitespace-nowrap hover:bg-sky-200 transition-colors"
-                            >
-                                {t('btnConfirm')}
-                            </button>
-                        </div>
+                    {authMsg && (
+                      <p className={`text-xs mt-1 font-bold ${isAuthVerified ? 'text-sky-600' : 'text-green-600'}`}>
+                        {authMsg}
+                      </p>
                     )}
+                  </div>
 
-                    {/* Password & Confirmation */}
-                    <div>
-                        <label className="text-xs font-bold text-slate-500 ml-1 mb-1 block">{t('labelPw')}</label>
-                        <input 
-                          type="password" 
-                          placeholder={t('pwRulePh')}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm mb-2"
-                          value={registerPassword}
-                          onChange={(e) => setRegisterPassword(e.target.value)}
-                        />
-                        <input 
-                          type="password" 
-                          placeholder={t('pwConfirmPh')}
-                          className={`w-full px-4 py-3 rounded-xl border outline-none transition-all text-sm ${
-                            passwordConfirm && registerPassword !== passwordConfirm ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-sky-500'
-                          }`}
-                          value={passwordConfirm}
-                          onChange={(e) => setPasswordConfirm(e.target.value)}
-                        />
-                         {passwordConfirm && registerPassword !== passwordConfirm && (
-                           <p className="text-[10px] text-red-500 mt-1 ml-1">비밀번호가 일치하지 않습니다.</p>
-                         )}
+                  {/* Auth Code Input */}
+                  {isAuthSent && !isAuthVerified && (
+                    <div className="flex gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <input
+                        type="text"
+                        placeholder="123456"
+                        maxLength={6}
+                        className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm text-center tracking-widest bg-slate-50"
+                        value={authCode}
+                        onChange={(e) => setAuthCode(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifyAuthCode}
+                        className="px-3 py-3 bg-sky-100 text-sky-700 text-xs font-bold rounded-xl whitespace-nowrap hover:bg-sky-200 transition-colors"
+                      >
+                        {t('btnConfirm')}
+                      </button>
                     </div>
+                  )}
+
+                  {/* Password & Confirmation */}
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 ml-1 mb-1 block">{t('labelPw')}</label>
+                    <input
+                      type="password"
+                      placeholder={t('pwRulePh')}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm mb-2"
+                      value={registerPassword}
+                      onChange={(e) => setRegisterPassword(e.target.value)}
+                    />
+                    <input
+                      type="password"
+                      placeholder={t('pwConfirmPh')}
+                      className={`w-full px-4 py-3 rounded-xl border outline-none transition-all text-sm ${passwordConfirm && registerPassword !== passwordConfirm ? 'border-red-300 focus:border-red-500' : 'border-slate-200 focus:border-sky-500'
+                        }`}
+                      value={passwordConfirm}
+                      onChange={(e) => setPasswordConfirm(e.target.value)}
+                    />
+                    {passwordConfirm && registerPassword !== passwordConfirm && (
+                      <p className="text-[10px] text-red-500 mt-1 ml-1">비밀번호가 일치하지 않습니다.</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* 2. Terms Agreement Section (Modal Trigger) */}
                 <div className="pt-4 border-t border-slate-100">
-                    <label className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors mb-3">
-                        <input 
-                          type="checkbox" 
-                          checked={isAllChecked}
-                          onChange={(e) => handleAllTermsChange(e.target.checked)}
-                          className="w-5 h-5 rounded border-slate-300 accent-sky-600"
-                        />
-                        <span className="text-sm font-bold text-slate-800">{t('agreeAll')}</span>
-                    </label>
-                    
-                    <div className="space-y-2 px-2">
-                        {[
-                          { key: 'term1', label: t('term1') },
-                          { key: 'term2', label: t('term2') },
-                          { key: 'term3', label: t('term3') },
-                          { key: 'term4', label: t('term4') }
-                        ].map((term) => (
-                          <div key={term.key} className="flex items-center justify-between">
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                  <input 
-                                    type="checkbox" 
-                                    checked={terms[term.key as keyof typeof terms]}
-                                    onChange={() => handleTermChange(term.key as keyof typeof terms)}
-                                    className="w-4 h-4 rounded border-slate-300 accent-sky-600"
-                                  />
-                                  <span className="text-xs text-slate-600">{term.label}</span>
-                              </label>
-                              {/* Changed to button opening modal instead of new window link */}
-                              <button 
-                                type="button"
-                                onClick={() => setActiveModalTerm(term.key)}
-                                className="text-xs text-slate-400 underline hover:text-slate-600 cursor-pointer p-1"
-                              >
-                                {t('view')}
-                              </button>
-                          </div>
-                        ))}
-                    </div>
+                  <label className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors mb-3">
+                    <input
+                      type="checkbox"
+                      checked={isAllChecked}
+                      onChange={(e) => handleAllTermsChange(e.target.checked)}
+                      className="w-5 h-5 rounded border-slate-300 accent-sky-600"
+                    />
+                    <span className="text-sm font-bold text-slate-800">{t('agreeAll')}</span>
+                  </label>
+
+                  <div className="space-y-2 px-2">
+                    {[
+                      { key: 'term1', label: t('term1') },
+                      { key: 'term2', label: t('term2') },
+                      { key: 'term3', label: t('term3') },
+                      { key: 'term4', label: t('term4') }
+                    ].map((term) => (
+                      <div key={term.key} className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={terms[term.key as keyof typeof terms]}
+                            onChange={() => handleTermChange(term.key as keyof typeof terms)}
+                            className="w-4 h-4 rounded border-slate-300 accent-sky-600"
+                          />
+                          <span className="text-xs text-slate-600">{term.label}</span>
+                        </label>
+                        {/* Changed to button opening modal instead of new window link */}
+                        <button
+                          type="button"
+                          onClick={() => setActiveModalTerm(term.key)}
+                          className="text-xs text-slate-400 underline hover:text-slate-600 cursor-pointer p-1"
+                        >
+                          {t('view')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {error && <p className="text-xs text-red-500 text-center pt-1">{error}</p>}
-                
+
                 {/* Complete Registration Button */}
-                <Button 
-                  type="submit" 
-                  disabled={isLoading || !isAuthVerified || !isAllRequiredChecked || registerPassword !== passwordConfirm} 
+                <Button
+                  type="submit"
+                  disabled={isLoading || !isAuthVerified || !isAllRequiredChecked || registerPassword !== passwordConfirm}
                   className="w-full h-12 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-xl mt-4 disabled:bg-slate-300 disabled:cursor-not-allowed"
                 >
                   {isLoading ? t('registerLoading') : t('btnComplete')}
@@ -519,27 +522,27 @@ export default function LoginPage() {
 
           {/* ================= FORGOT PASSWORD VIEW ================= */}
           {currentView === 'forgot-password' && (
-             <div className="animate-in fade-in slide-in-from-right-4 duration-500 flex flex-col items-center justify-center h-full">
-               <div className="w-full max-w-lg">
-                   <button onClick={() => setCurrentView('login')} className="mb-8 text-slate-400 hover:text-slate-800 flex items-center gap-1 text-sm font-medium">
-                     {t('backLogin')}
-                   </button>
-                   <div className="text-center mb-8">
-                     <div className="w-16 h-16 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔐</div>
-                     <h1 className="text-2xl font-bold text-slate-900 mb-2">{t('findPw')}</h1>
-                     <p className="text-slate-500 text-sm px-8" dangerouslySetInnerHTML={{ __html: t('findPwSub') }} />
-                   </div>
-                   <div className="space-y-4 w-full">
-                     <div>
-                         <label className="text-xs font-bold text-slate-500 ml-1 mb-1 block">{t('labelEmail')}</label>
-                         <input type="email" placeholder={t('labelEmail')} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm" />
-                     </div>
-                     <Button className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg">
-                         {t('btnSendLink')}
-                     </Button>
-                   </div>
-               </div>
-             </div>
+            <div className="animate-in fade-in slide-in-from-right-4 duration-500 flex flex-col items-center justify-center h-full">
+              <div className="w-full max-w-lg">
+                <button onClick={() => setCurrentView('login')} className="mb-8 text-slate-400 hover:text-slate-800 flex items-center gap-1 text-sm font-medium">
+                  {t('backLogin')}
+                </button>
+                <div className="text-center mb-8">
+                  <div className="w-16 h-16 bg-sky-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">🔐</div>
+                  <h1 className="text-2xl font-bold text-slate-900 mb-2">{t('findPw')}</h1>
+                  <p className="text-slate-500 text-sm px-8" dangerouslySetInnerHTML={{ __html: t('findPwSub') }} />
+                </div>
+                <div className="space-y-4 w-full">
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 ml-1 mb-1 block">{t('labelEmail')}</label>
+                    <input type="email" placeholder={t('labelEmail')} className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm" />
+                  </div>
+                  <Button className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition-all shadow-lg">
+                    {t('btnSendLink')}
+                  </Button>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Footer: Display only on Login View */}

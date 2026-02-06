@@ -3,6 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Paperclip as PaperPlane } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 interface HeaderProps {
   isCompanyMode: boolean;
@@ -11,11 +14,27 @@ interface HeaderProps {
 }
 
 export default function Header({ isCompanyMode, onToggleMode, onLogoClick }: HeaderProps) {
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const router = useRouter()
+
+  useEffect(() => {
+    const storedSessionId = localStorage.getItem("sessionId");
+    setSessionId(storedSessionId);
+  }, [])
+
+  const logoutHandler = () => {
+    localStorage.removeItem("sessionId");
+    localStorage.removeItem("user")
+    setSessionId(null);
+    router.push("/login");
+    toast.success("Logged out successfully");
+  }
+
   return (
     <header className="sticky top-0 z-50 glass border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Logo */}
-        <div
+        <Link href={"/"}
           className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition"
           onClick={onLogoClick}
         >
@@ -23,7 +42,7 @@ export default function Header({ isCompanyMode, onToggleMode, onLogoClick }: Hea
             <PaperPlane size={18} />
           </div>
           <span className="text-xl font-bold tracking-tight text-slate-900">JobChaja</span>
-        </div>
+        </Link>
 
         {/* Actions */}
         <div className="flex items-center gap-3">
@@ -39,9 +58,24 @@ export default function Header({ isCompanyMode, onToggleMode, onLogoClick }: Hea
           <Button asChild variant="ghost" className="text-slate-600 font-medium text-sm px-2">
             <Link href="/biz">비즈페이지</Link>
           </Button>
-          <Button asChild variant="ghost" className="text-slate-600 font-medium text-sm px-2">
-            <Link href="/login">로그인</Link>
-          </Button>
+          {
+            sessionId ? (
+              <div className='flex justify-center items-center gap-4'>
+                <Button asChild variant="ghost" className="text-slate-600 font-medium text-sm px-2">
+                  <Link href="/profile">프로필</Link>
+                </Button>
+                <Button onClick={logoutHandler} variant="ghost" className="text-slate-600 font-medium text-sm px-2">
+                  Logout
+                </Button>
+              </div>
+
+
+            ) : (
+              <Button asChild variant="ghost" className="text-slate-600 font-medium text-sm px-2">
+                <Link href="/login">로그인</Link>
+              </Button>
+            )
+          }
           <Button className="bg-slate-900 text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-slate-800 shadow-lg shadow-slate-200" asChild>
             <Link href={"/register"} target='_blank' >
               회원가입
