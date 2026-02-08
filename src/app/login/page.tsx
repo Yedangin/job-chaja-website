@@ -1,5 +1,5 @@
 'use client';
-
+import axios from 'axios';
 import { useState, useEffect, FormEvent } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -125,32 +125,50 @@ export default function LoginPage() {
     setAuthMsg(null);
     setIsLoading(true); // Start loading
 
-    try {
-      // TODO: OTP SEND
-      // --- [Backend Integration Simulation] ---
-      // In reality, await fetch('/api/auth/send-code', ...) would be called here.
-      await new Promise((resolve) => setTimeout(resolve, 500)); 
-      
-      // Logic on success
+   try {
+      // 🔴 axios.post를 사용하여 Gateway(8000) 호출
+      const response = await axios.post('http://jobchaja.com:8000/auth/send-otp', {
+        email: registerEmail,
+      });
+
+      // axios는 결과가 response.data에 바로 담깁니다.
       setIsAuthSent(true);
       setAuthMsg(t('authSent'));
       
-    } catch (error) {
-      // (3) Handle sending failure
+    } catch (error: any) {
       console.error(error);
-      alert(t('errAuthSendFail')); // 'Failed to send verification code'
+      // 🔴 백엔드에서 보낸 에러 메시지(1분 제한 등) 추출
+      const message = error.response?.data?.message || t('errAuthSendFail');
+      alert(message);
     } finally {
-      setIsLoading(false); // End loading (Runs whether success or failure)
+      setIsLoading(false);
     }
   };
 
   // 3. Auth Code Verification Simulation
-  const handleVerifyAuthCode = () => {
-    if (authCode === '123456') {
+  const handleVerifyAuthCode = async () => {
+    if (!authCode || authCode.length !== 6) {
+      alert('인증번호 6자리를 입력해주세요.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post('http://jobchaja.com:8000/auth/verify-otp', {
+        email: registerEmail,
+        code: authCode,
+      });
+
       setIsAuthVerified(true);
       setAuthMsg('OK'); 
-    } else {
-      alert(t('errAuthCode') || 'Wrong Code');
+      alert('이메일 인증이 완료되었습니다.');
+      
+    } catch (error: any) {
+      const message = error.response?.data?.message || '인증 실패';
+      alert(message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -499,7 +517,7 @@ export default function LoginPage() {
                                 {t('view')}
                               </button>
                           </div>
-                        ))}
+                        ))} 
                     </div>
                 </div>
 
