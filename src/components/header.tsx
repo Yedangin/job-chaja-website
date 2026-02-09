@@ -22,6 +22,7 @@ export default function Header({ isCompanyMode, onToggleMode, onLogoClick }: Hea
     setSessionId(storedSessionId);
   }, [])
 
+  // LogoutFn
   const logoutHandler = () => {
     localStorage.removeItem("sessionId");
     localStorage.removeItem("user")
