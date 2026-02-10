@@ -1,5 +1,5 @@
 'use client';
-
+import axios from 'axios';
 import { useState, useEffect, FormEvent } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -142,15 +142,29 @@ export default function LoginPage() {
     } catch (error) {
       // (3) Handle sending failure
       console.error(error);
-      alert(t('errAuthSendFail')); // 'Failed to send verification code'
+      // 🔴 백엔드에서 보낸 에러 메시지(1분 제한 등) 추출
+      const message = error.response?.data?.message || t('errAuthSendFail');
+      alert(message);
     } finally {
-      setIsLoading(false); // End loading (Runs whether success or failure)
+      setIsLoading(false);
     }
   };
 
   // 3. Auth Code Verification Simulation
-  const handleVerifyAuthCode = () => {
-    if (authCode === '123456') {
+  const handleVerifyAuthCode = async () => {
+    if (!authCode || authCode.length !== 6) {
+      alert('인증번호 6자리를 입력해주세요.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post('http://jobchaja.com:8000/auth/verify-otp', {
+        email: registerEmail,
+        code: authCode,
+      });
+
       setIsAuthVerified(true);
       setAuthMsg('OK');
     } else {
