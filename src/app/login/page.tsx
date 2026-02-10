@@ -74,9 +74,9 @@ export default function LoginPage() {
   }, [reviews.length]);
 
   // --- Handler Functions ---
-  const KAKAO_LOGIN_URL = 'http://jobchaja.com:8000/auth/kakao';
-  const GOOGLE_LOGIN_URL = 'http://jobchaja.com:8000/auth/google';
-  const mainUrl = 'http://jobchaja.com:8000'
+  const KAKAO_LOGIN_URL = '/api/auth/kakao';
+  const GOOGLE_LOGIN_URL = '/api/auth/google';
+
 
   // 1. Login Logic
   const handleLogin = async (e: FormEvent) => {
@@ -85,7 +85,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8000/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -98,7 +98,7 @@ export default function LoginPage() {
       }
 
       console.log('Login successful:', data);
-      // window.location.href = 'http://jobchaja.com';
+      
       router.push("/")
     } catch (err: any) {
       setError(err.message);
@@ -112,38 +112,32 @@ export default function LoginPage() {
     return re.test(email);
   };
 
-  // [Modified] 2. Auth Code Sending Request (Added Validation + Try/Catch)
-  const handleSendAuthCode = async () => {
-    // (1) Check for empty value
+   const handleSendAuthCode = async () => {
     if (!registerEmail) {
-      alert(t('errEmailRequired')); // 'Please enter your email address'
+      alert(t('errEmailRequired'));
       return;
     }
 
-    // (2) Format check (Works now that validateEmail function exists)
     if (!validateEmail(registerEmail)) {
-      alert(t('errEmailFormat')); // 'Invalid email format'
+      alert(t('errEmailFormat'));
       return;
     }
 
     setAuthMsg(null);
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
 
     try {
-      // TODO: OTP SEND
-      // --- [Backend Integration Simulation] ---
-      // In reality, await fetch('/api/auth/send-code', ...) would be called here.
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Logic on success
+      await axios.post('/api/auth/send-otp', { email: registerEmail });
       setIsAuthSent(true);
       setAuthMsg(t('authSent'));
+    } catch (err: unknown) {
+      console.error(err);
 
-    } catch (error) {
-      // (3) Handle sending failure
-      console.error(error);
-      // 🔴 백엔드에서 보낸 에러 메시지(1분 제한 등) 추출
-      const message = error.response?.data?.message || t('errAuthSendFail');
+      const message =
+        axios.isAxiosError(err)
+          ? (err.response?.data as any)?.message || t('errAuthSendFail')
+          : t('errAuthSendFail');
+
       alert(message);
     } finally {
       setIsLoading(false);
@@ -160,15 +154,24 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://jobchaja.com:8000/auth/verify-otp', {
+      const response = await axios.post('/api/auth/verify-otp', {
         email: registerEmail,
         code: authCode,
       });
 
       setIsAuthVerified(true);
       setAuthMsg('OK');
-    } else {
-      alert(t('errAuthCode') || 'Wrong Code');
+    }  catch (err: unknown) {
+      console.error(err);
+
+      const message =
+        axios.isAxiosError(err)
+          ? (err.response?.data as any)?.message || (t('errAuthCode') || 'Wrong Code')
+          : (t('errAuthCode') || 'Wrong Code');
+
+      alert(message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -202,7 +205,7 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await fetch('http://jobchaja.com:8000/auth/register', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -2,9 +2,7 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactCompiler: true,
-  // output: "export",
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -13,7 +11,15 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  // distDir: "out",
+
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: "http://localhost:8000/:path*",
+      },
+    ];
+  },
 };
 
 const withNextIntl = createNextIntlPlugin();
