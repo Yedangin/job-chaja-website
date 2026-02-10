@@ -62,8 +62,13 @@ const ko = {/* =====================
   labelEmail: '이메일 주소',
 
   btnAuth: '인증요청',
-  authSent: '✅ 인증번호가 발송되었습니다. (123456)',
+  sending: '발송 중...',
+  resend: '재전송',
+  authSent: '인증번호가 발송되었습니다.\n5분 내에 메일이 도착하지 않으면 스팸함을 확인하거나 이메일 주소를 다시 확인해주세요.',
+  authCodePh: '123456',
   btnConfirm: '확인',
+  verifying: '확인 중...',
+  verify: '확인',
 
   labelPw: '비밀번호',
   pwRulePh: '8자 이상 영문, 숫자, 특수문자 조합',
@@ -91,6 +96,9 @@ const ko = {/* =====================
   errEmailRequired: '이메일 주소를 입력해주세요.',
   errEmailFormat: '올바른 이메일 형식이 아닙니다.',
   errAuthSendFail: '인증번호 발송에 실패했습니다.',
+  errEmailNotExist: '존재하지 않는 이메일 주소입니다.',
+  errEmailInvalid: '유효하지 않은 이메일 주소입니다.',
+  timeLeft: '남은 시간',
   /* =====================
    * 비밀번호 찾기
    * ===================== */
@@ -98,6 +106,7 @@ const ko = {/* =====================
   findPwSub: '가입하신 이메일 주소를 입력하시면<br />비밀번호 재설정 링크를 보내드립니다.',
 
   btnSendLink: '재설정 링크 보내기',
+  resetLinkSent: '재설정 링크가 이메일로 발송되었습니다.',
   emailSent: '이메일 발송 완료!',
   emailCheck: '메일함을 확인하고 링크를 클릭하세요.',
 

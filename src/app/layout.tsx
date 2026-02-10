@@ -1,12 +1,13 @@
 import React from "react"
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
+// import { Analytics } from '@vercel/analytics/next'
 import Script from 'next/script'
 import './globals.css'
 
 // ✅ 추가
 import { LanguageProvider } from '@/i18n/LanguageProvider'
+import { Toaster } from 'sonner'
 
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
@@ -55,7 +56,17 @@ export default function RootLayout({
           {children}
         </LanguageProvider>
 
-        <Analytics />
+        <Toaster
+          richColors
+          position="top-right"
+          toastOptions={{
+            style: {
+              minWidth: '400px',
+              maxWidth: '500px',
+            },
+          }}
+        />
+        {/* <Analytics /> */}
       </body>
     </html>
   )

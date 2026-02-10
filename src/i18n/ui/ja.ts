@@ -45,8 +45,13 @@ const ja = {
   labelEmail: 'メールアドレス',
 
   btnAuth: '認証リクエスト',
+  sending: '送信中...',
+  resend: '再送信',
   authSent: '✅ 認証コードを送信しました。',
+  authCodePh: '123456',
   btnConfirm: '確認',
+  verifying: '確認中...',
+  verify: '確認',
 
   labelPw: 'パスワード',
   pwRulePh: '8文字以上、英字・数字・記号を含む',
@@ -72,10 +77,14 @@ const ja = {
 errEmailRequired: 'メールアドレスを入力してください。',
   errEmailFormat: 'メールアドレスの形式が正しくありません。',
   errAuthSendFail: '認証コードの送信に失敗しました。',
+  errEmailNotExist: '存在しないメールアドレスです。',
+  errEmailInvalid: '無効なメールアドレスです。',
+  timeLeft: '残り時間',
   findPw: 'パスワード再設定',
   findPwSub: '登録したメールアドレスを入力すると<br />再設定リンクを送信します。',
 
   btnSendLink: '再設定リンクを送信',
+  resetLinkSent: 'リセットリンクをメールで送信しました。',
   emailSent: 'メールを送信しました！',
   emailCheck: '受信トレイを確認してください。',
 

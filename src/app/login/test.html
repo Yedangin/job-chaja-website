@@ -207,7 +207,7 @@
                             <div>
                                 <label class="text-xs font-bold text-slate-500 ml-1 mb-1 block" data-i18n="labelEmail">이메일 주소</label>
                                 <div class="flex gap-2">
-                                    <input type="email" id="signup-email" placeholder="example@email.com" class="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm">
+                                    <input type="email" id="signup-email" placeholder="example@email.com" class="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm" oninput="filterEmailInput(this)" onkeydown="preventKoreanInput(event)" oncompositionstart="return false" oncompositionupdate="return false" oncompositionend="filterEmailInputOnComposition(this)">
                                     <button type="button" onclick="sendAuthCode()" id="btn-send-code" class="px-3 py-3 bg-slate-900 text-white text-xs font-bold rounded-xl whitespace-nowrap hover:bg-slate-800 transition-colors" data-i18n="btnAuth">
                                         인증요청
                                     </button>
@@ -227,8 +227,9 @@
 
                             <div>
                                 <label class="text-xs font-bold text-slate-500 ml-1 mb-1 block" data-i18n="labelPw">비밀번호</label>
-                                <input type="password" placeholder="" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm mb-2" data-i18n-ph="pwRulePh">
-                                <input type="password" placeholder="" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm" data-i18n-ph="pwConfirmPh">
+                                <input type="password" id="signup-password" placeholder="" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm mb-2" data-i18n-ph="pwRulePh" oninput="checkPasswordMatch()">
+                                <input type="password" id="signup-password-confirm" placeholder="" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm" data-i18n-ph="pwConfirmPh" oninput="checkPasswordMatch()">
+                                <p id="password-match-msg" class="text-xs text-red-500 ml-1 mt-1 hidden">비밀번호가 일치하지 않습니다</p>
                             </div>
                         </div>
 
@@ -651,6 +652,52 @@
             const email = document.getElementById('reset-email').value;
             if(!email) { return; }
             document.getElementById('reset-success-msg').classList.remove('hidden');
+        }
+
+        // 이메일 입력 필터링 (한글 입력 즉시 제거)
+        function filterEmailInput(input) {
+            const originalValue = input.value;
+            // 영문, 숫자, @, ., -, _ 만 허용 (한글 및 기타 문자 즉시 제거)
+            const filteredValue = originalValue.replace(/[^a-zA-Z0-9@._-]/g, '');
+            if (originalValue !== filteredValue) {
+                input.value = filteredValue;
+            }
+        }
+
+        // 한글 키 입력 방지
+        function preventKoreanInput(event) {
+            // 한글 입력 방지 (자음, 모음, 완성형 한글 모두 포함)
+            if (event.key.length === 1 && /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(event.key)) {
+                event.preventDefault();
+                return false;
+            }
+        }
+
+        // IME 입력 종료 시 한글 제거
+        function filterEmailInputOnComposition(input) {
+            const originalValue = input.value;
+            const filteredValue = originalValue.replace(/[^a-zA-Z0-9@._-]/g, '');
+            input.value = filteredValue;
+        }
+
+        // 비밀번호 일치 확인
+        function checkPasswordMatch() {
+            const password = document.getElementById('signup-password').value;
+            const passwordConfirm = document.getElementById('signup-password-confirm').value;
+            const matchMsg = document.getElementById('password-match-msg');
+            const confirmInput = document.getElementById('signup-password-confirm');
+
+            if (passwordConfirm && password && password !== passwordConfirm) {
+                // 비밀번호가 일치하지 않음
+                matchMsg.classList.remove('hidden');
+                confirmInput.classList.remove('border-slate-200', 'focus:border-sky-500');
+                confirmInput.classList.add('border-red-300', 'focus:border-red-500');
+            } else {
+                // 비밀번호가 일치하거나 아직 입력되지 않음
+                matchMsg.classList.add('hidden');
+                confirmInput.classList.remove('border-red-300', 'focus:border-red-500');
+                confirmInput.classList.add('border-slate-200', 'focus:border-sky-500');
+            }
         }
     </script>
 </body>

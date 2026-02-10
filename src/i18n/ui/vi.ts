@@ -45,8 +45,13 @@ const vi = {
   labelEmail: 'Địa chỉ email',
 
   btnAuth: 'Yêu cầu xác minh',
+  sending: 'Đang gửi...',
+  resend: 'Gửi lại',
   authSent: '✅ Mã xác minh đã được gửi.',
+  authCodePh: '123456',
   btnConfirm: 'Xác nhận',
+  verifying: 'Đang xác nhận...',
+  verify: 'Xác nhận',
 
   labelPw: 'Mật khẩu',
   pwRulePh: 'Ít nhất 8 ký tự, bao gồm chữ, số và ký hiệu',
@@ -72,10 +77,14 @@ const vi = {
   errEmailRequired: 'Vui lòng nhập địa chỉ email.',
   errEmailFormat: 'Định dạng email không hợp lệ.',
   errAuthSendFail: 'Gửi mã xác thực thất bại.',
+  errEmailNotExist: 'Địa chỉ email không tồn tại.',
+  errEmailInvalid: 'Địa chỉ email không hợp lệ.',
+  timeLeft: 'Thời gian còn lại',
   findPw: 'Đặt lại mật khẩu',
   findPwSub: 'Nhập email đã đăng ký<br />chúng tôi sẽ gửi liên kết đặt lại mật khẩu.',
 
   btnSendLink: 'Gửi liên kết đặt lại',
+  resetLinkSent: 'Liên kết đặt lại đã được gửi tới email của bạn.',
   emailSent: 'Đã gửi email!',
   emailCheck: 'Vui lòng kiểm tra hộp thư của bạn.',
   loginFail: 'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.',

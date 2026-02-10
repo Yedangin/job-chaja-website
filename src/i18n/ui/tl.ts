@@ -45,8 +45,13 @@ const tl = {
   labelEmail: 'Email address',
 
   btnAuth: 'Humiling ng verification',
+  sending: 'Ipinapadala...',
+  resend: 'Ipadala muli',
   authSent: '✅ Naipadala na ang verification code.',
+  authCodePh: '123456',
   btnConfirm: 'Kumpirmahin',
+  verifying: 'Kino-confirm...',
+  verify: 'I-verify',
 
   labelPw: 'Password',
   pwRulePh: 'Hindi bababa sa 8 karakter, may letra, numero, at simbolo',
@@ -72,10 +77,14 @@ const tl = {
   errEmailRequired: 'Pakilagay ang iyong email address.',
   errEmailFormat: 'Hindi wasto ang format ng email.',
   errAuthSendFail: 'Nabigong ipadala ang verification code.',
+  errEmailNotExist: 'Hindi umiiral ang email address.',
+  errEmailInvalid: 'Hindi wastong email address.',
+  timeLeft: 'Oras na natitira',
   findPw: 'I-reset ang password',
   findPwSub: 'Ilagay ang iyong rehistradong email<br />at magpapadala kami ng reset link.',
 
   btnSendLink: 'Ipadala ang reset link',
+  resetLinkSent: 'Naipadala na ang reset link sa iyong email.',
   emailSent: 'Naipadala na ang email!',
   emailCheck: 'Pakisuri ang iyong inbox.',
   loginFail: 'Hindi matagumpay ang pag-login. Pakisuri ang iyong email at password.',

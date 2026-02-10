@@ -45,8 +45,13 @@ const th = {
   labelEmail: 'อีเมล',
 
   btnAuth: 'ขอการยืนยัน',
+  sending: 'กำลังส่ง...',
+  resend: 'ส่งอีกครั้ง',
   authSent: '✅ ส่งรหัสยืนยันแล้ว',
+  authCodePh: '123456',
   btnConfirm: 'ยืนยัน',
+  verifying: 'กำลังตรวจสอบ...',
+  verify: 'ตรวจสอบ',
 
   labelPw: 'รหัสผ่าน',
   pwRulePh: 'อย่างน้อย 8 ตัวอักษร รวมตัวอักษร ตัวเลข และสัญลักษณ์',
@@ -72,10 +77,14 @@ const th = {
 errEmailRequired: 'กรุณากรอกอีเมล',
   errEmailFormat: 'รูปแบบอีเมลไม่ถูกต้อง',
   errAuthSendFail: 'ส่งรหัสยืนยันไม่สำเร็จ',
+  errEmailNotExist: 'ไม่พบอีเมลนี้',
+  errEmailInvalid: 'อีเมลไม่ถูกต้อง',
+  timeLeft: 'เวลาที่เหลือ',
   findPw: 'รีเซ็ตรหัสผ่าน',
   findPwSub: 'กรอกอีเมลที่ลงทะเบียนไว้<br />เราจะส่งลิงก์รีเซ็ตรหัสผ่านให้',
 
   btnSendLink: 'ส่งลิงก์รีเซ็ต',
+  resetLinkSent: 'ส่งลิงก์รีเซ็ตไปที่อีเมลของคุณแล้ว',
   emailSent: 'ส่งอีเมลแล้ว!',
   emailCheck: 'กรุณาตรวจสอบกล่องจดหมายของคุณ',
   loginFail: 'เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบอีเมลและรหัสผ่าน',

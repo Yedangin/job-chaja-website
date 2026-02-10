@@ -45,8 +45,13 @@ const en = {
   labelEmail: 'Email address',
 
   btnAuth: 'Request verification',
-  authSent: '✅ Verification code has been sent.',
+  sending: 'Sending...',
+  resend: 'Resend',
+  authSent: 'Verification code has been sent.\nIf you don\'t receive the email within 5 minutes, please check your spam folder or verify your email address.',
+  authCodePh: '123456',
   btnConfirm: 'Confirm',
+  verifying: 'Verifying...',
+  verify: 'Verify',
 
   labelPw: 'Password',
   pwRulePh: 'At least 8 characters including letters, numbers, and symbols',
@@ -72,10 +77,14 @@ const en = {
   errEmailRequired: 'Please enter your email address.',
   errEmailFormat: 'Invalid email format.',
   errAuthSendFail: 'Failed to send verification code.',
+  errEmailNotExist: 'Email address does not exist.',
+  errEmailInvalid: 'Invalid email address.',
+  timeLeft: 'Time left',
   findPw: 'Reset password',
   findPwSub: 'Enter your registered email address<br />and we will send you a password reset link.',
 
   btnSendLink: 'Send reset link',
+  resetLinkSent: 'Reset link has been sent to your email.',
   emailSent: 'Email sent!',
   emailCheck: 'Please check your inbox and click the link.',
 
