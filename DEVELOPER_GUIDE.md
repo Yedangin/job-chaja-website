@@ -39,7 +39,7 @@ The app will be available at `http://localhost:3000`.
 ### 5. Test it
 
 - Open `http://localhost:3000` in your browser
-- Login with admin: `admin` / `adminpage1!`
+- Login with admin credentials (ask the team lead)
 - Or register a new account
 
 ---
@@ -203,7 +203,7 @@ Check that the backend is running and accessible:
 curl http://localhost:8000/auth/login \
   -X POST \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin","password":"adminpage1!"}'
+  -d '{"email":"your-email","password":"your-password"}'
 ```
 
 ### API calls returning 500
