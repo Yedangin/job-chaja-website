@@ -364,13 +364,8 @@
     "header": {
       "title": "Privacy Policy",
       "lastUpdated": "March 15, 2028",
-<<<<<<< HEAD
       "description": "Yedangin Co., Ltd. (“Company” or “we”) operates the Jabchaja recruitment platform, which connects individual job seekers with business recruiters. We are committed to protecting your personal information in accordance with applicable laws and global best practices. This Privacy Policy explains what information we collect from users of Jabchaja, including individual users (job seekers) and business users (employers/recruiters), and how we use, share, and safeguard that information. It also outlines the distinctions in data handling for individual vs. business users, our outsourcing arrangements, international data transfers, and your rights regarding your personal data.",
       "disclaimer": "By using the Jabchaja platform, you agree to the collection and use of your information as described in this Privacy Policy. If you do not agree, you should refrain from using our services. We do not knowingly allow persons under the age of 15 to register as job seekers in compliance with labor and privacy laws."
-=======
-      "description": "This Privacy Policy describes how we collect, use, and protect your personal information on Jobchaja platform.",
-      "disclaimer": "By using our platform, you agree to the collection and use of your information as described in this policy."
->>>>>>> a8e0574d45d9a7f559ab0bfa699c137e92fe0bb9
     },
     "sections": [
       {
@@ -378,18 +373,11 @@
         "title": "Information We Collect",
         "type": "bullet-list",
         "content": [
-<<<<<<< HEAD
           "We only collect personal information that is necessary to provide our recruitment services. The information collected may differ for individual job seekers and business recruiter accounts, as described below."
-=======
-          "Personal information you provide during registration",
-          "Information collected from your use of our services",
-          "Data from cookies and analytics tools"
->>>>>>> a8e0574d45d9a7f559ab0bfa699c137e92fe0bb9
         ]
       },
       {
         "id": 2,
-<<<<<<< HEAD
         "title": "For Individual Job Seekers",
         "type": "bullet-list",
         "content": [
@@ -399,19 +387,10 @@
           "Usage Data: We collect certain information automatically when you use the platform. This may include your IP address, device type, browser type, access times, pages viewed, and referral links. We may also use cookies or similar technologies to collect usage analytics and to remember your preferences.",
           "Optional Information: If you opt in to additional services, we may collect information such as your location (for location-based job searches), or marketing preferences (e.g. your consent to receive newsletters or job alerts via email or SMS). Providing this information is optional and only collected with your consent.",
           "Note: Please avoid submitting any sensitive personal information (e.g. social security numbers, financial information, health information, or details about race, religion, or political opinions) on your resume or profile, unless it is specifically requested as per applicable law or necessary for a particular job application. Jabchaja does not require such sensitive data for general use of the platform."
-=======
-        "title": "How We Use Information",
-        "type": "bullet-list",
-        "content": [
-          "To provide and improve our services",
-          "To communicate with you regarding your account and job applications",
-          "To ensure security and prevent fraud"
->>>>>>> a8e0574d45d9a7f559ab0bfa699c137e92fe0bb9
         ]
       },
       {
         "id": 3,
-<<<<<<< HEAD
         "title": "Data Retention and Deletion",
         "type": "bullet-list",
         "content": [
@@ -426,19 +405,10 @@
           "Deletion and Disposal: When the retention period has been met, or if you request erasure of your data and we have no lawful basis to keep it, we will permanently delete or irreversibly anonymize your personal information in a secure manner. Physical records will be shredded or incinerated, and electronic files will be deleted using secure methods that prevent them from being recovered or reconstructed. Before disposal, we ensure that personal information cannot be accidentally disclosed or leaked.",
           "Backup and Residual Copies: Please note that due to the nature of backups and caching, your data might persist in our secure backup storage for a short period after deletion (typically until the backups are overwritten or destroyed on a regular cycle). During this period, we will maintain the security and confidentiality of those backups and will not use the information except if necessary for disaster recovery or legal purposes.",
           "Once the retention period expires or data is deleted upon user request, the personal information is inaccessible to anyone except as required by law. If you have any specific questions about our data retention practices, you may contact us using the information in the Contact section."
-=======
-        "title": "Sharing and Disclosure",
-        "type": "bullet-list",
-        "content": [
-          "We do not sell your personal data",
-          "Data may be shared with employers for recruitment purposes",
-          "We may disclose information if required by law"
->>>>>>> a8e0574d45d9a7f559ab0bfa699c137e92fe0bb9
         ]
       },
       {
         "id": 4,
-<<<<<<< HEAD
         "title": "Purposes of Use of Personal Information",
         "type": "bullet-list",
         "content": [
@@ -454,19 +424,10 @@
           "Service Development and Research: We may use data in an aggregated or anonymized form (which does not identify individual users) to understand employment trends, to perform statistical analyses, or to develop new features. For example, analyzing aggregated user data can help us improve our job matching algorithms or gain insights into job market demand. These analytics will not identify you personally.",
           "Outsourced Development and Operations: Because the Jabchaja platform was developed and is maintained with the assistance of an outsourced third-party developer, we may use personal information in collaboration with that third party strictly for the purpose of operating, troubleshooting, and improving the service. (More details are provided in the “Sharing of Information” section below.) The outsourced development team follows our instructions on how to handle personal data and is bound by confidentiality and data protection obligations.",
           "We will not use personal information for purposes other than those stated above without obtaining your consent, and we do not engage in automated decision-making or profiling that produces legal effects concerning users without human intervention (except for basic automated matching or filtering functionalities inherent in a job platform). If we need to use your data for a new purpose, we will provide you with notice and seek your consent when required."
-=======
-        "title": "Your Rights",
-        "type": "bullet-list",
-        "content": [
-          "Access and update your personal information",
-          "Request deletion of your data",
-          "Opt-out of promotional communications"
->>>>>>> a8e0574d45d9a7f559ab0bfa699c137e92fe0bb9
         ]
       },
       {
         "id": 5,
-<<<<<<< HEAD
         "title": "Sharing of Personal Information",
         "type": "bullet-list",
         "content": [
@@ -554,14 +515,6 @@
           "We may update or revise this Privacy Policy from time to time to reflect changes in our services, legal obligations, or privacy practices. If we make material changes, we will notify users by posting a prominent notice on the Jabchaja website or through other appropriate communication channels (such as email notification to registered users), prior to the change becoming effective. The “Effective Date” at the top of this Policy will indicate when the latest revisions were made.",
           "Your continued use of the Jabchaja platform after any changes to this Privacy Policy signifies your acceptance of the updates. We encourage you to review this Policy periodically to stay informed about how we are protecting the personal information we collect. Older versions of our Privacy Policy may be archived and available for review upon request, to the extent required by law.",
           "By using Jabchaja, you entrust us with your personal information. We value that trust and are committed to safeguarding your privacy. If you have any questions or need clarification about any aspect of this Privacy Policy, please feel free to contact our Data Protection Officer or customer support at any time. Thank you for using Jabchaja – we wish you a successful and secure job search and recruitment experience."
-=======
-        "title": "Security Measures",
-        "type": "bullet-list",
-        "content": [
-          "We use encryption and secure servers",
-          "Access to personal data is limited to authorized personnel",
-          "Regular security audits are conducted"
->>>>>>> a8e0574d45d9a7f559ab0bfa699c137e92fe0bb9
         ]
       }
     ]
