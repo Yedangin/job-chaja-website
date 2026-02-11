@@ -5,6 +5,8 @@ services:
       args:
         - NEXT_PUBLIC_API_URL=http://jobchaja.com:8000
     container_name: job-frontend
+    environment:
+      - BACKEND_URL=http://job-backend:8000
 
   nginx:
     image: nginx:alpine
