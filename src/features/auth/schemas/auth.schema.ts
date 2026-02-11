@@ -6,8 +6,7 @@ import { z } from 'zod';
 export const loginSchema = z.object({
   email: z
     .string()
-    .min(1, 'errEmailRequired')
-    .email('errEmailFormat'),
+    .min(1, 'errEmailRequired'),
   password: z
     .string()
     .min(1, 'Password is required'),

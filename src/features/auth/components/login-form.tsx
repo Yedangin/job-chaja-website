@@ -32,7 +32,7 @@ export function LoginForm({ onSwitchView }: LoginFormProps) {
 
       <form onSubmit={onSubmit} className="space-y-3 mb-4">
         <input
-          type="email"
+          type="text"
           placeholder={t('labelEmail')}
           className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm"
           {...register('email')}
@@ -103,7 +103,7 @@ export function LoginForm({ onSwitchView }: LoginFormProps) {
         </div>
       </div>
 
-      <SocialLoginButtons />
+      <SocialLoginButtons memberType={memberType} />
     </div>
   );
 }

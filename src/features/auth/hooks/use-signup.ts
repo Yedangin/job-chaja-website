@@ -76,17 +76,23 @@ export function useSignup() {
     setError(null);
 
     try {
-      await authApi.register({
+      const response = await authApi.register({
         email: data.email,
         password: data.password,
         fullName: data.fullName,
+        role: 'INDIVIDUAL', // ★ 개인 회원으로 가입
       });
 
+      console.log('[회원가입 성공]', response);
       toast.success(t('registerSuccess'));
 
-      // 로그인 페이지로 이동 (기존 동작 유지)
-      router.push('/login');
+      // 로그인 페이지로 이동
+      console.log('[리다이렉트] /login으로 이동');
+      setTimeout(() => {
+        router.push('/login');
+      }, 100);
     } catch (err: any) {
+      console.error('[회원가입 실패]', err);
       const message = err.message || t('registerFail');
       setError(message);
       toast.error(message);

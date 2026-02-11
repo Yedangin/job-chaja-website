@@ -13,7 +13,7 @@ export const authApi = {
   /**
    * 로그인
    */
-  login: async (data: LoginRequest): Promise<LoginResponse> => {
+  login: async (data: LoginRequest & { memberType?: string }): Promise<LoginResponse> => {
     const response = await apiClient.post<LoginResponse>('/auth/login', data);
     return response.data;
   },
@@ -43,6 +43,88 @@ export const authApi = {
   /**
    * 소셜 로그인 URL
    */
-  getKakaoLoginUrl: (): string => '/api/auth/kakao',
-  getGoogleLoginUrl: (): string => '/api/auth/google',
+  getKakaoLoginUrl: (userType?: string): string =>
+    userType ? `/api/auth/kakao?userType=${userType}` : '/api/auth/kakao',
+  getGoogleLoginUrl: (userType?: string): string =>
+    userType ? `/api/auth/google?userType=${userType}` : '/api/auth/google',
+
+  /**
+   * 프로필 상세 조회
+   */
+  getProfileDetail: async () => {
+    const response = await apiClient.get('/auth/my/profile-detail');
+    return response.data;
+  },
+
+  /**
+   * 비밀번호 변경 (이메일 계정만)
+   */
+  changePassword: async (oldPassword: string, newPassword: string) => {
+    const response = await apiClient.post('/auth/change-password', { oldPassword, newPassword });
+    return response.data;
+  },
+
+  /**
+   * 회원탈퇴
+   */
+  deleteAccount: async () => {
+    const response = await apiClient.post('/auth/delete-account');
+    return response.data;
+  },
+
+  /**
+   * 알림 설정 조회
+   */
+  getNotificationSettings: async () => {
+    const response = await apiClient.get('/auth/my/notification-settings');
+    return response.data;
+  },
+
+  /**
+   * 알림 설정 변경
+   */
+  updateNotificationSettings: async (settings: { sms: boolean; email: boolean; kakao: boolean }) => {
+    const response = await apiClient.put('/auth/my/notification-settings', settings);
+    return response.data;
+  },
+
+  /**
+   * 고객센터 문의 작성
+   */
+  createSupportTicket: async (title: string, content: string) => {
+    const response = await apiClient.post('/auth/support-ticket', { title, content });
+    return response.data;
+  },
+
+  /**
+   * 내 문의 목록
+   */
+  getMySupportTickets: async () => {
+    const response = await apiClient.get('/auth/my/support-tickets');
+    return response.data;
+  },
+
+  /**
+   * 대시보드 통계 (Profile 모듈)
+   */
+  getMyDashboardStats: async () => {
+    const response = await apiClient.get('/profile/my/dashboard-stats');
+    return response.data;
+  },
+
+  /**
+   * 내 지원 내역 (Profile 모듈)
+   */
+  getMyApplications: async () => {
+    const response = await apiClient.get('/profile/my/applications');
+    return response.data;
+  },
+
+  /**
+   * 내 면접 일정 (Profile 모듈)
+   */
+  getMyInterviews: async () => {
+    const response = await apiClient.get('/profile/my/interviews');
+    return response.data;
+  },
 };

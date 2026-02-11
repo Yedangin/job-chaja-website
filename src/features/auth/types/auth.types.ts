@@ -21,6 +21,7 @@ export interface LoginResponse {
     id: string;
     email: string;
     fullName: string;
+    role: number;
   };
 }
 
@@ -29,6 +30,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   fullName: string;
+  role: 'INDIVIDUAL' | 'CORPORATE'; // ★ 필수: 개인 회원 or 기업 회원
 }
 
 // 회원가입 응답

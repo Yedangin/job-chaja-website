@@ -30,12 +30,15 @@ apiClient.interceptors.response.use(
     // 에러 메시지 추출
     const message = error.response?.data?.message || 'An error occurred';
 
-    // 401: 인증 실패 - 자동 로그아웃
+    // 401: 인증 실패 - 로그인 페이지가 아닌 경우에만 자동 리다이렉트
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
+        const isLoginPage = window.location.pathname.startsWith('/login');
         localStorage.removeItem('sessionId');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        if (!isLoginPage) {
+          window.location.href = '/login';
+        }
       }
     }
 

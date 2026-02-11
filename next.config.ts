@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: true,
-  trailingSlash: true,
+  trailingSlash: false,
   images: {
     unoptimized: true,
   },
