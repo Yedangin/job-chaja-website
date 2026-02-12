@@ -6,12 +6,12 @@ import { useLanguage } from '@/i18n/LanguageProvider';
 import { authApi } from '../api/auth.api';
 import { signupSchema, type SignupFormData } from '../schemas/auth.schema';
 import { toast } from '@/lib/toast';
-import type { TermsAgreement } from '../types/auth.types';
+import type { TermsAgreement, MemberType } from '../types/auth.types';
 
 /**
  * 회원가입 로직 및 상태 관리
  */
-export function useSignup() {
+export function useSignup(memberType: MemberType = 'seeker') {
   const router = useRouter();
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
@@ -80,16 +80,16 @@ export function useSignup() {
         email: data.email,
         password: data.password,
         fullName: data.fullName,
-        role: 'INDIVIDUAL', // ★ 개인 회원으로 가입
+        role: memberType === 'company' ? 'CORPORATE' : 'INDIVIDUAL',
       });
 
       console.log('[회원가입 성공]', response);
       toast.success(t('registerSuccess'));
 
-      // 로그인 페이지로 이동
-      console.log('[리다이렉트] /login으로 이동');
+      // 메인 페이지로 이동
+      console.log('[리다이렉트] /으로 이동');
       setTimeout(() => {
-        router.push('/login');
+        router.push('/');
       }, 100);
     } catch (err: any) {
       console.error('[회원가입 실패]', err);

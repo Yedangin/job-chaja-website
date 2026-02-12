@@ -1,23 +1,29 @@
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/LanguageProvider';
 import { useLogin } from '../hooks/use-login';
 import { MemberTypeTabs } from './member-type-tabs';
 import { SocialLoginButtons } from './social-login-buttons';
-import type { ViewType } from '../types/auth.types';
+import type { ViewType, MemberType } from '../types/auth.types';
 
 interface LoginFormProps {
   onSwitchView: (view: ViewType) => void;
+  memberType: MemberType;
+  onMemberTypeChange: (type: MemberType) => void;
 }
 
 /**
  * 로그인 폼 UI
  */
-export function LoginForm({ onSwitchView }: LoginFormProps) {
+export function LoginForm({ onSwitchView, memberType, onMemberTypeChange }: LoginFormProps) {
   const { t } = useLanguage();
-  const { form, isLoading, error, onSubmit, memberType, setMemberType } = useLogin();
+  const { form, isLoading, error, onSubmit, setMemberType } = useLogin();
 
   const { register, formState: { errors } } = form;
+
+  const handleMemberTypeChange = (type: MemberType) => {
+    setMemberType(type);
+    onMemberTypeChange(type);
+  };
 
   return (
     <div className="animate-in fade-in slide-in-from-right-4 duration-500">
@@ -28,7 +34,7 @@ export function LoginForm({ onSwitchView }: LoginFormProps) {
         <p className="text-slate-500 text-sm">{t('welcomeSub')}</p>
       </div>
 
-      <MemberTypeTabs value={memberType} onChange={setMemberType} />
+      <MemberTypeTabs value={memberType} onChange={handleMemberTypeChange} />
 
       <form onSubmit={onSubmit} className="space-y-3 mb-4">
         <input
@@ -76,22 +82,13 @@ export function LoginForm({ onSwitchView }: LoginFormProps) {
         >
           {t('forgotPw')}
         </button>
-        {memberType === 'seeker' ? (
-          <button
-            type="button"
-            onClick={() => onSwitchView('signup')}
-            className="text-sky-600 font-bold hover:text-sky-700"
-          >
-            {t('signupLink')}
-          </button>
-        ) : (
-          <Link
-            href="/register"
-            className="text-sky-600 font-bold hover:text-sky-700"
-          >
-            {t('tabCompany').replace('🏢 ', '')} 가입
-          </Link>
-        )}
+        <button
+          type="button"
+          onClick={() => onSwitchView('signup')}
+          className="text-sky-600 font-bold hover:text-sky-700"
+        >
+          {memberType === 'seeker' ? t('signupLink') : '기업 회원 가입'}
+        </button>
       </div>
 
       <div className="relative py-4 mb-4">

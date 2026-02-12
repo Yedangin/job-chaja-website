@@ -1004,8 +1004,60 @@ export default function JobchajaProfile() {
 
         {/* Content Area */}
         <main className="flex-1 min-w-0">
+          {/* Corporate Verification Banner */}
+          {profileDetail?.userType === 'CORPORATE' && activeMenu === 'dashboard' && (
+            <div className={`rounded-2xl p-5 mb-8 flex flex-col sm:flex-row sm:items-center justify-between shadow-sm ${
+              profileDetail.corporate?.verificationStatus === 'APPROVED'
+                ? 'bg-emerald-50 border border-emerald-200'
+                : profileDetail.corporate?.verificationStatus === 'SUBMITTED'
+                ? 'bg-sky-50 border border-sky-200'
+                : 'bg-amber-50 border border-amber-200'
+            }`}>
+              <div className="flex items-center gap-4">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  profileDetail.corporate?.verificationStatus === 'APPROVED'
+                    ? 'bg-emerald-100 text-emerald-600'
+                    : profileDetail.corporate?.verificationStatus === 'SUBMITTED'
+                    ? 'bg-sky-100 text-sky-600'
+                    : 'bg-amber-100 text-amber-600'
+                }`}>
+                  {profileDetail.corporate?.verificationStatus === 'APPROVED' ? (
+                    <CheckCircle className="w-5 h-5" />
+                  ) : profileDetail.corporate?.verificationStatus === 'SUBMITTED' ? (
+                    <Clock className="w-5 h-5" />
+                  ) : (
+                    <AlertTriangle className="w-5 h-5" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">
+                    {profileDetail.corporate?.verificationStatus === 'APPROVED'
+                      ? '기업 인증 완료'
+                      : profileDetail.corporate?.verificationStatus === 'SUBMITTED'
+                      ? '기업 인증 심사 중'
+                      : '기업 인증이 필요합니다'}
+                  </h3>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {profileDetail.corporate?.verificationStatus === 'APPROVED'
+                      ? '공고 등록 및 기업 서비스를 이용하실 수 있습니다.'
+                      : profileDetail.corporate?.verificationStatus === 'SUBMITTED'
+                      ? '관리자가 제출 정보를 검토 중입니다. 승인 후 서비스를 이용하실 수 있습니다.'
+                      : '기업 인증을 완료하면 공고 등록 및 기업 서비스를 이용할 수 있습니다.'}
+                  </p>
+                </div>
+              </div>
+              {profileDetail.corporate?.verificationStatus !== 'APPROVED' && profileDetail.corporate?.verificationStatus !== 'SUBMITTED' && (
+                <div className="mt-4 sm:mt-0">
+                  <Link href="/register" className="px-5 py-2.5 bg-white text-amber-600 border border-amber-200 text-xs font-bold rounded-xl hover:bg-amber-50 transition-colors shadow-sm">
+                    인증하기
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Top Banner */}
-          {!isVisaVerified && activeMenu === 'dashboard' && (
+          {!isVisaVerified && activeMenu === 'dashboard' && profileDetail?.userType !== 'CORPORATE' && (
             <div className="bg-[#FFF8F0] border border-[#FFE0B2] rounded-2xl p-5 mb-8 flex flex-col sm:flex-row sm:items-center justify-between shadow-sm relative overflow-hidden">
               <div className="flex items-center gap-4 z-10">
                 <div className="w-10 h-10 bg-[#FFECB3] rounded-full flex items-center justify-center flex-shrink-0 text-orange-600">

@@ -113,18 +113,64 @@ export const authApi = {
   },
 
   /**
-   * 내 지원 내역 (Profile 모듈)
+   * 내 지원 내역
    */
-  getMyApplications: async () => {
-    const response = await apiClient.get('/profile/my/applications');
+  getMyApplications: async (status?: string, page = 1, limit = 20) => {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (status) params.set('status', status);
+    const response = await apiClient.get(`/applications/applications/my?${params}`);
     return response.data;
   },
 
   /**
-   * 내 면접 일정 (Profile 모듈)
+   * 내 면접 일정 (면접예정 지원건)
    */
   getMyInterviews: async () => {
-    const response = await apiClient.get('/profile/my/interviews');
+    const response = await apiClient.get('/applications/applications/my?status=INTERVIEW_SCHEDULED');
+    return response.data;
+  },
+
+  /**
+   * 내 스크랩 목록
+   */
+  getMyScraps: async (page = 1, limit = 20) => {
+    const response = await apiClient.get(`/applications/scraps/my?page=${page}&limit=${limit}`);
+    return response.data;
+  },
+
+  /**
+   * 채용공고 목록 조회
+   */
+  getJobListings: async (params: Record<string, string>) => {
+    const search = new URLSearchParams(params);
+    const response = await apiClient.get(`/jobs/listing?${search}`);
+    return response.data;
+  },
+
+  /**
+   * 내 공고 목록 (기업회원)
+   */
+  getMyJobPostings: async (status?: string, page = 1) => {
+    const params = new URLSearchParams({ page: String(page), limit: '20' });
+    if (status) params.set('status', status);
+    const response = await apiClient.get(`/jobs/my/list?${params}`);
+    return response.data;
+  },
+
+  /**
+   * 내 주문 내역 (기업회원)
+   */
+  getMyOrders: async (page = 1) => {
+    const response = await apiClient.get(`/payment/orders/my?page=${page}&limit=20`);
+    return response.data;
+  },
+
+  /**
+   * 결제 상품 목록
+   */
+  getProducts: async (boardType?: string) => {
+    const params = boardType ? `?boardType=${boardType}` : '';
+    const response = await apiClient.get(`/payment/products${params}`);
     return response.data;
   },
 };

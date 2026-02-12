@@ -47,8 +47,22 @@ export async function GET(
       }
     }
 
-    const data = await response.json();
     console.log('[Proxy GET] Backend status:', response.status);
+
+    // 바이너리 응답 (이미지, PDF 등) → 그대로 passthrough
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      const buffer = await response.arrayBuffer();
+      return new NextResponse(Buffer.from(buffer), {
+        status: response.status,
+        headers: {
+          'Content-Type': contentType,
+          'Content-Length': String(buffer.byteLength),
+        },
+      });
+    }
+
+    const data = await response.json();
 
     const nextResponse = NextResponse.json(data, { status: response.status });
 
@@ -111,9 +125,15 @@ export async function POST(
   const { path } = await context.params;
   const url = `${BACKEND_URL}/auth/${path.join('/')}`;
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  const contentType = request.headers.get('content-type') || '';
+  const isMultipart = contentType.includes('multipart/form-data');
+
+  const headers: Record<string, string> = {};
+
+  // multipart는 Content-Type을 수동 설정하지 않음 (boundary 자동 처리)
+  if (!isMultipart) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   const cookie = request.headers.get('cookie');
   if (cookie) headers['Cookie'] = cookie;
@@ -121,11 +141,24 @@ export async function POST(
   const auth = request.headers.get('authorization');
   if (auth) headers['Authorization'] = auth;
 
-  console.log('[Proxy POST]', url);
+  console.log('[Proxy POST]', url, isMultipart ? '(multipart)' : '(json)');
 
   try {
-    const body = await request.text();
-    const response = await fetch(url, { method: 'POST', headers, body });
+    let body: any;
+    if (isMultipart) {
+      // multipart: raw body stream을 그대로 전달 (10MB 버퍼 제한 우회)
+      headers['Content-Type'] = contentType;
+      body = request.body;
+    } else {
+      body = await request.text();
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body,
+      ...(isMultipart ? { duplex: 'half' as any } : {}),
+    });
     const data = await response.json();
 
     console.log('[Proxy POST] Backend status:', response.status);

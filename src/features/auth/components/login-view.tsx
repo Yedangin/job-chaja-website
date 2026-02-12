@@ -5,7 +5,7 @@ import { AuthLayout } from './auth-layout';
 import { LoginForm } from './login-form';
 import { SignupForm } from './signup-form';
 import { ForgotPasswordForm } from './forgot-password-form';
-import type { ViewType } from '../types/auth.types';
+import type { ViewType, MemberType } from '../types/auth.types';
 
 /**
  * 로그인 뷰 컨테이너
@@ -14,6 +14,7 @@ import type { ViewType } from '../types/auth.types';
 export function LoginView() {
   const { t } = useLanguage();
   const [currentView, setCurrentView] = useState<ViewType>('login');
+  const [memberType, setMemberType] = useState<MemberType>('seeker');
 
   return (
     <AuthLayout isSignupView={currentView === 'signup'}>
@@ -24,8 +25,16 @@ export function LoginView() {
         </div>
 
         {/* 뷰 전환 */}
-        {currentView === 'login' && <LoginForm onSwitchView={setCurrentView} />}
-        {currentView === 'signup' && <SignupForm onSwitchView={setCurrentView} />}
+        {currentView === 'login' && (
+          <LoginForm
+            onSwitchView={setCurrentView}
+            memberType={memberType}
+            onMemberTypeChange={setMemberType}
+          />
+        )}
+        {currentView === 'signup' && (
+          <SignupForm onSwitchView={setCurrentView} memberType={memberType} />
+        )}
         {currentView === 'forgot-password' && (
           <ForgotPasswordForm onSwitchView={setCurrentView} />
         )}

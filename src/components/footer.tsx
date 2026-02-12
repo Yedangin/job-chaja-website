@@ -4,79 +4,27 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer>
-      {/* Top Section */}
-      <div className="bg-[#0369a1] text-white padding-responsive-md p-20">
-        <div className="container-responsive">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-8">
-            {/* Brand */}
-            <div className="sm:col-span-2 lg:col-span-1">
-              <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">
-                Jobchaja
-              </h3>
-              <p className="text-sm sm:text-base text-white text-opacity-80 leading-relaxed">
-                공정한 취업 면접과 안전한 보증금
-              </p>
-            </div>
-
-            {/* Platform */}
-            <div>
-              <h4 className="font-semibold mb-3 sm:mb-4 text-base sm:text-lg">
-                플랫폼
-              </h4>
-              <ul className="space-y-2 text-sm sm:text-base text-white text-opacity-90">
-                <li><a href="#" className="hover:underline">작동 방식</a></li>
-                <li><a href="#" className="hover:underline">예치금 시스템</a></li>
-                <li><a href="#" className="hover:underline">정책</a></li>
-                <li><a href="#" className="hover:underline">앱 다운로드</a></li>
-              </ul>
-            </div>
-
-            {/* Deposit Info */}
-            <div>
-              <h4 className="font-semibold mb-3 sm:mb-4 text-base sm:text-lg">
-                예치금 정보
-              </h4>
-              <ul className="space-y-2 text-sm sm:text-base text-white text-opacity-90">
-                <li><Link href="/terms-and-conditions" className="hover:underline">이용 약관</Link></li>
-                <li><Link href="/privacy-policy" className="hover:underline">개인정보 처리방침</Link></li>
-                <li><a href="#" className="hover:underline">환불 정책</a></li>
-                <li><a href="#" className="hover:underline">보너스 시스템</a></li>
-              </ul>
-            </div>
-
-            {/* Support */}
-            <div>
-              <h4 className="font-semibold mb-3 sm:mb-4 text-base sm:text-lg">
-                지원
-              </h4>
-              <ul className="space-y-2 text-sm sm:text-base text-white text-opacity-90">
-                <li><a href="#" className="hover:underline">도움말 센터</a></li>
-                <li><a href="#" className="hover:underline">지원팀 문의</a></li>
-                <li><a href="#" className="hover:underline">FAQ</a></li>
-                <li>전화: +82 2 1234 5678</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Section */}
-      <div className="border-t border-[#0369a1] border-opacity-20 bg-[#f0f9ff] text-[#0c4a6e] py-4 sm:py-6">
-        <div className="container-responsive">
-          <div className="text-center space-y-3 sm:space-y-4">
-            <p className="text-xs sm:text-sm text-opacity-70 leading-relaxed max-w-4xl mx-auto">
-              <span className="font-medium">주식회사 : 예당인</span> <br />
-              대표자 성명: 최운아 <br />
-              경기도 안산시 상록구 조구나리 1길 58, 2층 201호 <br />
-              사업자등록번호: 187-81-03467 | 연락처: +82-10-7209-7488
+    <footer className="border-t border-gray-200 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-gray-400">
+          <div>
+            <p>
+              <span className="font-semibold text-gray-500">주식회사 리브소프트 (LivSoft Inc)</span>
+              <span className="mx-1.5">|</span>대표 박찬호
+              <span className="mx-1.5">|</span>사업자등록번호 485-86-03274
             </p>
-
-            <p className="text-xs sm:text-sm text-opacity-80">
-              © {new Date().getFullYear()} Jobchaja. All rights reserved. | Design by Jobchaja
+            <p className="mt-1">
+              고객센터 010-3885-0675
+              <span className="mx-1.5">|</span>pch0675@naver.com
             </p>
           </div>
+          <div className="flex items-center gap-3 text-gray-400">
+            <Link href="/terms-and-conditions" className="hover:text-gray-600 transition-colors">이용약관</Link>
+            <span>|</span>
+            <Link href="/privacy-policy" className="hover:text-gray-600 transition-colors">개인정보처리방침</Link>
+          </div>
         </div>
+        <p className="text-[11px] text-gray-300 mt-3">&copy; {new Date().getFullYear()} Jobchaja. All rights reserved.</p>
       </div>
     </footer>
   );

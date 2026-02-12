@@ -29,15 +29,11 @@ const MOCK_DATA = {
     }
 };
 
-// This is a placeholder for your actual authentication check.
-// Replace this with your actual authentication logic (e.g., from a context or session).
-const useAuth = () => {
-    return { isLoggedIn: true, user: { name: '삼성전자 평택', type: '기업회원' } };
-};
-
-
 export default function BizPage() {
-    const { isLoggedIn, user } = useAuth();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [authLoading, setAuthLoading] = useState(true);
+    const [user, setUser] = useState({ name: '', type: '기업회원' });
+    const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
     const [view, setView] = useState('dashboard');
     const [pageTitle, setPageTitle] = useState('대시보드');
     const [currentDate, setCurrentDate] = useState(new Date(2026, 0, 1));
@@ -47,6 +43,58 @@ export default function BizPage() {
 
     const chartRef = useRef(null);
     const chartInstance = useRef(null);
+
+    // 세션 확인 + 기업 인증 상태 조회
+    useEffect(() => {
+        const sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') : null;
+        if (!sessionId) {
+            setAuthLoading(false);
+            return;
+        }
+
+        const checkAuth = async () => {
+            try {
+                // 프로필 확인
+                const profileRes = await fetch('/api/auth/profile', {
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionId}`,
+                    },
+                });
+                if (!profileRes.ok) {
+                    setAuthLoading(false);
+                    return;
+                }
+                const profile = await profileRes.json();
+                if (profile.user?.role !== 4) {
+                    // CORPORATE(4)가 아니면 비즈 페이지 접근 불가
+                    setAuthLoading(false);
+                    return;
+                }
+                setIsLoggedIn(true);
+                setUser({ name: profile.user?.fullName || profile.user?.email || '기업', type: '기업회원' });
+
+                // 기업 인증 상태 조회
+                const verifyRes = await fetch('/api/auth/corporate-verify', {
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${sessionId}`,
+                    },
+                });
+                if (verifyRes.ok) {
+                    const verifyData = await verifyRes.json();
+                    setVerificationStatus(verifyData.verificationStatus || 'PENDING');
+                }
+            } catch {
+                // ignore
+            } finally {
+                setAuthLoading(false);
+            }
+        };
+        checkAuth();
+    }, []);
 
     useEffect(() => {
         // Initialize I'mport
@@ -81,8 +129,8 @@ export default function BizPage() {
                         { label: '조회수', data: [20, 45, 30, 60], borderColor: '#cbd5e1', backgroundColor: '#cbd5e1', tension: 0, borderWidth: 2, pointStyle: 'rectRot', pointRadius: 4, pointHoverRadius: 6 }
                     ]
                 },
-                options: { 
-                    responsive: true, 
+                options: {
+                    responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
@@ -94,12 +142,56 @@ export default function BizPage() {
         }
     }, [view]);
 
+    // 로딩 중
+    if (authLoading) {
+        return (
+            <div className="flex h-screen w-full items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500"></div>
+            </div>
+        );
+    }
+
+    // 비로그인 또는 기업 회원 아닌 경우
     if (!isLoggedIn) {
-        // In a real app, you would redirect to the login page.
-        // For example, using Next.js navigation:
-        // import { redirect } from 'next/navigation';
-        // redirect('/login');
-        return <div className="flex h-screen w-full items-center justify-center">Please log in to view the business dashboard.</div>;
+        return (
+            <div className="flex h-screen w-full items-center justify-center flex-col gap-4">
+                <p className="text-slate-600">기업 회원만 이용할 수 있는 서비스입니다.</p>
+                <a href="/login" className="px-6 py-2 bg-sky-600 text-white rounded-xl font-bold hover:bg-sky-700">로그인</a>
+            </div>
+        );
+    }
+
+    // 기업 인증 미완료 → 인증 페이지로 안내
+    if (verificationStatus !== 'APPROVED') {
+        return (
+            <div className="flex h-screen w-full items-center justify-center flex-col gap-6 bg-slate-50 px-4">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-lg p-10 max-w-md text-center">
+                    <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg className="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                    </div>
+                    <h2 className="text-xl font-bold text-slate-900 mb-3">기업 인증이 필요합니다</h2>
+                    <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                        {verificationStatus === 'SUBMITTED'
+                            ? '기업 인증 심사가 진행 중입니다. 관리자 승인 후 기업 서비스를 이용하실 수 있습니다.'
+                            : '기업 서비스를 이용하려면 사업자 인증을 먼저 완료해주세요.'}
+                    </p>
+                    {verificationStatus !== 'SUBMITTED' ? (
+                        <a href="/register" className="inline-flex items-center gap-2 px-6 py-3 bg-sky-600 text-white font-bold rounded-xl hover:bg-sky-700 transition-colors">
+                            기업 인증하기
+                        </a>
+                    ) : (
+                        <a href="/register" className="inline-flex items-center gap-2 px-6 py-3 bg-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-300 transition-colors">
+                            인증 현황 보기
+                        </a>
+                    )}
+                    <div className="mt-4">
+                        <a href="/" className="text-sm text-slate-400 hover:text-slate-600">메인으로 돌아가기</a>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     const handleRouteChange = (newView, title) => {

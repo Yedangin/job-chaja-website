@@ -2,84 +2,250 @@
 
 import Header from '@/components/header';
 import Footer from '@/components/footer';
-import { useState } from 'react';
-import { Search, MapPin, Clock, Briefcase } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Search, MapPin, Eye, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+
+interface JobPosting {
+  id: string;
+  title: string;
+  boardType: string;
+  tierType: string;
+  status: string;
+  displayAddress: string;
+  allowedVisas: string;
+  applicationMethod: string;
+  viewCount: number;
+  scrapCount: number;
+  applyCount: number;
+  closingDate: string | null;
+  createdAt: string;
+  albaAttributes: {
+    hourlyWage: number;
+    workPeriod: string | null;
+    workDaysMask: string;
+    workTimeStart: string | null;
+    workTimeEnd: string | null;
+  } | null;
+  company: {
+    companyId: string;
+    companyName: string;
+    brandName: string | null;
+    logoImageUrl: string | null;
+  } | null;
+}
 
 export default function AlbaPage() {
   const [isCompanyMode, setIsCompanyMode] = useState(false);
+  const [jobs, setJobs] = useState<JobPosting[]>([]);
+  const [premiumJobs, setPremiumJobs] = useState<JobPosting[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [keyword, setKeyword] = useState('');
+  const [visaFilter, setVisaFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [visaTypes, setVisaTypes] = useState<{ code: string; nameKo: string }[]>([]);
 
-  const exampleJobs = [
-    { id: 1, title: '편의점 야간 알바', company: 'CU 강남역점', location: '서울 강남구', pay: '시급 12,000원', type: '야간', tag: '즉시채용' },
-    { id: 2, title: '음식점 서빙 알바', company: '이자카야 신촌점', location: '서울 마포구', pay: '시급 11,500원', type: '주말', tag: '외국인 가능' },
-    { id: 3, title: '물류센터 포장 알바', company: '쿠팡 로지스틱스', location: '경기 이천시', pay: '시급 13,000원', type: '단기', tag: '숙소제공' },
-  ];
+  const fetchJobs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ boardType: 'PART_TIME', page: page.toString(), limit: '20' });
+      if (keyword) params.set('keyword', keyword);
+      if (visaFilter) params.set('visa', visaFilter);
+      const res = await fetch(`/api/jobs/list?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        const allItems = data.items || [];
+        setPremiumJobs(allItems.filter((j: JobPosting) => j.tierType === 'PREMIUM'));
+        setJobs(allItems.filter((j: JobPosting) => j.tierType === 'STANDARD'));
+        setTotalPages(data.totalPages || 1);
+        setTotal(data.total || 0);
+      }
+    } catch (err) { console.error('Failed to fetch jobs:', err); }
+    finally { setLoading(false); }
+  }, [page, keyword, visaFilter]);
+
+  useEffect(() => { fetchJobs(); }, [fetchJobs]);
+  useEffect(() => {
+    fetch('/api/jobs/visa-types').then(r => r.json()).then(d => { if (Array.isArray(d)) setVisaTypes(d); }).catch(() => {});
+  }, []);
+
+  const handleSearch = () => { setPage(1); fetchJobs(); };
+
+  const getDDay = (closingDate: string | null) => {
+    if (!closingDate) return null;
+    const diff = Math.ceil((new Date(closingDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    if (diff < 0) return '마감';
+    if (diff === 0) return 'D-Day';
+    return `D-${diff}`;
+  };
 
   return (
-    <div className="flex flex-col min-h-screen font-sans">
-      <Header
-        isCompanyMode={isCompanyMode}
-        onToggleMode={() => setIsCompanyMode(!isCompanyMode)}
-        onLogoClick={() => setIsCompanyMode(false)}
-      />
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <Header isCompanyMode={isCompanyMode} onToggleMode={() => setIsCompanyMode(!isCompanyMode)} onLogoClick={() => setIsCompanyMode(false)} />
 
-      <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Title */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">알바채용관</h1>
-          <p className="text-gray-500 mt-1">외국인이 지원 가능한 알바 공고를 모아봤어요</p>
+      <main className="grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex justify-between items-end mb-5">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">알바채용관</h1>
+            <p className="text-xs text-gray-500 mt-0.5">외국인이 지원 가능한 알바 공고를 모아봤어요</p>
+          </div>
+          <span className="text-xs text-gray-400">{total > 0 && `총 ${total}건`}</span>
         </div>
 
-        {/* Search & Filter Bar */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-8">
-          <div className="flex flex-wrap gap-3">
+        {/* Search */}
+        <div className="dashboard-card p-4 mb-6">
+          <div className="flex flex-wrap gap-2">
             <div className="flex-1 min-w-[200px] relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="검색어를 입력하세요"
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                disabled
-              />
+              <input type="text" placeholder="검색어를 입력하세요" value={keyword}
+                onChange={(e) => setKeyword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-md text-sm focus:border-blue-500 outline-none transition" />
             </div>
-            <select className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-500" disabled>
-              <option>지역 선택</option>
+            <select value={visaFilter} onChange={(e) => { setVisaFilter(e.target.value); setPage(1); }}
+              className="px-3 py-2.5 border border-gray-200 rounded-md text-sm text-gray-700 outline-none cursor-pointer">
+              <option value="">비자 전체</option>
+              {visaTypes.map(v => <option key={v.code} value={v.code}>{v.code} ({v.nameKo})</option>)}
             </select>
-            <select className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-500" disabled>
-              <option>업종 선택</option>
-            </select>
-            <button className="px-6 py-2.5 bg-sky-500 text-white rounded-lg text-sm font-medium opacity-50 cursor-not-allowed">
+            <button onClick={handleSearch}
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-semibold transition">
               검색
             </button>
           </div>
         </div>
 
-        {/* Preparing Notice */}
-        <div className="bg-sky-50 border border-sky-200 rounded-xl p-6 mb-8 text-center">
-          <Briefcase className="w-10 h-10 text-sky-500 mx-auto mb-3" />
-          <h3 className="text-lg font-semibold text-sky-700">알바 공고 서비스 준비중</h3>
-          <p className="text-sky-600 mt-1 text-sm">곧 외국인이 지원 가능한 알바 공고들이 업데이트됩니다.</p>
-        </div>
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-blue-600" />
+          </div>
+        ) : (
+          <>
+            {/* Premium */}
+            {premiumJobs.length > 0 && (
+              <div className="mb-8">
+                <h2 className="font-bold text-gray-900 text-sm mb-3">프리미엄 공고</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {premiumJobs.map((job) => (
+                    <Link key={job.id} href={`/jobs/${job.id}`}>
+                      <div className="dashboard-card p-4 hover:border-blue-300 transition group cursor-pointer">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">PREMIUM</span>
+                          </div>
+                          {getDDay(job.closingDate) && (
+                            <span className={`text-[11px] font-semibold ${getDDay(job.closingDate) === '마감' ? 'text-red-500' : 'text-blue-600'}`}>
+                              {getDDay(job.closingDate)}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-semibold text-gray-900 text-sm mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">{job.title}</h3>
+                        <p className="text-xs text-gray-500 mb-2">{job.company?.brandName || job.company?.companyName}</p>
+                        <div className="space-y-1 text-xs text-gray-400">
+                          <div className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.displayAddress}</div>
+                          {job.albaAttributes && <div className="text-blue-600 font-semibold">시급 {job.albaAttributes.hourlyWage.toLocaleString()}원</div>}
+                        </div>
+                        <div className="flex items-center justify-between mt-2.5 pt-2.5 border-t border-gray-100">
+                          <div className="flex flex-wrap gap-1">
+                            {job.allowedVisas.split(',').slice(0, 3).map(v => (
+                              <span key={v} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-medium rounded">{v.trim()}</span>
+                            ))}
+                          </div>
+                          <span className="text-[11px] text-gray-400 flex items-center gap-0.5"><Eye className="w-3 h-3" />{job.viewCount}</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {/* Example Cards */}
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">공고 예시</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {exampleJobs.map((job) => (
-            <div key={job.id} className="bg-white rounded-xl border border-gray-200 p-5 opacity-60">
-              <div className="flex items-start justify-between mb-3">
-                <span className="px-2 py-1 bg-sky-100 text-sky-700 text-xs font-medium rounded">{job.tag}</span>
-                <span className="text-xs text-gray-400">{job.type}</span>
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-1">{job.title}</h3>
-              <p className="text-sm text-gray-500 mb-3">{job.company}</p>
-              <div className="flex items-center gap-3 text-xs text-gray-400">
-                <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location}</span>
-                <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{job.pay}</span>
-              </div>
+            {/* Standard - Table */}
+            <div className="mb-6">
+              <h2 className="font-bold text-gray-900 text-sm mb-3">일반 공고</h2>
+              {jobs.length === 0 && premiumJobs.length === 0 ? (
+                <div className="dashboard-card p-10 text-center">
+                  <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                  <h3 className="font-semibold text-gray-500 text-sm">공고가 없습니다</h3>
+                  <p className="text-gray-400 mt-1 text-xs">아직 등록된 알바 공고가 없어요.</p>
+                </div>
+              ) : (
+                <div className="dashboard-card overflow-hidden">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="px-4 py-3 font-semibold text-xs text-gray-500 uppercase tracking-wide">공고명</th>
+                        <th className="px-4 py-3 font-semibold text-xs text-gray-500 uppercase tracking-wide hidden sm:table-cell">기업</th>
+                        <th className="px-4 py-3 font-semibold text-xs text-gray-500 uppercase tracking-wide hidden md:table-cell">지역</th>
+                        <th className="px-4 py-3 font-semibold text-xs text-gray-500 uppercase tracking-wide">시급</th>
+                        <th className="px-4 py-3 font-semibold text-xs text-gray-500 uppercase tracking-wide hidden lg:table-cell">비자</th>
+                        <th className="px-4 py-3 font-semibold text-xs text-gray-500 uppercase tracking-wide hidden lg:table-cell">지원자</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {jobs.map((job) => (
+                        <tr key={job.id} className="hover:bg-gray-50 transition cursor-pointer group">
+                          <td className="px-4 py-3">
+                            <Link href={`/jobs/${job.id}`} className="block">
+                              <p className="font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">{job.title}</p>
+                              {getDDay(job.closingDate) && (
+                                <span className={`text-[11px] font-semibold ${getDDay(job.closingDate) === '마감' ? 'text-red-500' : 'text-blue-600'}`}>
+                                  {getDDay(job.closingDate)}
+                                </span>
+                              )}
+                            </Link>
+                          </td>
+                          <td className="px-4 py-3 text-gray-600 hidden sm:table-cell">{job.company?.brandName || job.company?.companyName}</td>
+                          <td className="px-4 py-3 hidden md:table-cell">
+                            <span className="text-gray-400 text-xs">{job.displayAddress}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            {job.albaAttributes && <span className="font-semibold text-blue-600">{job.albaAttributes.hourlyWage.toLocaleString()}원</span>}
+                          </td>
+                          <td className="px-4 py-3 hidden lg:table-cell">
+                            <div className="flex flex-wrap gap-1">
+                              {job.allowedVisas.split(',').slice(0, 2).map(v => (
+                                <span key={v} className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-medium rounded">{v.trim()}</span>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 hidden lg:table-cell">
+                            <span className="text-gray-400 flex items-center gap-1"><Users className="w-3 h-3" />{job.applyCount}명</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-          ))}
-        </div>
-      </main>
 
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-1.5 mt-6">
+                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                  className="p-2 rounded-md border border-gray-200 disabled:opacity-30 hover:bg-gray-50">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const start = Math.max(1, Math.min(page - 2, totalPages - 4));
+                  const num = start + i;
+                  return (
+                    <button key={num} onClick={() => setPage(num)}
+                      className={`w-8 h-8 rounded-md text-sm font-medium ${num === page ? 'bg-blue-600 text-white' : 'border border-gray-200 hover:bg-gray-50'}`}>
+                      {num}
+                    </button>
+                  );
+                })}
+                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                  className="p-2 rounded-md border border-gray-200 disabled:opacity-30 hover:bg-gray-50">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </>
+        )}
+      </main>
       <Footer />
     </div>
   );

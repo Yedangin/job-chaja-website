@@ -6,13 +6,14 @@ import { useEmailVerification } from '../hooks/use-email-verification';
 import { EmailVerification } from './email-verification';
 import { TermsAgreementComponent } from './terms-agreement';
 import { TermsModal } from './terms-modal';
-import type { ViewType } from '../types/auth.types';
+import type { ViewType, MemberType } from '../types/auth.types';
 
 interface SignupFormProps {
   onSwitchView: (view: ViewType) => void;
+  memberType?: MemberType;
 }
 
-export function SignupForm({ onSwitchView }: SignupFormProps) {
+export function SignupForm({ onSwitchView, memberType = 'seeker' }: SignupFormProps) {
   const { t } = useLanguage();
   const {
     form,
@@ -24,7 +25,7 @@ export function SignupForm({ onSwitchView }: SignupFormProps) {
     handleTermChange,
     handleAllTermsChange,
     onSubmit,
-  } = useSignup();
+  } = useSignup(memberType);
 
   const emailVerification = useEmailVerification();
   const [activeModalTerm, setActiveModalTerm] = useState<string | null>(null);
@@ -65,9 +66,11 @@ export function SignupForm({ onSwitchView }: SignupFormProps) {
         </button>
 
         <h1 className="text-2xl font-bold text-slate-900 mb-1">
-          {t('createAccount')}
+          {memberType === 'company' ? '기업 회원가입' : t('createAccount')}
         </h1>
-        <p className="text-slate-500 text-sm mb-6">{t('createSub')}</p>
+        <p className="text-slate-500 text-sm mb-6">
+          {memberType === 'company' ? '기업 회원으로 가입합니다. 가입 후 기업 인증을 진행해주세요.' : t('createSub')}
+        </p>
 
         <form
           onSubmit={(e) => {
@@ -83,11 +86,11 @@ export function SignupForm({ onSwitchView }: SignupFormProps) {
             {/* Name */}
             <div>
               <label className="text-xs font-bold text-slate-500 ml-1 mb-1 block">
-                {t('labelName')}
+                {memberType === 'company' ? '담당자명' : t('labelName')}
               </label>
               <input
                 type="text"
-                placeholder="Full Name (Passport Name)"
+                placeholder={memberType === 'company' ? '담당자 이름' : 'Full Name (Passport Name)'}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm"
                 {...register('fullName')}
               />
