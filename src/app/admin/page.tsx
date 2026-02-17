@@ -64,8 +64,16 @@ interface AdminStats {
   dailyActiveUsers: number;
   totalProfiles: number;
   totalJobPostings: number;
+  activeJobPostings: number;
   partTimePostings: number;
   fullTimePostings: number;
+  // 추가 통계 / Enhanced stats
+  todayMatchings: number;
+  pendingVisaVerifications: number;
+  verifiedVisaVerifications: number;
+  pendingCorporateVerifications: number;
+  visaDistribution: Array<{ visaCode: string; count: number }>;
+  dailyTrends: Array<{ date: string; newUsers: number; matchings: number; newJobs: number }>;
 }
 
 interface ActivityLogItem {
@@ -120,6 +128,7 @@ const sidebarGroups = [
     label: '모니터링',
     items: [
       { id: 'logs', label: '활동 로그', icon: Activity },
+      { id: 'system-logs', label: '시스템 로그', icon: Code },
       { id: 'reports', label: '통계/리포트', icon: TrendingUp },
     ],
   },
@@ -128,6 +137,7 @@ const sidebarGroups = [
     items: [
       { id: 'support', label: '고객센터', icon: MessageSquare },
       { id: 'policy', label: '정책/규정 관리', icon: Scale },
+      { id: 'law-amendments', label: '법령 변경 관리', icon: FileCheck },
     ],
   },
 ];
@@ -406,6 +416,8 @@ export default function AdminPage() {
           {activeMenu === 'users' && <AdminUsersContent fetchWithAuth={fetchWithAuth} />}
           {activeMenu === 'jobs' && <AdminJobsContent fetchWithAuth={fetchWithAuth} />}
           {activeMenu === 'sales' && <AdminSalesContent fetchWithAuth={fetchWithAuth} />}
+          {activeMenu === 'system-logs' && <SystemLogsContent fetchWithAuth={fetchWithAuth} />}
+          {activeMenu === 'law-amendments' && <LawAmendmentContent fetchWithAuth={fetchWithAuth} />}
           {activeMenu === 'reports' && <PlaceholderContent title="통계/리포트" desc="통계 리포트 기능이 준비중입니다." />}
           {activeMenu === 'settings' && <PlaceholderContent title="시스템 설정" desc="시스템 설정 기능이 준비중입니다." />}
         </div>
@@ -417,37 +429,130 @@ export default function AdminPage() {
 // --- Dashboard ---
 
 function DashboardContent({ stats }: { stats: AdminStats | null }) {
+  // 7일 추이 최대값 (차트 비율 계산용) / Max value for 7-day trend bar chart
+  const trendMax = Math.max(
+    ...(stats?.dailyTrends?.flatMap((d) => [d.newUsers, d.matchings, d.newJobs]) || [1]),
+    1,
+  );
+
   return (
     <>
+      {/* 핵심 지표 / Key metrics */}
       <div className="mb-8">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">사용자 분석</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">핵심 지표</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard icon={<Users size={20} />} iconBg="bg-sky-100" iconColor="text-sky-600" label="전체 회원수" value={stats?.totalUsers ?? 0} />
           <StatCard icon={<Activity size={20} />} iconBg="bg-green-100" iconColor="text-green-600" label="일일 접속자수" value={stats?.dailyActiveUsers ?? 0} />
-          <StatCard icon={<Globe size={20} />} iconBg="bg-violet-100" iconColor="text-violet-600" label="소셜 회원수" value={stats?.socialUsers ?? 0} />
-          <StatCard icon={<Mail size={20} />} iconBg="bg-amber-100" iconColor="text-amber-600" label="이메일 회원수" value={stats?.emailUsers ?? 0} />
-          <StatCard icon={<UserCheck size={20} />} iconBg="bg-teal-100" iconColor="text-teal-600" label="개인 회원수" value={stats?.individualUsers ?? 0} />
-          <StatCard icon={<Building2 size={20} />} iconBg="bg-indigo-100" iconColor="text-indigo-600" label="기업 회원수" value={stats?.corporateUsers ?? 0} />
+          <StatCard icon={<Zap size={20} />} iconBg="bg-amber-100" iconColor="text-amber-600" label="오늘 매칭수" value={stats?.todayMatchings ?? 0} />
+          <StatCard icon={<Briefcase size={20} />} iconBg="bg-violet-100" iconColor="text-violet-600" label="게시중 공고" value={stats?.activeJobPostings ?? 0} />
         </div>
       </div>
 
-      <div>
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">공고/프로필 현황</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-sky-100 flex items-center justify-center"><Briefcase size={20} className="text-sky-600" /></div>
-              <div><p className="text-sm text-gray-500">총 공고수</p><p className="text-2xl font-bold text-gray-900">{stats?.totalJobPostings ?? 0}</p></div>
-            </div>
+      {/* 조치 필요 / Action needed */}
+      {((stats?.pendingVisaVerifications ?? 0) > 0 || (stats?.pendingCorporateVerifications ?? 0) > 0) && (
+        <div className="mb-8">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">조치 필요</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {(stats?.pendingVisaVerifications ?? 0) > 0 && (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                  <Shield size={20} className="text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-orange-700">비자인증 심사대기</p>
+                  <p className="text-2xl font-bold text-orange-800">{stats?.pendingVisaVerifications}건</p>
+                </div>
+              </div>
+            )}
+            {(stats?.pendingCorporateVerifications ?? 0) > 0 && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center">
+                  <FileCheck size={20} className="text-yellow-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-yellow-700">기업인증 심사대기</p>
+                  <p className="text-2xl font-bold text-yellow-800">{stats?.pendingCorporateVerifications}건</p>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center"><FileText size={20} className="text-teal-600" /></div>
-              <div><p className="text-sm text-gray-500">총 프로필수</p><p className="text-2xl font-bold text-gray-900">{stats?.totalProfiles ?? 0}</p></div>
+        </div>
+      )}
+
+      {/* 사용자 분석 / User stats */}
+      <div className="mb-8">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">사용자 분석</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <StatCard icon={<UserCheck size={20} />} iconBg="bg-teal-100" iconColor="text-teal-600" label="개인 회원수" value={stats?.individualUsers ?? 0} />
+          <StatCard icon={<Building2 size={20} />} iconBg="bg-indigo-100" iconColor="text-indigo-600" label="기업 회원수" value={stats?.corporateUsers ?? 0} />
+          <StatCard icon={<Globe size={20} />} iconBg="bg-violet-100" iconColor="text-violet-600" label="소셜 회원수" value={stats?.socialUsers ?? 0} />
+          <StatCard icon={<Mail size={20} />} iconBg="bg-amber-100" iconColor="text-amber-600" label="이메일 회원수" value={stats?.emailUsers ?? 0} />
+        </div>
+      </div>
+
+      {/* 공고/프로필 + 비자인증 / Jobs & visa stats */}
+      <div className="mb-8">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">공고 · 비자인증 현황</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          <StatCard icon={<Briefcase size={20} />} iconBg="bg-sky-100" iconColor="text-sky-600" label="총 공고수" value={stats?.totalJobPostings ?? 0} />
+          <StatCard icon={<FileText size={20} />} iconBg="bg-teal-100" iconColor="text-teal-600" label="총 프로필수" value={stats?.totalProfiles ?? 0} />
+          <StatCard icon={<Shield size={20} />} iconBg="bg-green-100" iconColor="text-green-600" label="비자인증 완료" value={stats?.verifiedVisaVerifications ?? 0} />
+          <StatCard icon={<ClipboardList size={20} />} iconBg="bg-gray-100" iconColor="text-gray-600" label="파트타임 공고" value={stats?.partTimePostings ?? 0} />
+        </div>
+      </div>
+
+      {/* 7일 추이 / 7-day trends */}
+      {stats?.dailyTrends && stats.dailyTrends.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">7일 추이</h2>
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex items-center gap-6 mb-4 text-xs">
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-sky-500 inline-block" /> 신규회원</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-500 inline-block" /> 매칭</span>
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-green-500 inline-block" /> 신규공고</span>
+            </div>
+            <div className="space-y-3">
+              {stats.dailyTrends.map((d) => (
+                <div key={d.date} className="flex items-center gap-3">
+                  <span className="text-xs text-gray-500 w-12 shrink-0">
+                    {d.date.slice(5)}
+                  </span>
+                  <div className="flex-1 flex gap-1">
+                    <div className="h-5 bg-sky-500 rounded-r" style={{ width: `${Math.max((d.newUsers / trendMax) * 100, 2)}%` }} title={`신규회원 ${d.newUsers}`}>
+                      {d.newUsers > 0 && <span className="text-[10px] text-white px-1 leading-5">{d.newUsers}</span>}
+                    </div>
+                    <div className="h-5 bg-amber-500 rounded-r" style={{ width: `${Math.max((d.matchings / trendMax) * 100, 2)}%` }} title={`매칭 ${d.matchings}`}>
+                      {d.matchings > 0 && <span className="text-[10px] text-white px-1 leading-5">{d.matchings}</span>}
+                    </div>
+                    <div className="h-5 bg-green-500 rounded-r" style={{ width: `${Math.max((d.newJobs / trendMax) * 100, 2)}%` }} title={`신규공고 ${d.newJobs}`}>
+                      {d.newJobs > 0 && <span className="text-[10px] text-white px-1 leading-5">{d.newJobs}</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* 비자별 분포 / Visa distribution */}
+      {stats?.visaDistribution && stats.visaDistribution.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">비자별 분포</h2>
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="flex flex-wrap gap-3">
+              {stats.visaDistribution
+                .sort((a, b) => b.count - a.count)
+                .map((v) => (
+                  <div key={v.visaCode} className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-100">
+                    <span className="text-sm font-bold text-gray-900">{v.visaCode}</span>
+                    <span className="text-xs text-gray-500">{v.count}명</span>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -1431,6 +1536,14 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
   const [corpJobsLoading, setCorpJobsLoading] = useState(false);
   const [expandedPosting, setExpandedPosting] = useState<string | null>(null);
 
+  // 개인회원 상세 (비자인증 + 이력서 포함)
+  // Individual user detail (with visa verification + resume)
+  const [userDetail, setUserDetail] = useState<any>(null);
+  const [userDetailLoading, setUserDetailLoading] = useState(false);
+  const [visaActionLoading, setVisaActionLoading] = useState(false);
+  const [visaRejectReason, setVisaRejectReason] = useState('');
+  const [showVisaRejectForm, setShowVisaRejectForm] = useState(false);
+
   // Corporate actions
   const [rejectModal, setRejectModal] = useState<AdminUser | null>(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -1506,6 +1619,44 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
       loadUsers(userTab, 1, newSortBy, 'desc');
     }
     setShowSortMenu(false);
+  };
+
+  // 개인회원 상세 열기 (서버에서 풀데이터 fetch) / Open individual detail (fetch full data)
+  const openIndividualDetail = async (u: AdminUser) => {
+    setSelectedIndividual(u);
+    setUserDetail(null);
+    setUserDetailLoading(true);
+    setShowVisaRejectForm(false);
+    setVisaRejectReason('');
+    try {
+      const res = await fetchWithAuth(`/api/auth/admin/users/${u.id}`);
+      if (res.ok) setUserDetail(await res.json());
+    } catch { }
+    finally { setUserDetailLoading(false); }
+  };
+
+  // 비자인증 승인/거절 / Approve/reject visa verification
+  const handleVisaAction = async (action: 'VERIFIED' | 'REJECTED') => {
+    if (!userDetail?.visaVerification) return;
+    if (action === 'REJECTED' && !visaRejectReason.trim()) return;
+    setVisaActionLoading(true);
+    try {
+      const res = await fetchWithAuth(`/api/auth/admin/visa-verification/${userDetail.visaVerification.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          action,
+          rejectionReason: action === 'REJECTED' ? visaRejectReason : undefined,
+        }),
+      });
+      if (res.ok) {
+        // 상세 다시 로드 / Reload detail
+        const detailRes = await fetchWithAuth(`/api/auth/admin/users/${userDetail.id}`);
+        if (detailRes.ok) setUserDetail(await detailRes.json());
+        setShowVisaRejectForm(false);
+        setVisaRejectReason('');
+      }
+    } catch { }
+    finally { setVisaActionLoading(false); }
   };
 
   const openCorporateDetail = (u: AdminUser) => {
@@ -1728,7 +1879,7 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                       <td className="px-4 py-3">{socialProviderLabel(u.socialProvider)}</td>
                       <td className="px-4 py-3 text-gray-600">{new Date(u.joinedAt).toLocaleDateString('ko-KR')}</td>
                       <td className="px-4 py-3">
-                        <button onClick={() => setSelectedIndividual(u)} className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors">
+                        <button onClick={() => openIndividualDetail(u)} className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors">
                           <Eye size={12} className="inline mr-1" />상세
                         </button>
                       </td>
@@ -1819,7 +1970,7 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                       <td className="px-4 py-3 text-gray-600">{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleDateString('ko-KR') : '-'}</td>
                       <td className="px-4 py-3">
                         <button
-                          onClick={() => u.userType === 'INDIVIDUAL' ? setSelectedIndividual(u) : openCorporateDetail(u)}
+                          onClick={() => u.userType === 'INDIVIDUAL' ? openIndividualDetail(u) : openCorporateDetail(u)}
                           className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
                         >
                           <Eye size={12} className="inline mr-1" />상세
@@ -1869,149 +2020,297 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
         </div>
       )}
 
-      {/* Individual Detail Modal */}
+      {/* 개인회원 상세 모달 (비자인증 + 이력서 포함) / Individual Detail Modal with visa + resume */}
       {selectedIndividual && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setSelectedIndividual(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto m-4" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto m-4" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900">개인회원 상세정보</h3>
               <button onClick={() => setSelectedIndividual(null)} className="p-1 hover:bg-gray-100 rounded-lg">
                 <X size={20} className="text-gray-400" />
               </button>
             </div>
-            <div className="p-6 space-y-6">
-              {/* Profile completion */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">프로필 완성도</span>
-                  <span className="text-sm font-bold text-gray-900">{selectedIndividual.individual?.profileCompletionPercent || 0}%</span>
-                </div>
-                <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all ${completionColor(selectedIndividual.individual?.profileCompletionPercent || 0)}`}
-                    style={{ width: `${selectedIndividual.individual?.profileCompletionPercent || 0}%` }}
-                  />
-                </div>
-              </div>
 
-              {/* Basic info */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                  <UserCheck size={16} className="text-sky-600" /> 기본 정보
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500 block mb-1">이름</span>
-                    <span className="font-medium text-gray-900">{selectedIndividual.individual?.realName || '-'}</span>
+            {userDetailLoading ? (
+              <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-gray-300" /></div>
+            ) : (
+              <div className="p-6 space-y-6">
+                {/* 프로필 완성도 / Profile completion */}
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-gray-700">프로필 완성도</span>
+                    <span className="text-sm font-bold text-gray-900">{selectedIndividual.individual?.profileCompletionPercent || 0}%</span>
                   </div>
-                  <div>
-                    <span className="text-gray-500 block mb-1">이메일</span>
-                    <span className="font-medium text-gray-900">{selectedIndividual.email}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block mb-1">국적</span>
-                    <span className="font-medium text-gray-900">{selectedIndividual.individual?.nationality || '-'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block mb-1">성별</span>
-                    <span className="font-medium text-gray-900">
-                      {selectedIndividual.individual?.gender === 'MALE' ? '남성' :
-                       selectedIndividual.individual?.gender === 'FEMALE' ? '여성' :
-                       selectedIndividual.individual?.gender || '-'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block mb-1">생년월일</span>
-                    <span className="font-medium text-gray-900">{selectedIndividual.individual?.birthDate || '-'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block mb-1">가입방식</span>
-                    <span className="font-medium text-gray-900">{selectedIndividual.socialProvider || '이메일'}</span>
+                  <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${completionColor(selectedIndividual.individual?.profileCompletionPercent || 0)}`}
+                      style={{ width: `${selectedIndividual.individual?.profileCompletionPercent || 0}%` }}
+                    />
                   </div>
                 </div>
-              </div>
 
-              {/* Visa info */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                  <Globe size={16} className="text-sky-600" /> 비자 정보
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500 block mb-1">비자 유형</span>
-                    <span className="font-medium text-gray-900">
-                      {selectedIndividual.individual?.visaType === 'PENDING' ? '미등록' : selectedIndividual.individual?.visaType || '-'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block mb-1">비자 만료일</span>
-                    <span className="font-medium text-gray-900">{selectedIndividual.individual?.visaExpiryDate || '-'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Job preferences */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                  <Briefcase size={16} className="text-sky-600" /> 취업 희망 정보
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500 block mb-1">희망 직종</span>
-                    <span className="font-medium text-gray-900">{selectedIndividual.individual?.desiredJobType || '-'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block mb-1">희망 급여</span>
-                    <span className="font-medium text-gray-900">
-                      {selectedIndividual.individual?.desiredSalary
-                        ? `${selectedIndividual.individual.desiredSalary.toLocaleString()}원`
-                        : '-'}
-                    </span>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="text-gray-500 block mb-1">희망 산업</span>
-                    <span className="font-medium text-gray-900">{selectedIndividual.individual?.desiredIndustries || '-'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Competency */}
-              <div>
-                <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                  <FileText size={16} className="text-sky-600" /> 역량 정보
-                </h4>
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500 block mb-1">최종학력</span>
-                    <span className="font-medium text-gray-900">{selectedIndividual.individual?.finalEducationLvl || '-'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block mb-1">한국어 수준</span>
-                    <span className="font-medium text-gray-900">{selectedIndividual.individual?.koreanFluencyLvl || '-'}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 block mb-1">총 경력</span>
-                    <span className="font-medium text-gray-900">
-                      {selectedIndividual.individual?.totalCareerMonths
-                        ? `${Math.floor(selectedIndividual.individual.totalCareerMonths / 12)}년 ${selectedIndividual.individual.totalCareerMonths % 12}개월`
-                        : '-'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Dates */}
-              <div className="border-t border-gray-100 pt-4 grid grid-cols-2 gap-4 text-sm text-gray-500">
+                {/* 기본 정보 / Basic info */}
                 <div>
-                  <span className="block mb-1">가입일</span>
-                  <span className="text-gray-900">{new Date(selectedIndividual.joinedAt).toLocaleDateString('ko-KR')}</span>
+                  <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <UserCheck size={16} className="text-sky-600" /> 기본 정보
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500 block mb-1">이름</span>
+                      <span className="font-medium text-gray-900">{selectedIndividual.individual?.realName || '-'}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block mb-1">이메일</span>
+                      <span className="font-medium text-gray-900">{selectedIndividual.email}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block mb-1">국적</span>
+                      <span className="font-medium text-gray-900">{selectedIndividual.individual?.nationality || '-'}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block mb-1">성별</span>
+                      <span className="font-medium text-gray-900">
+                        {selectedIndividual.individual?.gender === 'MALE' ? '남성' :
+                         selectedIndividual.individual?.gender === 'FEMALE' ? '여성' :
+                         selectedIndividual.individual?.gender || '-'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block mb-1">생년월일</span>
+                      <span className="font-medium text-gray-900">{selectedIndividual.individual?.birthDate || '-'}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block mb-1">가입방식</span>
+                      <span className="font-medium text-gray-900">{selectedIndividual.socialProvider || '이메일'}</span>
+                    </div>
+                  </div>
                 </div>
+
+                {/* 비자인증 상태 / Visa verification status */}
                 <div>
-                  <span className="block mb-1">최근 접속</span>
-                  <span className="text-gray-900">{selectedIndividual.lastLoginAt ? new Date(selectedIndividual.lastLoginAt).toLocaleDateString('ko-KR') : '-'}</span>
+                  <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <Shield size={16} className="text-sky-600" /> 비자 인증
+                  </h4>
+                  {userDetail?.visaVerification ? (
+                    <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-bold text-gray-900">{userDetail.visaVerification.visaCode}</span>
+                          {userDetail.visaVerification.visaSubType && (
+                            <span className="text-xs text-gray-500">({userDetail.visaVerification.visaSubType})</span>
+                          )}
+                          {(() => {
+                            const st = userDetail.visaVerification.verificationStatus;
+                            const config: Record<string, { label: string; style: string }> = {
+                              PENDING: { label: '대기중', style: 'bg-gray-100 text-gray-600' },
+                              SUBMITTED: { label: '심사대기', style: 'bg-sky-100 text-sky-700' },
+                              VERIFIED: { label: '인증완료', style: 'bg-green-100 text-green-700' },
+                              REJECTED: { label: '거절됨', style: 'bg-red-100 text-red-700' },
+                            };
+                            const { label, style } = config[st] || { label: st, style: 'bg-gray-100 text-gray-600' };
+                            return <span className={`px-2 py-1 text-xs font-bold rounded ${style}`}>{label}</span>;
+                          })()}
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          {userDetail.visaVerification.verificationMethod === 'OCR' ? 'OCR 인증' : '수동 입력'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="text-gray-500 block mb-1">만료일</span>
+                          <span className="font-medium text-gray-900">
+                            {userDetail.visaVerification.visaExpiryDate
+                              ? new Date(userDetail.visaVerification.visaExpiryDate).toLocaleDateString('ko-KR')
+                              : '-'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 block mb-1">외국인등록번호</span>
+                          <span className="font-medium text-gray-900">
+                            {userDetail.visaVerification.foreignRegistrationNumber || '-'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 거절 사유 / Rejection reason */}
+                      {userDetail.visaVerification.rejectionReason && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                          <span className="text-xs font-bold text-red-700">거절 사유: </span>
+                          <span className="text-sm text-red-600">{userDetail.visaVerification.rejectionReason}</span>
+                        </div>
+                      )}
+
+                      {/* 승인/거절 버튼 / Approve/Reject buttons */}
+                      {userDetail.visaVerification.verificationStatus === 'SUBMITTED' && (
+                        <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
+                          <button
+                            onClick={() => handleVisaAction('VERIFIED')}
+                            disabled={visaActionLoading}
+                            className="px-4 py-2 bg-green-600 text-white text-sm font-bold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+                          >
+                            {visaActionLoading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                            승인
+                          </button>
+                          <button
+                            onClick={() => setShowVisaRejectForm(!showVisaRejectForm)}
+                            disabled={visaActionLoading}
+                            className="px-4 py-2 bg-red-100 text-red-700 text-sm font-bold rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50 flex items-center gap-1"
+                          >
+                            <Ban size={14} /> 거절
+                          </button>
+                        </div>
+                      )}
+
+                      {/* 거절 사유 입력 폼 / Rejection reason form */}
+                      {showVisaRejectForm && (
+                        <div className="pt-2 space-y-2">
+                          <textarea
+                            value={visaRejectReason}
+                            onChange={(e) => setVisaRejectReason(e.target.value)}
+                            rows={2}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                            placeholder="거절 사유를 입력하세요..."
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleVisaAction('REJECTED')}
+                              disabled={visaActionLoading || !visaRejectReason.trim()}
+                              className="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                            >
+                              {visaActionLoading ? <Loader2 size={14} className="animate-spin inline mr-1" /> : null}
+                              거절 확인
+                            </button>
+                            <button
+                              onClick={() => { setShowVisaRejectForm(false); setVisaRejectReason(''); }}
+                              className="px-4 py-2 text-gray-600 text-sm rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              취소
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 rounded-xl p-4 text-center text-sm text-gray-400">
+                      비자 인증 정보가 없습니다.
+                    </div>
+                  )}
+                </div>
+
+                {/* 이력서 / Resume */}
+                {userDetail?.resume && (
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                      <FileText size={16} className="text-sky-600" /> 이력서
+                    </h4>
+                    <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="text-gray-500 block mb-1">TOPIK</span>
+                          <span className="font-medium text-gray-900">{userDetail.resume.topikLevel != null ? `${userDetail.resume.topikLevel}급` : '-'}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 block mb-1">KIIP</span>
+                          <span className="font-medium text-gray-900">{userDetail.resume.kiipLevel != null ? `${userDetail.resume.kiipLevel}단계` : '-'}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 block mb-1">희망 급여</span>
+                          <span className="font-medium text-gray-900">{userDetail.resume.preferredSalary ? `${userDetail.resume.preferredSalary.toLocaleString()}만원` : '-'}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-500 block mb-1">작성 상태</span>
+                          <span className={`px-2 py-1 text-xs font-bold rounded ${userDetail.resume.isComplete ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                            {userDetail.resume.isComplete ? '완성' : '작성중'}
+                          </span>
+                        </div>
+                      </div>
+                      {userDetail.resume.preferredJobTypes?.length > 0 && (
+                        <div className="text-sm">
+                          <span className="text-gray-500 block mb-1">희망 고용형태</span>
+                          <div className="flex gap-1.5">
+                            {userDetail.resume.preferredJobTypes.map((t: string) => (
+                              <span key={t} className="px-2 py-0.5 text-xs bg-sky-50 text-sky-700 rounded">{t}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {userDetail.resume.preferredRegions?.length > 0 && (
+                        <div className="text-sm">
+                          <span className="text-gray-500 block mb-1">희망 지역</span>
+                          <div className="flex gap-1.5 flex-wrap">
+                            {userDetail.resume.preferredRegions.map((r: string) => (
+                              <span key={r} className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">{r}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 취업 희망 정보 / Job preferences */}
+                <div>
+                  <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <Briefcase size={16} className="text-sky-600" /> 취업 희망 정보
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500 block mb-1">희망 직종</span>
+                      <span className="font-medium text-gray-900">{selectedIndividual.individual?.desiredJobType || '-'}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block mb-1">희망 급여</span>
+                      <span className="font-medium text-gray-900">
+                        {selectedIndividual.individual?.desiredSalary
+                          ? `${selectedIndividual.individual.desiredSalary.toLocaleString()}원`
+                          : '-'}
+                      </span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-gray-500 block mb-1">희망 산업</span>
+                      <span className="font-medium text-gray-900">{selectedIndividual.individual?.desiredIndustries || '-'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 역량 정보 / Competency */}
+                <div>
+                  <h4 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                    <FileText size={16} className="text-sky-600" /> 역량 정보
+                  </h4>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500 block mb-1">최종학력</span>
+                      <span className="font-medium text-gray-900">{selectedIndividual.individual?.finalEducationLvl || '-'}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block mb-1">한국어 수준</span>
+                      <span className="font-medium text-gray-900">{selectedIndividual.individual?.koreanFluencyLvl || '-'}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block mb-1">총 경력</span>
+                      <span className="font-medium text-gray-900">
+                        {selectedIndividual.individual?.totalCareerMonths
+                          ? `${Math.floor(selectedIndividual.individual.totalCareerMonths / 12)}년 ${selectedIndividual.individual.totalCareerMonths % 12}개월`
+                          : '-'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 날짜 / Dates */}
+                <div className="border-t border-gray-100 pt-4 grid grid-cols-2 gap-4 text-sm text-gray-500">
+                  <div>
+                    <span className="block mb-1">가입일</span>
+                    <span className="text-gray-900">{new Date(selectedIndividual.joinedAt).toLocaleDateString('ko-KR')}</span>
+                  </div>
+                  <div>
+                    <span className="block mb-1">최근 접속</span>
+                    <span className="text-gray-900">{selectedIndividual.lastLoginAt ? new Date(selectedIndividual.lastLoginAt).toLocaleDateString('ko-KR') : '-'}</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
@@ -3584,6 +3883,308 @@ function IndustryCodesTab({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
   );
 }
 
+// ==========================================
+// 시스템 로그 (MongoDB 기반 4종 로그)
+// System Logs (MongoDB-based 4 log types)
+// ==========================================
+
+const SYSTEM_LOG_TABS = [
+  { id: 'requests', label: '요청 로그', icon: Globe },
+  { id: 'matching', label: '매칭 로그', icon: Zap },
+  { id: 'errors', label: '에러 로그', icon: AlertTriangle },
+  { id: 'changes', label: '변경 로그', icon: Edit3 },
+];
+
+function SystemLogsContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
+  const [logTab, setLogTab] = useState('requests');
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [meta, setMeta] = useState({ total: 0, page: 1, limit: 20, totalPages: 0 });
+  const [filters, setFilters] = useState<Record<string, string>>({});
+
+  const loadLogs = async (tab?: string, p?: number) => {
+    setLoading(true);
+    const currentTab = tab || logTab;
+    try {
+      const params = new URLSearchParams();
+      params.set('page', String(p || meta.page));
+      params.set('limit', '20');
+      // 날짜 필터 / Date filters
+      if (filters.startDate) params.set('startDate', filters.startDate);
+      if (filters.endDate) params.set('endDate', filters.endDate);
+      // 탭별 필터 / Tab-specific filters
+      if (currentTab === 'requests' && filters.statusCode) params.set('statusCode', filters.statusCode);
+      if (currentTab === 'requests' && filters.path) params.set('path', filters.path);
+      if (currentTab === 'errors' && filters.errorType) params.set('errorType', filters.errorType);
+      if (currentTab === 'errors' && filters.is500) params.set('is500', filters.is500);
+      if (currentTab === 'changes' && filters.tableName) params.set('tableName', filters.tableName);
+
+      const res = await fetchWithAuth(`/api/admin/logs/${currentTab}?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setLogs(data.data || []);
+        setMeta(data.meta || { total: 0, page: 1, limit: 20, totalPages: 0 });
+      }
+    } catch { }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { loadLogs(logTab, 1); }, [logTab]);
+
+  const handleTabChange = (tab: string) => {
+    setLogTab(tab);
+    setLogs([]);
+    setMeta({ total: 0, page: 1, limit: 20, totalPages: 0 });
+    setFilters({});
+  };
+
+  const handlePageChange = (page: number) => {
+    setMeta((prev) => ({ ...prev, page }));
+    loadLogs(logTab, page);
+  };
+
+  const statusCodeColor = (code: number) => {
+    if (code < 300) return 'text-green-700 bg-green-50';
+    if (code < 400) return 'text-blue-700 bg-blue-50';
+    if (code < 500) return 'text-yellow-700 bg-yellow-50';
+    return 'text-red-700 bg-red-50';
+  };
+
+  return (
+    <div>
+      {/* 탭 / Tabs */}
+      <div className="flex gap-2 mb-4">
+        {SYSTEM_LOG_TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            onClick={() => handleTabChange(id)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+              logTab === id
+                ? 'bg-sky-600 text-white'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            <Icon size={16} /> {label}
+          </button>
+        ))}
+      </div>
+
+      {/* 필터 바 / Filter bar */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4 flex flex-wrap gap-3 items-center">
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-medium text-gray-500">시작일:</label>
+          <input
+            type="date"
+            value={filters.startDate || ''}
+            onChange={(e) => setFilters((p) => ({ ...p, startDate: e.target.value }))}
+            className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-medium text-gray-500">종료일:</label>
+          <input
+            type="date"
+            value={filters.endDate || ''}
+            onChange={(e) => setFilters((p) => ({ ...p, endDate: e.target.value }))}
+            className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm"
+          />
+        </div>
+
+        {logTab === 'errors' && (
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-medium text-gray-500">500만:</label>
+            <select
+              value={filters.is500 || ''}
+              onChange={(e) => setFilters((p) => ({ ...p, is500: e.target.value }))}
+              className="px-2 py-1.5 border border-gray-200 rounded-lg text-sm"
+            >
+              <option value="">전체</option>
+              <option value="true">500만</option>
+              <option value="false">비500</option>
+            </select>
+          </div>
+        )}
+
+        <button
+          onClick={() => loadLogs(logTab, 1)}
+          className="px-3 py-1.5 bg-sky-600 text-white text-sm rounded-lg hover:bg-sky-700 transition-colors flex items-center gap-1"
+        >
+          <Search size={14} /> 조회
+        </button>
+        <div className="ml-auto text-sm text-gray-500">
+          총 <span className="font-bold text-gray-900">{meta.total}</span>건
+        </div>
+      </div>
+
+      {/* 테이블 / Table */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {loading ? (
+          <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-gray-300" /></div>
+        ) : (
+          <div className="overflow-x-auto">
+            {logTab === 'requests' && (
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50 text-xs font-bold text-gray-500 uppercase border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3">시간</th>
+                    <th className="px-4 py-3">Method</th>
+                    <th className="px-4 py-3">Path</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">응답시간</th>
+                    <th className="px-4 py-3">User</th>
+                    <th className="px-4 py-3">IP</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {logs.length > 0 ? logs.map((l, i) => (
+                    <tr key={l.id || i} className="hover:bg-gray-50">
+                      <td className="px-4 py-2 text-gray-600 whitespace-nowrap text-xs">{new Date(l.createdAt).toLocaleString('ko-KR')}</td>
+                      <td className="px-4 py-2"><span className="px-1.5 py-0.5 text-xs font-bold bg-gray-100 rounded">{l.method}</span></td>
+                      <td className="px-4 py-2 text-gray-700 max-w-xs truncate text-xs">{l.path}</td>
+                      <td className="px-4 py-2"><span className={`px-1.5 py-0.5 text-xs font-bold rounded ${statusCodeColor(l.statusCode)}`}>{l.statusCode}</span></td>
+                      <td className="px-4 py-2 text-gray-600 text-xs">{l.responseTime}ms</td>
+                      <td className="px-4 py-2 text-gray-500 text-xs">{l.userId || '-'}</td>
+                      <td className="px-4 py-2 text-gray-500 text-xs">{l.ip || '-'}</td>
+                    </tr>
+                  )) : (
+                    <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400 text-sm">로그가 없습니다.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {logTab === 'matching' && (
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50 text-xs font-bold text-gray-500 uppercase border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3">시간</th>
+                    <th className="px-4 py-3">적격 비자</th>
+                    <th className="px-4 py-3">불적격</th>
+                    <th className="px-4 py-3">소요시간</th>
+                    <th className="px-4 py-3">User</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {logs.length > 0 ? logs.map((l, i) => {
+                    let visas: string[] = [];
+                    try { visas = JSON.parse(l.eligibleVisas || '[]'); } catch { }
+                    return (
+                      <tr key={l.id || i} className="hover:bg-gray-50">
+                        <td className="px-4 py-2 text-gray-600 text-xs whitespace-nowrap">{new Date(l.createdAt).toLocaleString('ko-KR')}</td>
+                        <td className="px-4 py-2">
+                          <div className="flex gap-1 flex-wrap">
+                            {visas.length > 0 ? visas.map((v: string) => (
+                              <span key={v} className="px-1.5 py-0.5 text-[10px] font-bold bg-green-50 text-green-700 rounded">{v}</span>
+                            )) : <span className="text-gray-400 text-xs">-</span>}
+                          </div>
+                        </td>
+                        <td className="px-4 py-2 text-gray-600 text-xs">{l.blockedCount}</td>
+                        <td className="px-4 py-2 text-gray-600 text-xs">{l.durationMs}ms</td>
+                        <td className="px-4 py-2 text-gray-500 text-xs">{l.userId || '-'}</td>
+                      </tr>
+                    );
+                  }) : (
+                    <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-400 text-sm">로그가 없습니다.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {logTab === 'errors' && (
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50 text-xs font-bold text-gray-500 uppercase border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3">시간</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Type</th>
+                    <th className="px-4 py-3">Message</th>
+                    <th className="px-4 py-3">Path</th>
+                    <th className="px-4 py-3">User</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {logs.length > 0 ? logs.map((l, i) => (
+                    <tr key={l.id || i} className={`hover:bg-gray-50 ${l.is500 ? 'bg-red-50/30' : ''}`}>
+                      <td className="px-4 py-2 text-gray-600 text-xs whitespace-nowrap">{new Date(l.createdAt).toLocaleString('ko-KR')}</td>
+                      <td className="px-4 py-2"><span className={`px-1.5 py-0.5 text-xs font-bold rounded ${statusCodeColor(l.statusCode)}`}>{l.statusCode}</span></td>
+                      <td className="px-4 py-2 text-gray-700 text-xs">{l.errorType}</td>
+                      <td className="px-4 py-2 text-gray-600 text-xs max-w-xs truncate">{l.message}</td>
+                      <td className="px-4 py-2 text-gray-500 text-xs">{l.path || '-'}</td>
+                      <td className="px-4 py-2 text-gray-500 text-xs">{l.userId || '-'}</td>
+                    </tr>
+                  )) : (
+                    <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400 text-sm">에러 로그가 없습니다.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {logTab === 'changes' && (
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50 text-xs font-bold text-gray-500 uppercase border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3">시간</th>
+                    <th className="px-4 py-3">Admin</th>
+                    <th className="px-4 py-3">테이블</th>
+                    <th className="px-4 py-3">액션</th>
+                    <th className="px-4 py-3">Record ID</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {logs.length > 0 ? logs.map((l, i) => (
+                    <tr key={l.id || i} className="hover:bg-gray-50">
+                      <td className="px-4 py-2 text-gray-600 text-xs whitespace-nowrap">{new Date(l.createdAt).toLocaleString('ko-KR')}</td>
+                      <td className="px-4 py-2 text-gray-700 text-xs">{l.adminId}</td>
+                      <td className="px-4 py-2"><span className="px-1.5 py-0.5 text-xs font-bold bg-gray-100 rounded">{l.tableName}</span></td>
+                      <td className="px-4 py-2">
+                        <span className={`px-1.5 py-0.5 text-xs font-bold rounded ${
+                          l.action === 'CREATE' ? 'bg-green-50 text-green-700' :
+                          l.action === 'UPDATE' ? 'bg-sky-50 text-sky-700' :
+                          l.action === 'DELETE' ? 'bg-red-50 text-red-700' :
+                          'bg-gray-50 text-gray-700'
+                        }`}>{l.action}</span>
+                      </td>
+                      <td className="px-4 py-2 text-gray-500 text-xs">{l.recordId}</td>
+                    </tr>
+                  )) : (
+                    <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-400 text-sm">변경 로그가 없습니다.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+
+        {/* 페이지네이션 / Pagination */}
+        {meta.totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 p-4 border-t border-gray-200">
+            <button onClick={() => handlePageChange(meta.page - 1)} disabled={meta.page <= 1}
+              className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-30">
+              <ChevronLeft size={14} />
+            </button>
+            {Array.from({ length: Math.min(meta.totalPages, 10) }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => handlePageChange(p)}
+                className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
+                  meta.page === p ? 'bg-sky-500 text-white' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+            {meta.totalPages > 10 && <span className="text-gray-400">...</span>}
+            <button onClick={() => handlePageChange(meta.page + 1)} disabled={meta.page >= meta.totalPages}
+              className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-30">
+              <ChevronRight size={14} />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ---- Tab 5: 규칙 테스트 ----
 
 interface EvaluationResult {
@@ -3789,6 +4390,568 @@ function RuleTestTab({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
               </div>
             </div>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// 법령 변경 관리 / Law Amendment Management
+// ============================================================
+
+interface LawAmendmentData {
+  id: string;
+  title: string;
+  source: string;
+  sourceUrl?: string;
+  detectedAt: string;
+  effectiveDate: string;
+  status: string;
+  affectedVisaCodes: string[];
+  changeSummary: Record<string, any>;
+  changeDetails: Record<string, any>;
+  impactAnalysis?: Record<string, any>;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  appliedAt?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  items?: LawAmendmentItemData[];
+}
+
+interface LawAmendmentItemData {
+  id: string;
+  targetTable: string;
+  targetId?: string;
+  action: string;
+  beforeData?: Record<string, any>;
+  afterData?: Record<string, any>;
+  isApplied: boolean;
+  appliedAt?: string;
+}
+
+const AMENDMENT_STATUS_MAP: Record<string, { label: string; color: string }> = {
+  DETECTED: { label: '감지됨', color: 'bg-blue-100 text-blue-800' },
+  REVIEWING: { label: '검토중', color: 'bg-yellow-100 text-yellow-800' },
+  APPROVED: { label: '승인됨', color: 'bg-green-100 text-green-800' },
+  STAGING: { label: '시뮬레이션', color: 'bg-purple-100 text-purple-800' },
+  APPLIED: { label: '적용완료', color: 'bg-gray-100 text-gray-800' },
+  REJECTED: { label: '반려', color: 'bg-red-100 text-red-800' },
+};
+
+const AMENDMENT_TABS = ['ALL', 'DETECTED', 'REVIEWING', 'APPROVED', 'STAGING', 'APPLIED', 'REJECTED'];
+
+function LawAmendmentContent({ fetchWithAuth }: { fetchWithAuth: (url: string, opts?: RequestInit) => Promise<Response> }) {
+  const [amendments, setAmendments] = useState<LawAmendmentData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('ALL');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [selectedAmendment, setSelectedAmendment] = useState<LawAmendmentData | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [simulationResult, setSimulationResult] = useState<any>(null);
+  const [impactResult, setImpactResult] = useState<any>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [showRejectForm, setShowRejectForm] = useState(false);
+  const [approveDate, setApproveDate] = useState('');
+  const [showApproveForm, setShowApproveForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    title: '', source: '', sourceUrl: '', effectiveDate: '',
+    affectedVisaCodes: '', changeSummary: '', changeDetails: '',
+  });
+
+  const loadAmendments = async () => {
+    setLoading(true);
+    try {
+      const statusParam = activeTab !== 'ALL' ? `&status=${activeTab}` : '';
+      const res = await fetchWithAuth(`/api/admin/law-amendments?page=${page}&limit=15${statusParam}`);
+      const data = await res.json();
+      if (res.ok) {
+        setAmendments(data.items || []);
+        setTotalPages(data.totalPages || 1);
+        setTotal(data.total || 0);
+      }
+    } catch (e) { console.error('Failed to load amendments:', e); }
+    setLoading(false);
+  };
+
+  useEffect(() => { loadAmendments(); }, [activeTab, page]);
+
+  const openDetail = async (id: string) => {
+    setDetailLoading(true);
+    setSimulationResult(null);
+    setImpactResult(null);
+    setShowRejectForm(false);
+    setShowApproveForm(false);
+    try {
+      const res = await fetchWithAuth(`/api/admin/law-amendments/${id}`);
+      const data = await res.json();
+      if (res.ok) setSelectedAmendment(data);
+    } catch (e) { console.error(e); }
+    setDetailLoading(false);
+  };
+
+  const handleApprove = async () => {
+    if (!selectedAmendment) return;
+    setActionLoading(true);
+    try {
+      const body: any = {};
+      if (approveDate) body.effectiveDate = approveDate;
+      const res = await fetchWithAuth(`/api/admin/law-amendments/${selectedAmendment.id}/approve`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedAmendment(data);
+        setShowApproveForm(false);
+        loadAmendments();
+      }
+    } catch (e) { console.error(e); }
+    setActionLoading(false);
+  };
+
+  const handleReject = async () => {
+    if (!selectedAmendment || !rejectReason) return;
+    setActionLoading(true);
+    try {
+      const res = await fetchWithAuth(`/api/admin/law-amendments/${selectedAmendment.id}/reject`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: rejectReason }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedAmendment(data);
+        setShowRejectForm(false);
+        setRejectReason('');
+        loadAmendments();
+      }
+    } catch (e) { console.error(e); }
+    setActionLoading(false);
+  };
+
+  const handleSimulate = async () => {
+    if (!selectedAmendment) return;
+    setActionLoading(true);
+    try {
+      const res = await fetchWithAuth(`/api/admin/law-amendments/${selectedAmendment.id}/simulate`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSimulationResult(data);
+      }
+    } catch (e) { console.error(e); }
+    setActionLoading(false);
+  };
+
+  const handleImpact = async () => {
+    if (!selectedAmendment) return;
+    setActionLoading(true);
+    try {
+      const res = await fetchWithAuth(`/api/admin/law-amendments/${selectedAmendment.id}/impact`);
+      if (res.ok) {
+        const data = await res.json();
+        setImpactResult(data);
+      }
+    } catch (e) { console.error(e); }
+    setActionLoading(false);
+  };
+
+  const handleApply = async () => {
+    if (!selectedAmendment) return;
+    if (!confirm('정말 즉시 적용하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+    setActionLoading(true);
+    try {
+      const res = await fetchWithAuth(`/api/admin/law-amendments/${selectedAmendment.id}/apply`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedAmendment(data);
+        loadAmendments();
+      }
+    } catch (e) { console.error(e); }
+    setActionLoading(false);
+  };
+
+  const handleCreate = async () => {
+    setActionLoading(true);
+    try {
+      let summaryObj = {};
+      let detailsObj = {};
+      try { summaryObj = JSON.parse(createForm.changeSummary || '{}'); } catch { summaryObj = { text: createForm.changeSummary }; }
+      try { detailsObj = JSON.parse(createForm.changeDetails || '{}'); } catch { detailsObj = { text: createForm.changeDetails }; }
+      const res = await fetchWithAuth('/api/admin/law-amendments', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: createForm.title,
+          source: createForm.source || 'MANUAL',
+          sourceUrl: createForm.sourceUrl || undefined,
+          effectiveDate: createForm.effectiveDate,
+          affectedVisaCodes: createForm.affectedVisaCodes.split(',').map(s => s.trim()).filter(Boolean),
+          changeSummary: summaryObj,
+          changeDetails: detailsObj,
+        }),
+      });
+      if (res.ok) {
+        setShowCreateForm(false);
+        setCreateForm({ title: '', source: '', sourceUrl: '', effectiveDate: '', affectedVisaCodes: '', changeSummary: '', changeDetails: '' });
+        loadAmendments();
+      }
+    } catch (e) { console.error(e); }
+    setActionLoading(false);
+  };
+
+  const statusBadge = (status: string) => {
+    const s = AMENDMENT_STATUS_MAP[status] || { label: status, color: 'bg-gray-100 text-gray-600' };
+    return <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${s.color}`}>{s.label}</span>;
+  };
+
+  return (
+    <div>
+      {/* 헤더 / Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">법령 변경 관리</h2>
+          <p className="text-sm text-gray-500 mt-1">자동 감지된 법령/정책 변경 사항을 검토하고 관리합니다.</p>
+        </div>
+        <button
+          onClick={() => setShowCreateForm(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+        >
+          <Plus className="w-4 h-4" /> 수동 등록
+        </button>
+      </div>
+
+      {/* 상태 탭 / Status tabs */}
+      <div className="flex gap-1 mb-4 overflow-x-auto">
+        {AMENDMENT_TABS.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => { setActiveTab(tab); setPage(1); }}
+            className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap ${
+              activeTab === tab ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {tab === 'ALL' ? `전체 (${total})` : `${AMENDMENT_STATUS_MAP[tab]?.label || tab}`}
+          </button>
+        ))}
+      </div>
+
+      {/* 목록 테이블 / List table */}
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin text-gray-400" /></div>
+      ) : amendments.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">검색 결과 없음</div>
+      ) : (
+        <div className="bg-white rounded-xl border overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">제목</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">출처</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">영향 비자</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">감지일</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">시행일</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-500">상태</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-500">관리</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {amendments.map((a) => (
+                <tr key={a.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-gray-900 truncate max-w-[300px]">{a.title}</div>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{a.source}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {a.affectedVisaCodes?.slice(0, 3).map((v) => (
+                        <span key={v} className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-xs rounded">{v}</span>
+                      ))}
+                      {a.affectedVisaCodes?.length > 3 && (
+                        <span className="text-xs text-gray-400">+{a.affectedVisaCodes.length - 3}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{new Date(a.detectedAt).toLocaleDateString('ko-KR')}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{new Date(a.effectiveDate).toLocaleDateString('ko-KR')}</td>
+                  <td className="px-4 py-3">{statusBadge(a.status)}</td>
+                  <td className="px-4 py-3 text-right">
+                    <button onClick={() => openDetail(a.id)} className="text-blue-600 hover:underline text-xs">상세</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {/* 페이지네이션 / Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 py-3 border-t">
+              <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1} className="px-3 py-1 text-sm rounded bg-gray-100 disabled:opacity-50">이전</button>
+              <span className="text-sm text-gray-500">{page} / {totalPages}</span>
+              <button onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages} className="px-3 py-1 text-sm rounded bg-gray-100 disabled:opacity-50">다음</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 수동 등록 모달 / Create modal */}
+      {showCreateForm && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 m-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold">법령 변경 수동 등록</h3>
+              <button onClick={() => setShowCreateForm(false)}><X className="w-5 h-5" /></button>
+            </div>
+            <div className="space-y-3">
+              <input placeholder="제목 *" value={createForm.title} onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg text-sm" />
+              <input placeholder="출처 (예: 법제처, immigration.go.kr)" value={createForm.source}
+                onChange={(e) => setCreateForm({ ...createForm, source: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg text-sm" />
+              <input placeholder="원문 URL" value={createForm.sourceUrl}
+                onChange={(e) => setCreateForm({ ...createForm, sourceUrl: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg text-sm" />
+              <input type="date" placeholder="시행일 *" value={createForm.effectiveDate}
+                onChange={(e) => setCreateForm({ ...createForm, effectiveDate: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg text-sm" />
+              <input placeholder="영향 비자 코드 (쉼표 구분: E-7,E-9,F-2)" value={createForm.affectedVisaCodes}
+                onChange={(e) => setCreateForm({ ...createForm, affectedVisaCodes: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg text-sm" />
+              <textarea placeholder="변경 요약 (JSON 또는 텍스트)" value={createForm.changeSummary}
+                onChange={(e) => setCreateForm({ ...createForm, changeSummary: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg text-sm" rows={2} />
+              <textarea placeholder="변경 상세 (JSON 또는 텍스트)" value={createForm.changeDetails}
+                onChange={(e) => setCreateForm({ ...createForm, changeDetails: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg text-sm" rows={2} />
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => setShowCreateForm(false)} className="px-4 py-2 text-sm text-gray-600 bg-gray-100 rounded-lg">취소</button>
+              <button onClick={handleCreate} disabled={actionLoading || !createForm.title || !createForm.effectiveDate}
+                className="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                {actionLoading ? '처리중...' : '등록'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 상세 모달 / Detail modal */}
+      {selectedAmendment && (
+        <div className="fixed inset-0 bg-black/30 flex items-start justify-center z-50 overflow-y-auto pt-8 pb-8">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-6 m-4">
+            {detailLoading ? (
+              <div className="flex justify-center py-12"><Loader2 className="w-8 h-8 animate-spin" /></div>
+            ) : (
+              <>
+                {/* 헤더 / Header */}
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      {statusBadge(selectedAmendment.status)}
+                      <span className="text-xs text-gray-400">ID: {selectedAmendment.id}</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900">{selectedAmendment.title}</h3>
+                    <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                      <span>출처: {selectedAmendment.source}</span>
+                      {selectedAmendment.sourceUrl && (
+                        <a href={selectedAmendment.sourceUrl} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-blue-600 hover:underline">
+                          <ExternalLink className="w-3 h-3" /> 원문
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  <button onClick={() => setSelectedAmendment(null)}><X className="w-5 h-5" /></button>
+                </div>
+
+                {/* 기본 정보 / Basic info */}
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500 mb-1">감지일</div>
+                    <div className="text-sm font-medium">{new Date(selectedAmendment.detectedAt).toLocaleDateString('ko-KR')}</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500 mb-1">시행일</div>
+                    <div className="text-sm font-medium">{new Date(selectedAmendment.effectiveDate).toLocaleDateString('ko-KR')}</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500 mb-1">영향 비자</div>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedAmendment.affectedVisaCodes?.map((v) => (
+                        <span key={v} className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-xs rounded font-medium">{v}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 변경 요약 / Change summary */}
+                <div className="mb-4">
+                  <h4 className="text-sm font-bold text-gray-700 mb-2">변경 요약</h4>
+                  <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 overflow-x-auto">
+                    <pre className="whitespace-pre-wrap">{JSON.stringify(selectedAmendment.changeSummary, null, 2)}</pre>
+                  </div>
+                </div>
+
+                {/* 변경 항목 테이블 / Change items table */}
+                {selectedAmendment.items && selectedAmendment.items.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-bold text-gray-700 mb-2">변경 항목 ({selectedAmendment.items.length}건)</h4>
+                    <div className="border rounded-lg overflow-hidden">
+                      <table className="w-full text-xs">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-3 py-2 text-left font-medium text-gray-500">대상 테이블</th>
+                            <th className="px-3 py-2 text-left font-medium text-gray-500">ID</th>
+                            <th className="px-3 py-2 text-left font-medium text-gray-500">액션</th>
+                            <th className="px-3 py-2 text-left font-medium text-gray-500">변경전</th>
+                            <th className="px-3 py-2 text-left font-medium text-gray-500">변경후</th>
+                            <th className="px-3 py-2 text-center font-medium text-gray-500">적용</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {selectedAmendment.items.map((item) => (
+                            <tr key={item.id}>
+                              <td className="px-3 py-2 font-medium">{item.targetTable}</td>
+                              <td className="px-3 py-2 text-gray-500">{item.targetId || '-'}</td>
+                              <td className="px-3 py-2">
+                                <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                                  item.action === 'CREATE' ? 'bg-green-100 text-green-700' :
+                                  item.action === 'UPDATE' ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-red-100 text-red-700'
+                                }`}>{item.action}</span>
+                              </td>
+                              <td className="px-3 py-2 text-gray-500 max-w-[150px] truncate">
+                                {item.beforeData ? JSON.stringify(item.beforeData).substring(0, 40) : '-'}
+                              </td>
+                              <td className="px-3 py-2 text-gray-500 max-w-[150px] truncate">
+                                {item.afterData ? JSON.stringify(item.afterData).substring(0, 40) : '-'}
+                              </td>
+                              <td className="px-3 py-2 text-center">
+                                {item.isApplied ? <Check className="w-4 h-4 text-green-600 mx-auto" /> : <span className="text-gray-400">-</span>}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* 영향 분석 결과 / Impact analysis result */}
+                {impactResult && (
+                  <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <h4 className="text-sm font-bold text-yellow-800 mb-2">영향 분석 결과</h4>
+                    <div className="grid grid-cols-3 gap-3 text-xs">
+                      <div><span className="text-gray-500">영향 비자 타입:</span> <strong>{impactResult.affectedVisaTypeCount}건</strong></div>
+                      <div><span className="text-gray-500">영향 규칙:</span> <strong>{impactResult.affectedRuleCount}건</strong></div>
+                      <div><span className="text-gray-500">리스크:</span> <strong className={
+                        impactResult.riskLevel === 'HIGH' ? 'text-red-600' :
+                        impactResult.riskLevel === 'MEDIUM' ? 'text-yellow-600' : 'text-green-600'
+                      }>{impactResult.riskLevel}</strong></div>
+                    </div>
+                    {impactResult.affectedRules?.length > 0 && (
+                      <div className="mt-2">
+                        <div className="text-xs text-gray-500 mb-1">영향 규칙 목록:</div>
+                        {impactResult.affectedRules.map((r: any) => (
+                          <div key={r.id} className="text-xs text-gray-600">• {r.ruleName} ({r.visaCode})</div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 시뮬레이션 결과 / Simulation result */}
+                {simulationResult && (
+                  <div className="mb-4 bg-purple-50 border border-purple-200 rounded-lg p-3">
+                    <h4 className="text-sm font-bold text-purple-800 mb-2">시뮬레이션 결과</h4>
+                    <div className="grid grid-cols-3 gap-3 text-xs mb-2">
+                      <div>상태: <strong className={simulationResult.status === 'READY' ? 'text-green-600' : 'text-red-600'}>{simulationResult.status}</strong></div>
+                      <div>적용 가능: <strong>{simulationResult.applyableItems}/{simulationResult.totalItems}</strong></div>
+                      <div>이슈: <strong className={simulationResult.totalIssues > 0 ? 'text-red-600' : 'text-green-600'}>{simulationResult.totalIssues}건</strong></div>
+                    </div>
+                    {simulationResult.results?.map((r: any) => (
+                      <div key={r.itemId} className="text-xs border-t border-purple-200 pt-1 mt-1">
+                        <span className="font-medium">{r.targetTable}</span> — {r.action}
+                        {r.canApply ? <span className="text-green-600 ml-2">적용 가능</span> : <span className="text-red-600 ml-2">이슈: {r.issues.join(', ')}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 반려 사유 / Rejection info */}
+                {selectedAmendment.status === 'REJECTED' && selectedAmendment.rejectionReason && (
+                  <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div className="text-sm font-bold text-red-800 mb-1">반려 사유</div>
+                    <div className="text-xs text-red-600">{selectedAmendment.rejectionReason}</div>
+                    {selectedAmendment.rejectedAt && (
+                      <div className="text-xs text-gray-400 mt-1">반려일: {new Date(selectedAmendment.rejectedAt).toLocaleString('ko-KR')}</div>
+                    )}
+                  </div>
+                )}
+
+                {/* 액션 버튼 / Action buttons */}
+                <div className="flex flex-wrap gap-2 border-t pt-4 mt-4">
+                  <button onClick={handleImpact} disabled={actionLoading}
+                    className="flex items-center gap-1 px-3 py-1.5 text-xs bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 disabled:opacity-50">
+                    <AlertTriangle className="w-3 h-3" /> 영향 분석
+                  </button>
+                  {['DETECTED', 'REVIEWING', 'APPROVED'].includes(selectedAmendment.status) && (
+                    <button onClick={handleSimulate} disabled={actionLoading}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 disabled:opacity-50">
+                      <Play className="w-3 h-3" /> 시뮬레이션
+                    </button>
+                  )}
+                  {['DETECTED', 'REVIEWING'].includes(selectedAmendment.status) && (
+                    <>
+                      {!showApproveForm ? (
+                        <button onClick={() => setShowApproveForm(true)} disabled={actionLoading}
+                          className="flex items-center gap-1 px-3 py-1.5 text-xs bg-green-100 text-green-800 rounded-lg hover:bg-green-200 disabled:opacity-50">
+                          <Check className="w-3 h-3" /> 승인
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <input type="date" value={approveDate} onChange={(e) => setApproveDate(e.target.value)}
+                            className="px-2 py-1 text-xs border rounded" placeholder="시행일" />
+                          <button onClick={handleApprove} disabled={actionLoading}
+                            className="px-3 py-1.5 text-xs bg-green-600 text-white rounded-lg">확인</button>
+                          <button onClick={() => setShowApproveForm(false)} className="text-xs text-gray-500">취소</button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {!['APPLIED', 'REJECTED'].includes(selectedAmendment.status) && (
+                    <>
+                      {!showRejectForm ? (
+                        <button onClick={() => setShowRejectForm(true)} disabled={actionLoading}
+                          className="flex items-center gap-1 px-3 py-1.5 text-xs bg-red-100 text-red-800 rounded-lg hover:bg-red-200 disabled:opacity-50">
+                          <Ban className="w-3 h-3" /> 반려
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <input value={rejectReason} onChange={(e) => setRejectReason(e.target.value)}
+                            placeholder="반려 사유" className="px-2 py-1 text-xs border rounded w-48" />
+                          <button onClick={handleReject} disabled={actionLoading || !rejectReason}
+                            className="px-3 py-1.5 text-xs bg-red-600 text-white rounded-lg disabled:opacity-50">확인</button>
+                          <button onClick={() => setShowRejectForm(false)} className="text-xs text-gray-500">취소</button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {['APPROVED', 'STAGING'].includes(selectedAmendment.status) && (
+                    <button onClick={handleApply} disabled={actionLoading}
+                      className="flex items-center gap-1 px-3 py-1.5 text-xs bg-orange-100 text-orange-800 rounded-lg hover:bg-orange-200 disabled:opacity-50">
+                      <Zap className="w-3 h-3" /> 즉시 적용
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>

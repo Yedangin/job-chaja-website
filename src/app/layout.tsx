@@ -5,8 +5,8 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 
-// ✅ 추가
 import { LanguageProvider } from '@/i18n/LanguageProvider'
+import { AuthProvider } from '@/contexts/auth-context'
 import { Toaster } from 'sonner'
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -42,9 +42,10 @@ export default function RootLayout({
       </head>
 
       <body className="font-sans antialiased">
-        {/* ✅ 여기서 전체 앱을 감쌈 */}
         <LanguageProvider>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </LanguageProvider>
 
         <Toaster

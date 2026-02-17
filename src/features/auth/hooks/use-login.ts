@@ -35,38 +35,29 @@ export function useLogin() {
     setError(null);
 
     try {
-      console.log('[Login] === 로그인 시도 ===', { email: data.email, memberType });
       const response = await authApi.login({ ...data, memberType });
-      console.log('[Login] API 응답:', JSON.stringify(response, null, 2));
 
       if (!response.sessionId) {
-        console.error('[Login] FAIL: sessionId가 응답에 없음');
         setError('서버에서 세션ID를 받지 못했습니다');
         return;
       }
 
-      // sessionId 저장
+      // sessionId 저장 / Store sessionId
       localStorage.setItem('sessionId', response.sessionId);
-      console.log('[Login] sessionId 저장 완료:', response.sessionId.substring(0, 30) + '...');
 
-      // 저장 확인
-      const saved = localStorage.getItem('sessionId');
-      console.log('[Login] localStorage 확인:', saved ? saved.substring(0, 30) + '...' : 'EMPTY');
-
-      // role에 따라 리디렉트
+      // role에 따라 리디렉트 / Redirect based on role
       const userRole = response.user?.role;
-      console.log('[Login] user role:', userRole);
-
       if (userRole === 5) {
-        console.log('[Login] ADMIN 감지 → /admin 이동');
         router.push('/admin');
+      } else if (userRole === 4) {
+        router.push('/company/dashboard');
+      } else if (userRole === 3) {
+        router.push('/worker/dashboard');
       } else {
-        console.log('[Login] 일반 사용자 → / 이동');
         router.push('/');
       }
-    } catch (err: any) {
-      console.error('[Login] ERROR:', err);
-      const message = err.message || t('loginFail');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('loginFail');
       setError(message);
       toast.error(message);
     } finally {

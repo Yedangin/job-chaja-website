@@ -16,6 +16,17 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const backendUrl = process.env.BACKEND_URL || "http://localhost:8000";
     return [
+      // diagnosis API는 /api 접두사 유지 (백엔드 @Controller('api/diagnosis'))
+      // Diagnosis API keeps /api prefix (backend controller at /api/diagnosis)
+      {
+        source: "/api/diagnosis/:path*",
+        destination: `${backendUrl}/api/diagnosis/:path*`,
+      },
+      {
+        source: "/api/diagnosis",
+        destination: `${backendUrl}/api/diagnosis`,
+      },
+      // 기타 API는 /api 제거 후 전달 / Other APIs strip /api prefix
       {
         source: "/api/:path*",
         destination: `${backendUrl}/:path*`,
