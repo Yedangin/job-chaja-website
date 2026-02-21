@@ -30,6 +30,9 @@ export default function Header() {
     setOpenDropdown(openDropdown === name ? null : name);
   };
 
+  // 드롭다운 링크 클릭 시 닫기 / Close dropdown on link click
+  const closeDropdown = () => setOpenDropdown(null);
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center">
@@ -40,32 +43,102 @@ export default function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center ml-8 gap-1 text-sm">
+            {/* 비자진단 / Visa Diagnosis */}
             <Link href="/diagnosis" className="px-3 py-2 text-blue-600 hover:text-blue-700 font-semibold transition">
               비자진단
             </Link>
-            <Link href="/alba" className="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium transition">
-              알바채용관
-            </Link>
-            <Link href="/fulltime" className="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium transition">
-              정규채용관
-            </Link>
 
-            {/* 공고등록 드롭다운 / Job Posting dropdown */}
+            {/* 구직자(개인) 드롭다운 / Worker dropdown */}
             <div className="relative">
               <button
-                onClick={() => toggleDropdown('posting')}
+                onClick={() => toggleDropdown('worker')}
                 className="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1"
               >
-                공고등록
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === 'posting' ? 'rotate-180' : ''}`} />
+                구직자
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === 'worker' ? 'rotate-180' : ''}`} />
               </button>
-              {openDropdown === 'posting' && (
+              {openDropdown === 'worker' && (
                 <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border py-1 z-50">
-                  <Link href="/company/alba/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={() => setOpenDropdown(null)}>
+                  <Link href="/worker/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    대시보드
+                  </Link>
+                  <Link href="/worker/jobs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    채용공고
+                  </Link>
+                  <Link href="/worker/alba" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    알바공고
+                  </Link>
+                  <Link href="/worker/resume" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    이력서
+                  </Link>
+                  <Link href="/worker/visa" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    비자관리
+                  </Link>
+                  <Link href="/worker/visa-verification" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    비자인증
+                  </Link>
+                  <Link href="/worker/notifications" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    알림
+                  </Link>
+                  <Link href="/worker/mypage" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    마이페이지
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* 기업 드롭다운 / Company dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => toggleDropdown('company')}
+                className="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1"
+              >
+                기업
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === 'company' ? 'rotate-180' : ''}`} />
+              </button>
+              {openDropdown === 'company' && (
+                <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border py-1 z-50 max-h-[70vh] overflow-y-auto">
+                  <Link href="/company/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    대시보드
+                  </Link>
+                  <Link href="/company/alba" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    알바채용관
+                  </Link>
+                  <Link href="/company/alba/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
                     알바 공고등록
                   </Link>
-                  <Link href="/company/fulltime/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={() => setOpenDropdown(null)}>
+                  <Link href="/company/fulltime/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
                     정규직 공고등록
+                  </Link>
+                  <Link href="/company/jobs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    공고관리
+                  </Link>
+                  <Link href="/company/applicants" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    지원자관리
+                  </Link>
+                  <Link href="/company/talents" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    인재탐색
+                  </Link>
+                  <Link href="/company/interviews" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    면접관리
+                  </Link>
+                  <Link href="/company/visa-status" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    비자현황
+                  </Link>
+                  <Link href="/company/visa-guide" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    비자가이드
+                  </Link>
+                  <Link href="/company/verification" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    기업인증
+                  </Link>
+                  <Link href="/company/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    기업프로필
+                  </Link>
+                  <Link href="/company/notifications" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    알림
+                  </Link>
+                  <Link href="/company/mypage" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                    마이페이지
                   </Link>
                 </div>
               )}
@@ -81,15 +154,28 @@ export default function Header() {
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === 'designs' ? 'rotate-180' : ''}`} />
               </button>
               {openDropdown === 'designs' && (
-                <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border py-1 z-50">
-                  <p className="px-4 py-1.5 text-xs text-gray-400 font-semibold uppercase">알바채용관</p>
+                <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border py-1 z-50 max-h-[70vh] overflow-y-auto">
+                  <p className="px-4 py-1.5 text-xs text-gray-400 font-semibold uppercase">기업 대시보드</p>
+                  <div className="flex gap-1 px-4 py-1.5">
+                    {['e'].map((v) => (
+                      <Link
+                        key={v}
+                        href={`/company/dashboard/variants/${v}`}
+                        className="px-2 py-1 text-xs bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100 font-medium"
+                        onClick={closeDropdown}
+                      >
+                        {v.toUpperCase()}
+                      </Link>
+                    ))}
+                  </div>
+                  <p className="px-4 py-1.5 text-xs text-gray-400 font-semibold uppercase mt-1">알바채용관</p>
                   <div className="flex gap-1 px-4 py-1.5">
                     {['a', 'b', 'c', 'd', 'e'].map((v) => (
                       <Link
                         key={v}
                         href={`/company/alba/variants/${v}`}
                         className="px-2 py-1 text-xs bg-blue-50 text-blue-600 rounded hover:bg-blue-100 font-medium"
-                        onClick={() => setOpenDropdown(null)}
+                        onClick={closeDropdown}
                       >
                         {v.toUpperCase()}
                       </Link>
@@ -102,7 +188,7 @@ export default function Header() {
                         key={v}
                         href={`/company/alba/create/variants/${v}`}
                         className="px-2 py-1 text-xs bg-green-50 text-green-600 rounded hover:bg-green-100 font-medium"
-                        onClick={() => setOpenDropdown(null)}
+                        onClick={closeDropdown}
                       >
                         {v.toUpperCase()}
                       </Link>
@@ -115,20 +201,20 @@ export default function Header() {
                         key={v}
                         href={`/worker/alba/variants/${v}`}
                         className="px-2 py-1 text-xs bg-purple-50 text-purple-600 rounded hover:bg-purple-100 font-medium"
-                        onClick={() => setOpenDropdown(null)}
+                        onClick={closeDropdown}
                       >
                         {v.toUpperCase()}
                       </Link>
                     ))}
                   </div>
                   <hr className="my-1" />
-                  <Link href="/job-cards/designs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={() => setOpenDropdown(null)}>
+                  <Link href="/job-cards/designs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
                     채용카드 디자인 시안
                   </Link>
-                  <Link href="/job-cards/designs-gemini" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={() => setOpenDropdown(null)}>
+                  <Link href="/job-cards/designs-gemini" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
                     채용카드 Gemini 시안
                   </Link>
-                  <Link href="/diagnosis/designs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={() => setOpenDropdown(null)}>
+                  <Link href="/diagnosis/designs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
                     비자진단 디자인 시안
                   </Link>
                   <hr className="my-1" />
@@ -139,7 +225,7 @@ export default function Header() {
                         key={v}
                         href={`/worker/wizard/variants/${v}`}
                         className="px-2 py-1 text-xs bg-orange-50 text-orange-600 rounded hover:bg-orange-100 font-medium"
-                        onClick={() => setOpenDropdown(null)}
+                        onClick={closeDropdown}
                       >
                         {v.toUpperCase()}
                       </Link>
@@ -149,8 +235,9 @@ export default function Header() {
               )}
             </div>
 
-            <Link href="/recruit-info" className="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium transition">
-              채용정보
+            {/* 관리자 / Admin */}
+            <Link href="/admin" className="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium transition">
+              관리자
             </Link>
           </nav>
         </div>
