@@ -19,7 +19,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <header className="sticky top-0 z-50 bg-gray-900 text-white border-b border-gray-700">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between">
           {/* 좌측: 로고 / Left: Logo */}
-          <Link href="/admin" className="flex items-center gap-2 text-sm font-bold hover:opacity-80 transition">
+          <Link href="/" className="flex items-center gap-2 text-sm font-bold hover:opacity-80 transition">
             <Shield className="w-4 h-4 text-yellow-400" />
             <span>JobChaja Admin</span>
           </Link>

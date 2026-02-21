@@ -54,7 +54,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center">
           {/* 좌측: 로고 + 메뉴 / Left: Logo + Menu */}
           <div className="flex items-center">
-            <Link href="/worker/dashboard" className="text-lg font-bold text-gray-900 hover:opacity-80 transition">
+            <Link href="/" className="text-lg font-bold text-gray-900 hover:opacity-80 transition">
               JobChaja
             </Link>
 
