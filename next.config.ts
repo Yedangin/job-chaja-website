@@ -26,6 +26,16 @@ const nextConfig: NextConfig = {
         source: "/api/diagnosis",
         destination: `${backendUrl}/api/diagnosis`,
       },
+      // alba API는 /api 접두사 유지 (백엔드 @Controller('api/alba'))
+      // Alba API keeps /api prefix (backend controller at /api/alba)
+      {
+        source: "/api/alba/:path*",
+        destination: `${backendUrl}/api/alba/:path*`,
+      },
+      {
+        source: "/api/alba",
+        destination: `${backendUrl}/api/alba`,
+      },
       // 기타 API는 /api 제거 후 전달 / Other APIs strip /api prefix
       {
         source: "/api/:path*",

@@ -88,12 +88,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ? localStorage.getItem('sessionId')
         : null;
 
+      console.log('[AuthContext] refreshAuth - sessionId:', sessionId ? 'EXISTS' : 'NULL');
+
       if (!sessionId) {
+        console.log('[AuthContext] No sessionId, setting user to null');
         setUser(null);
         setIsLoading(false);
         return;
       }
 
+      console.log('[AuthContext] Fetching /api/auth/profile...');
       const res = await fetch('/api/auth/profile', {
         credentials: 'include',
         headers: {
@@ -102,7 +106,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
+      console.log('[AuthContext] Response status:', res.status);
+
       if (!res.ok) {
+        console.log('[AuthContext] Profile fetch failed, removing sessionId');
         localStorage.removeItem('sessionId');
         setUser(null);
         setIsLoading(false);

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobChaJa 정규채용관 - 지원 가능한 공고 목록</title>
+    <!-- English: Including Tailwind CSS from CDN -->
+    <!-- 한글: Tailwind CSS CDN 포함 -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    
+    <!-- English: Including Pretendard font -->
+    <!-- 한글: Pretendard 폰트 포함 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+
+    <style>
+        /* English: Custom styles for the page */
+        /* 한글: 페이지를 위한 커스텀 스타일 */
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+
+        /* English: Custom colors configuration for TailwindCSS */
+        /* 한글: TailwindCSS를 위한 커스텀 색상 설정 */
+        /* This is a conceptual comment as we can't configure the CDN directly. We'll use the hex values in classes. */
+        /* 실제 CDN에서는 직접 설정할 수 없으므로, 클래스에 hex 값을 직접 사용합니다. */
+        .bg-track-immediate { background-color: #22c55e; }
+        .text-track-immediate { color: #22c55e; }
+        .border-track-immediate { border-color: #22c55e; }
+
+        .bg-track-sponsor { background-color: #3b82f6; }
+        .text-track-sponsor { color: #3b82f6; }
+        .border-track-sponsor { border-color: #3b82f6; }
+
+        .bg-track-conversion { background-color: #eab308; }
+        .text-track-conversion { color: #eab308; }
+        .border-track-conversion { border-color: #eab308; }
+
+        .bg-track-job_change { background-color: #f97316; }
+        .text-track-job_change { color: #f97316; }
+        .border-track-job_change { border-color: #f97316; }
+
+        .text-status-unavailable { color: #ef4444; } /* red-500 */
+        .text-status-conditional { color: #f59e0b; } /* amber-500 */
+
+        /* English: Tooltip styles */
+        /* 한글: 툴팁 스타일 */
+        .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .has-tooltip:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* English: Styles for 'Available Only' toggle switch */
+        /* 한글: '지원 가능만 보기' 토글 스위치 스타일 */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #22c55e;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #22c55e;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div id="app" class="container mx-auto p-4 md:p-6 lg:p-8">
+
+        <!-- English: Header section with user profile -->
+        <!-- 한글: 사용자 프로필을 포함한 헤더 섹션 -->
+        <header class="mb-8 p-6 bg-white rounded-xl shadow-sm border border-gray-200">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">정규채용관 공고 목록</h1>
+            <p class="text-gray-600 mb-4">나의 조건에 맞는 최고의 일자리를 찾아보세요.</p>
+            <div class="p-4 bg-slate-100 rounded-lg flex flex-wrap items-center gap-x-4 gap-y-2">
+                <span class="font-bold text-lg text-blue-700">Nguyen Van A</span>
+                <span class="w-px h-5 bg-gray-300 hidden md:block"></span>
+                <span><strong class="font-medium">비자:</strong> D-10 구직비자</span>
+                <span class="w-px h-5 bg-gray-300 hidden md:block"></span>
+                <span><strong class="font-medium">학력:</strong> 석사(컴퓨터공학)</span>
+                <span class="w-px h-5 bg-gray-300 hidden md:block"></span>
+                <span><strong class="font-medium">경력:</strong> 2년</span>
+            </div>
+        </header>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+
+            <!-- English: Filters section -->
+            <!-- 한글: 필터 섹션 -->
+            <aside id="filters" class="w-full lg:w-1/4 xl:w-1/5 space-y-6">
+                <div class="p-6 bg-white rounded-xl shadow-sm border border-gray-200">
+                    <h2 class="text-xl font-bold mb-6">필터</h2>
+
+                    <!-- Available Only Toggle -->
+                    <div class="flex items-center justify-between mb-6">
+                        <label for="available-only-toggle" class="font-bold text-lg text-green-600">🟢 지원 가능만 보기</label>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="available-only-toggle" id="available-only-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
+                            <label for="available-only-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    
+                    <!-- Track Filter -->
+                    <div>
+                        <h3 class="font-semibold mb-3">트랙별</h3>
+                        <div id="track-filter" class="space-y-2">
+                            <label class="flex items-center"><input type="radio" name="track" value="ALL" class="mr-2" checked> 전체</label>
+                            <label class="flex items-center"><input type="radio" name="track" value="IMMEDIATE" class="mr-2"> 🟢 즉시채용</label>
+                            <label class="flex items-center"><input type="radio" name="track" value="SPONSOR" class="mr-2"> 🔵 스폰서채용</label>
+                            <label class="flex items-center"><input type="radio" name="track" value="CONVERSION" class="mr-2"> 🟡 전환채용</label>
+                            <label class="flex items-center"><input type="radio" name="track" value="JOB_CHANGE" class="mr-2"> 🟠 이직채용</label>
+                        </div>
+                    </div>
+
+                    <!-- Other filters can be added here -->
+                    <!-- TODO: Add Salary, Education, Location, Experience filters -->
+                </div>
+            </aside>
+
+            <!-- English: Job listings section -->
+            <!-- 한글: 채용 공고 목록 섹션 -->
+            <main class="w-full lg:w-3/4 xl:w-4/5">
+                <div id="job-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <!-- Job cards will be injected here by JavaScript -->
+                </div>
+                <div id="empty-state" class="hidden text-center py-20">
+                    <p class="text-xl font-semibold text-gray-500">조건에 맞는 채용 공고가 없습니다.</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // English: Job data based on the requirements
+        // 한글: 요구사항에 기반한 채용 공고 데이터
+        const jobs = [
+            {
+                id: 1,
+                title: 'IT개발자',
+                company: '테크스타트업 주식회사',
+                salary: '5000만원',
+                education: '학사 이상',
+                experience: '신입~2년',
+                location: '서울 강남구',
+                tracks: [{ type: 'CONVERSION', text: '전환채용 가능 (D-10→E-7-1)' }],
+                deadline: 7,
+                status: 'available',
+                statusReason: 'D-10 비자에서 E-7-1 비자로 전환 가능한 요건을 충족합니다.',
+                tooltip: 'D-10 → 채용 → 근로계약 → E-7-1 신청'
+            },
+            {
+                id: 2,
+                title: 'AI연구원',
+                company: '글로벌AI연구소',
+                salary: '7000만원',
+                education: '석사 이상',
+                experience: '3년 이상',
+                location: '서울 서초구',
+                tracks: [
+                    { type: 'CONVERSION', text: '전환채용' },
+                    { type: 'SPONSOR', text: '스폰서채용' }
+                ],
+                deadline: 14,
+                status: 'conditional',
+                statusReason: '경력 부족: 현재 2년, 필요 3년',
+                tooltip: '3년 경력을 채우면 D-10 → E-7-1 전환 지원 가능'
+            },
+            {
+                id: 3,
+                title: '영어강사',
+                company: '국제어학원',
+                salary: '3200만원',
+                education: '학사 이상',
+                experience: '신입 가능',
+                location: '서울 종로구',
+                tracks: [],
+                deadline: 10,
+                status: 'unavailable',
+                statusReason: '모국어 불일치: 영어 원어민 국가 출신이어야 합니다.',
+                tooltip: 'E-2 비자는 영어권 국가 국적자에게만 발급됩니다.'
+            },
+            {
+                id: 4,
+                title: '생산관리',
+                company: '제조산업 주식회사',
+                salary: '4500만원',
+                education: '전문학사 이상',
+                experience: '5년 이상',
+                location: '경기 화성시',
+                tracks: [{ type: 'JOB_CHANGE', text: '이직채용 가능' }], // Assuming a track for example
+                deadline: 5,
+                status: 'conditional',
+                statusReason: '경력 부족: 현재 2년, 필요 5년',
+                tooltip: '경력 5년을 충족하면 지원할 수 있습니다.'
+            },
+            {
+                id: 5,
+                title: '해외영업',
+                company: '글로벌무역',
+                salary: '3500만원',
+                education: '학사 이상',
+                experience: '신입 가능',
+                location: '서울 금천구',
+                tracks: [{ type: 'CONVERSION', text: '전환채용 가능' }],
+                deadline: 12,
+                status: 'available',
+                statusReason: '비자, 학력, 경력 요건을 모두 만족합니다.',
+                tooltip: 'D-10 → 채용 → 근로계약 → E-7-1 신청'
+            },
+            {
+                id: 6,
+                title: '호텔프론트',
+                company: '서울그랜드호텔',
+                salary: '2400만원',
+                education: '고졸 이상',
+                experience: '신입 가능',
+                location: '서울 중구',
+                tracks: [],
+                deadline: 20,
+                status: 'unavailable',
+                statusReason: '연봉 미달: E-7-1 비자 필요 연봉(3000만원)보다 낮습니다.',
+                tooltip: 'E-7-1 비자 발급을 위해서는 연봉 3000만원 이상이 필요합니다.'
+            },
+        ];
+
+        const getTrackBadge = (track) => {
+            const trackClasses = {
+                IMMEDIATE: 'bg-track-immediate/10 text-track-immediate border-track-immediate',
+                SPONSOR: 'bg-track-sponsor/10 text-track-sponsor border-track-sponsor',
+                CONVERSION: 'bg-track-conversion/10 text-track-conversion border-track-conversion',
+                JOB_CHANGE: 'bg-track-job_change/10 text-track-job_change border-track-job_change',
+            };
+            const trackText = {
+                IMMEDIATE: '🟢 즉시',
+                SPONSOR: '🔵 스폰서',
+                CONVERSION: '🟡 전환',
+                JOB_CHANGE: '🟠 이직',
+            }
+            return `<span class="text-xs font-bold px-2 py-1 rounded-full border ${trackClasses[track.type]}">${trackText[track.type]}</span>`;
+        };
+
+        const getStatusIndicator = (job) => {
+            if (job.status === 'available') {
+                return `<p class="text-sm font-bold text-track-immediate">🟢 지원 가능</p>`;
+            }
+            if (job.status === 'conditional') {
+                return `<p class="text-sm font-bold text-status-conditional">⚠️ ${job.statusReason}</p>`;
+            }
+            return `<p class="text-sm font-bold text-status-unavailable">⛔ 지원 불가: ${job.statusReason}</p>`;
+        }
+        
+        const createJobCard = (job) => {
+            const isUnavailable = job.status === 'unavailable';
+            const cardClass = isUnavailable
+                ? 'bg-white rounded-xl shadow-sm border border-gray-200 p-6 opacity-60 grayscale transition-all duration-300'
+                : 'bg-white rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 border border-gray-200 p-6 transition-all duration-300 cursor-pointer has-tooltip';
+
+            const borderColor = {
+                available: 'border-green-400',
+                conditional: 'border-amber-400',
+                unavailable: 'border-gray-200'
+            }[job.status];
+
+            return `
+                <div class="${cardClass} flex flex-col justify-between border-t-4 ${borderColor}" data-job-id="${job.id}">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                             <h3 class="text-xl font-bold text-gray-900">${job.title}</h3>
+                             <div class="relative">
+                                <span class="text-sm font-medium text-gray-500">D-${job.deadline}</span>
+                                 <!-- Tooltip -->
+                                <div class="tooltip absolute z-10 w-64 p-3 -mt-24 -ml-56 text-sm text-white bg-gray-900 rounded-lg shadow-lg">
+                                    ${job.tooltip}
+                                </div>
+                             </div>
+                        </div>
+                        <p class="text-gray-600 mb-4">${job.company}</p>
+                        
+                        <div class="space-y-2 text-sm text-gray-700 mb-4">
+                            <p><strong class="font-medium w-12 inline-block">연봉</strong>: ${job.salary}</p>
+                            <p><strong class="font-medium w-12 inline-block">학력</strong>: ${job.education}</p>
+                            <p><strong class="font-medium w-12 inline-block">경력</strong>: ${job.experience}</p>
+                            <p><strong class="font-medium w-12 inline-block">위치</strong>: ${job.location}</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center gap-2 mb-4">
+                            ${job.tracks.map(getTrackBadge).join('')}
+                        </div>
+                        <div class="mt-auto pt-4 border-t border-gray-100">
+                           ${getStatusIndicator(job)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+        
+        const jobListContainer = document.getElementById('job-list');
+        const emptyState = document.getElementById('empty-state');
+        
+        const renderJobs = (filteredJobs) => {
+            jobListContainer.innerHTML = '';
+            if(filteredJobs.length === 0){
+                emptyState.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+                filteredJobs.forEach(job => {
+                    jobListContainer.innerHTML += createJobCard(job);
+                });
+            }
+        };
+
+        const applyFilters = () => {
+            const availableOnly = document.getElementById('available-only-toggle').checked;
+            const selectedTrack = document.querySelector('input[name="track"]:checked').value;
+
+            let filteredJobs = jobs;
+
+            if (availableOnly) {
+                // English: Filter to show only 'available' and 'conditional' jobs
+                // 한글: '지원 가능'과 '조건부' 공고만 보이도록 필터링
+                filteredJobs = filteredJobs.filter(job => job.status !== 'unavailable');
+            }
+
+            if (selectedTrack !== 'ALL') {
+                filteredJobs = filteredJobs.filter(job => 
+                    job.tracks.some(track => track.type === selectedTrack)
+                );
+            }
+            
+            renderJobs(filteredJobs);
+        };
+
+        // English: Add event listeners to all filter controls
+        // 한글: 모든 필터 컨트롤에 이벤트 리스너 추가
+        document.getElementById('available-only-toggle').addEventListener('change', applyFilters);
+        document.querySelectorAll('input[name="track"]').forEach(radio => {
+            radio.addEventListener('change', applyFilters);
+        });
+
+        // English: Initial render on page load
+        // 한글: 페이지 로드 시 초기 렌더링
+        applyFilters();
+    });
+    </script>
+
+</body>
+</html>

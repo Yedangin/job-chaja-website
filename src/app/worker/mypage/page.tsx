@@ -12,6 +12,7 @@ import {
   HelpCircle,
   LogOut,
   ChevronRight,
+  Edit,
 } from 'lucide-react';
 
 /**
@@ -25,6 +26,7 @@ export default function WorkerMyPage() {
     {
       title: '프로필 관리',
       items: [
+        { icon: Edit, label: '프로필 작성/수정', href: '/worker/wizard/variants/a', highlight: true },
         { icon: FileText, label: '이력서 관리', href: '/worker/resume' },
         { icon: Shield, label: '비자 인증', href: '/worker/visa-verification' },
       ],
@@ -72,11 +74,30 @@ export default function WorkerMyPage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition"
+                className={`flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 transition ${
+                  'highlight' in item && item.highlight
+                    ? 'bg-blue-50 hover:bg-blue-100'
+                    : ''
+                }`}
               >
-                <item.icon className="w-5 h-5 text-gray-400" />
-                <span className="flex-1 text-sm text-gray-700">{item.label}</span>
-                <ChevronRight className="w-4 h-4 text-gray-300" />
+                <item.icon className={`w-5 h-5 ${
+                  'highlight' in item && item.highlight ? 'text-blue-600' : 'text-gray-400'
+                }`} />
+                <span className={`flex-1 text-sm ${
+                  'highlight' in item && item.highlight
+                    ? 'text-blue-700 font-medium'
+                    : 'text-gray-700'
+                }`}>
+                  {item.label}
+                </span>
+                {('highlight' in item && item.highlight) && (
+                  <span className="text-xs px-2 py-0.5 bg-blue-600 text-white rounded-full">
+                    추천
+                  </span>
+                )}
+                <ChevronRight className={`w-4 h-4 ${
+                  'highlight' in item && item.highlight ? 'text-blue-400' : 'text-gray-300'
+                }`} />
               </Link>
             ))}
           </div>
