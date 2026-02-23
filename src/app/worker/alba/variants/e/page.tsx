@@ -6,7 +6,7 @@ import {
   MapPin, DollarSign, Clock, Sparkles, Filter, ShieldCheck, ShieldAlert,
   Search, ChevronDown, X, SlidersHorizontal, ArrowUpDown,
 } from 'lucide-react';
-import type { AlbaJobResponse, AlbaJobSearchItem } from '../../../company/alba/create/variants/a/types';
+import type { AlbaJobResponse, AlbaJobSearchItem } from '../../../../company/alba/create/variants/a/types';
 
 /** 비자 유형 옵션 / Visa type options */
 const VISA_OPTIONS = [

@@ -196,8 +196,8 @@ export default function FulltimeCreatePage() {
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">정규채용 공고가 등록되었습니다!</h2>
           <p className="text-sm text-gray-500 mb-8">
-            비자 매칭 결과: {matchResult?.summary.totalEligible ?? 0}개 가능,{' '}
-            {matchResult?.summary.totalConditional ?? 0}개 조건부
+            비자 매칭 결과: {matchResult?.overallSummary.totalEligible ?? 0}개 가능,{' '}
+            {matchResult?.overallSummary.totalConditional ?? 0}개 조건부
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link

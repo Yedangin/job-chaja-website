@@ -1,6 +1,6 @@
 'use client';
 
-import type { AlbaJobFormData, Benefit, ExperienceLevel, KoreanLevel } from '../../../a/types';
+import type { AlbaJobFormData, Benefit, ExperienceLevel, KoreanLevel } from '../../a/types';
 import {
   MapPin, FileText, Languages, Award, Gift, Check,
 } from 'lucide-react';

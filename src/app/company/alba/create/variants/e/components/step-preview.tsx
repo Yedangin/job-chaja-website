@@ -6,7 +6,7 @@ import type {
   AlbaVisaMatchingResponse,
   ApplicationMethod,
   VisaEvalResult,
-} from '../../../a/types';
+} from '../../a/types';
 import { VisaInsightChart } from './visa-insight-chart';
 import {
   Users, Clock, MapPin, DollarSign, Phone, Mail, User,

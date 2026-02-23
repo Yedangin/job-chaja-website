@@ -1,6 +1,6 @@
 'use client';
 
-import type { AlbaVisaMatchingResponse, VisaEvalResult, VisaMatchStatus } from '../../../a/types';
+import type { AlbaVisaMatchingResponse, VisaEvalResult, VisaMatchStatus } from '../../a/types';
 import { ShieldCheck, ShieldAlert, ShieldX, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 

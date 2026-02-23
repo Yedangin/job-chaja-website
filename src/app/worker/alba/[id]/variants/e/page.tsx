@@ -11,7 +11,7 @@ import {
 import type {
   AlbaJobResponse, AlbaVisaMatchingResponse, DayOfWeek,
   VisaEvalResult, VisaMatchStatus,
-} from '../../../../company/alba/create/variants/a/types';
+} from '../../../../../company/alba/create/variants/a/types';
 
 /** 요일 라벨 / Day labels */
 const DAY_LABELS: Record<DayOfWeek, string> = {

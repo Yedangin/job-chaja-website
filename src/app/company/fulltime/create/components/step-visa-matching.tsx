@@ -37,9 +37,11 @@ export default function StepVisaMatching({
   isMatchLoading,
   onRequestMatch,
 }: StepVisaMatchingProps) {
-  const [selectedTrack, setSelectedTrack] = useState<HiringTrack>('immediate');
+  const [selectedTrack, setSelectedTrack] = useState<HiringTrack>('IMMEDIATE');
 
-  const tracks: HiringTrack[] = ['immediate', 'sponsor', 'transition', 'transfer'];
+  // HiringTrack은 대문자, 응답 객체 키는 소문자 / HiringTrack is uppercase, response keys are lowercase
+  const tracks: HiringTrack[] = ['IMMEDIATE', 'SPONSOR', 'TRANSITION', 'TRANSFER'];
+  const trackKey = (t: HiringTrack) => t.toLowerCase() as 'immediate' | 'sponsor' | 'transition' | 'transfer';
 
   const trackInfo = TRACK_INFO;
 
@@ -78,19 +80,19 @@ export default function StepVisaMatching({
               <div className="bg-white rounded-lg p-4 text-center">
                 <p className="text-sm text-gray-600 mb-1">적합</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {matchResult.summary.totalEligible}
+                  {matchResult.overallSummary.totalEligible}
                 </p>
               </div>
               <div className="bg-white rounded-lg p-4 text-center">
                 <p className="text-sm text-gray-600 mb-1">조건부</p>
                 <p className="text-2xl font-bold text-yellow-600">
-                  {matchResult.summary.totalConditional}
+                  {matchResult.overallSummary.totalConditional}
                 </p>
               </div>
               <div className="bg-white rounded-lg p-4 text-center">
                 <p className="text-sm text-gray-600 mb-1">불가</p>
                 <p className="text-2xl font-bold text-gray-400">
-                  {matchResult.summary.totalBlocked}
+                  {matchResult.overallSummary.totalBlocked}
                 </p>
               </div>
             </div>
@@ -99,13 +101,13 @@ export default function StepVisaMatching({
             <div className="flex gap-2 mb-4 overflow-x-auto">
               {tracks.map((track) => {
                 const info = trackInfo[track];
-                const trackData = matchResult[track];
+                const trackData = matchResult[trackKey(track)];
                 return (
                   <button
                     key={track}
                     type="button"
                     onClick={() => setSelectedTrack(track)}
-                    className={`flex-shrink-0 px-4 py-3 rounded-lg font-semibold text-sm transition ${
+                    className={`shrink-0 px-4 py-3 rounded-lg font-semibold text-sm transition ${
                       selectedTrack === track
                         ? 'bg-white text-gray-900 shadow-md'
                         : 'bg-blue-100 text-gray-700 hover:bg-blue-200'
@@ -127,22 +129,22 @@ export default function StepVisaMatching({
 
             {/* 선택된 트랙 결과 / Selected track result */}
             <div className="bg-white rounded-lg p-6">
-              {matchResult[selectedTrack].eligible.length > 0 && (
+              {matchResult[trackKey(selectedTrack)].eligible.length > 0 && (
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
                     <CheckCircle className="w-5 h-5 text-green-600" />
                     <h4 className="font-bold text-gray-900">
-                      적합 ({matchResult[selectedTrack].eligible.length}개)
+                      적합 ({matchResult[trackKey(selectedTrack)].eligible.length}개)
                     </h4>
                   </div>
                   <div className="space-y-2">
-                    {matchResult[selectedTrack].eligible.map((visa) => (
+                    {matchResult[trackKey(selectedTrack)].eligible.map((visa) => (
                       <div
-                        key={visa.visaType}
+                        key={visa.visaCode}
                         className="p-3 bg-green-50 border border-green-200 rounded-lg"
                       >
                         <p className="font-semibold text-green-900">
-                          • {visa.visaType} ({visa.visaName})
+                          • {visa.visaCode} ({visa.visaName})
                         </p>
                       </div>
                     ))}
@@ -150,22 +152,22 @@ export default function StepVisaMatching({
                 </div>
               )}
 
-              {matchResult[selectedTrack].conditional.length > 0 && (
+              {matchResult[trackKey(selectedTrack)].conditional.length > 0 && (
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
                     <AlertTriangle className="w-5 h-5 text-yellow-600" />
                     <h4 className="font-bold text-gray-900">
-                      조건부 ({matchResult[selectedTrack].conditional.length}개)
+                      조건부 ({matchResult[trackKey(selectedTrack)].conditional.length}개)
                     </h4>
                   </div>
                   <div className="space-y-2">
-                    {matchResult[selectedTrack].conditional.map((visa) => (
+                    {matchResult[trackKey(selectedTrack)].conditional.map((visa) => (
                       <div
-                        key={visa.visaType}
+                        key={visa.visaCode}
                         className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg"
                       >
                         <p className="font-semibold text-yellow-900 mb-1">
-                          • {visa.visaType} ({visa.visaName})
+                          • {visa.visaCode} ({visa.visaName})
                         </p>
                         {visa.conditions && visa.conditions.length > 0 && (
                           <ul className="text-xs text-yellow-800 ml-4">
@@ -180,26 +182,26 @@ export default function StepVisaMatching({
                 </div>
               )}
 
-              {matchResult[selectedTrack].blocked.length > 0 && (
+              {matchResult[trackKey(selectedTrack)].blocked.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <XCircle className="w-5 h-5 text-gray-400" />
                     <h4 className="font-bold text-gray-900">
-                      불가 ({matchResult[selectedTrack].blocked.length}개)
+                      불가 ({matchResult[trackKey(selectedTrack)].blocked.length}개)
                     </h4>
                   </div>
                   <div className="space-y-2">
-                    {matchResult[selectedTrack].blocked.map((visa) => (
+                    {matchResult[trackKey(selectedTrack)].blocked.map((visa) => (
                       <div
-                        key={visa.visaType}
+                        key={visa.visaCode}
                         className="p-3 bg-gray-50 border border-gray-200 rounded-lg opacity-60"
                       >
                         <p className="font-semibold text-gray-700 mb-1">
-                          • {visa.visaType} ({visa.visaName})
+                          • {visa.visaCode} ({visa.visaName})
                         </p>
-                        {visa.reasons && visa.reasons.length > 0 && (
+                        {visa.blockReasons && visa.blockReasons.length > 0 && (
                           <ul className="text-xs text-gray-600 ml-4">
-                            {visa.reasons.map((reason, idx) => (
+                            {visa.blockReasons.map((reason, idx) => (
                               <li key={idx}>- {reason}</li>
                             ))}
                           </ul>

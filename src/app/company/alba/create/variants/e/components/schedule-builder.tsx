@@ -1,6 +1,6 @@
 'use client';
 
-import type { DayOfWeek, ScheduleItem } from '../../../a/types';
+import type { DayOfWeek, ScheduleItem } from '../../a/types';
 import { Check } from 'lucide-react';
 
 interface ScheduleBuilderProps {

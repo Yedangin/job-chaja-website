@@ -3,9 +3,20 @@
  * Fulltime job posting wizard type definitions
  */
 
-// Re-export E-7 job categories from shared data file
-export type { E7JobCategory as JobCategory } from './e7-categories-data';
-export { E7_JOB_CATEGORIES, getJobCategoriesByGroup } from './e7-categories-data';
+/**
+ * E-7 직종 항목 타입 (백엔드 API 응답과 동일)
+ * E-7 job category type (matches backend API response)
+ */
+export interface E7JobCategory {
+  code: string;
+  nameKo: string;
+  nameEn: string;
+  e7Type: 'E-7-1' | 'E-7-2' | 'E-7-3';
+  categoryGroup: string;
+}
+
+// 하위 호환성 alias / Backward compatibility alias
+export type JobCategory = E7JobCategory;
 
 // 위자드 단계 / Wizard steps
 export type WizardStep = 1 | 2 | 3 | 4 | 5;
@@ -110,37 +121,56 @@ export interface FulltimeJobFormData {
   isOpenEnded: boolean;                // 채용 시까지 여부
 }
 
-// 비자 평가 결과 / Visa evaluation result
+// 비자 평가 결과 (백엔드 VisaEvalResultDto와 동일)
+// Visa evaluation result (matches backend VisaEvalResultDto)
 export interface VisaEvalResult {
-  visaType: string;                    // 비자 유형 (예: E-7-1)
-  visaName: string;                    // 비자 이름
-  status: 'eligible' | 'conditional' | 'blocked'; // 상태
-  reasons?: string[];                  // 사유 (조건부/불가 시)
-  conditions?: string[];               // 충족 조건 (조건부 시)
+  visaCode: string;                    // 비자 코드 (예: E-7-1)
+  visaName: string;                    // 비자 이름 (한글)
+  visaNameEn: string;                  // 비자 이름 (영문)
+  hiringTrack: string;                 // 채용 트랙
+  status: 'eligible' | 'conditional' | 'blocked';
+  conditions: string[];
+  blockReasons: string[];
+  requiredPermit: string | null;
+  notes: string | null;
+  estimatedDays: number | null;
+  requiredDocuments: string[];
 }
 
 // 채용 트랙 / Hiring track
-export type HiringTrack = 'immediate' | 'sponsor' | 'transition' | 'transfer';
+export type HiringTrack = 'IMMEDIATE' | 'SPONSOR' | 'TRANSITION' | 'TRANSFER';
 
-// 트랙별 비자 매칭 결과 / Track-specific visa matching result
+// 트랙별 비자 매칭 결과 (백엔드 HiringTrackGroupDto와 동일)
+// Track-specific result (matches backend HiringTrackGroupDto)
 export interface TrackVisaMatchingResult {
-  track: HiringTrack;                  // 트랙
-  eligible: VisaEvalResult[];          // 적합 비자
-  conditional: VisaEvalResult[];       // 조건부 비자
-  blocked: VisaEvalResult[];           // 불가 비자
+  track: HiringTrack;
+  trackName: string;
+  trackNameEn: string;
+  eligible: VisaEvalResult[];
+  conditional: VisaEvalResult[];
+  blocked: VisaEvalResult[];
+  summary: {
+    totalEligible: number;
+    totalConditional: number;
+    totalBlocked: number;
+  };
 }
 
-// 정규채용 비자 매칭 응답 / Fulltime visa matching response
+// 정규채용 비자 매칭 응답 (백엔드 FulltimeVisaMatchingResponseDto와 동일)
+// Fulltime visa matching response (matches backend FulltimeVisaMatchingResponseDto)
 export interface FulltimeVisaMatchingResponse {
-  immediate: TrackVisaMatchingResult;  // 즉시 채용 (F비자)
-  sponsor: TrackVisaMatchingResult;    // 해외 스폰서 (E비자)
-  transition: TrackVisaMatchingResult; // 전환 채용 (D→E)
-  transfer: TrackVisaMatchingResult;   // 이직 채용 (E→E)
-  summary: {
-    totalEligible: number;             // 전체 적합 비자 수
-    totalConditional: number;          // 전체 조건부 비자 수
-    totalBlocked: number;              // 전체 불가 비자 수
+  immediate: TrackVisaMatchingResult;
+  sponsor: TrackVisaMatchingResult;
+  transition: TrackVisaMatchingResult;
+  transfer: TrackVisaMatchingResult;
+  overallSummary: {
+    totalEligible: number;
+    totalConditional: number;
+    totalBlocked: number;
+    totalVisasEvaluated: number;
   };
+  matchedAt: string;
+  inputSummary: Record<string, unknown>;
 }
 
 // 트랙 메타데이터 / Track metadata
@@ -154,29 +184,29 @@ export interface TrackMetadata {
 
 // 트랙 정보 상수 / Track info constants
 export const TRACK_INFO: Record<HiringTrack, TrackMetadata> = {
-  immediate: {
-    key: 'immediate',
+  IMMEDIATE: {
+    key: 'IMMEDIATE',
     label: '즉시 채용',
     description: 'F비자 보유자',
     color: '#22c55e',
     emoji: '🟢',
   },
-  sponsor: {
-    key: 'sponsor',
+  SPONSOR: {
+    key: 'SPONSOR',
     label: '해외 스폰서',
     description: 'E비자 발급 지원',
     color: '#3b82f6',
     emoji: '🔵',
   },
-  transition: {
-    key: 'transition',
+  TRANSITION: {
+    key: 'TRANSITION',
     label: '전환 채용',
     description: 'D-2/D-10 → E-7',
     color: '#eab308',
     emoji: '🟡',
   },
-  transfer: {
-    key: 'transfer',
+  TRANSFER: {
+    key: 'TRANSFER',
     label: '이직 채용',
     description: 'E비자 직장 변경',
     color: '#f97316',

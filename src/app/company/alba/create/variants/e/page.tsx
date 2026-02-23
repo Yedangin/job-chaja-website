@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Save } from 'lucide-react';
 
-import type { AlbaJobFormData } from '../../a/types';
+import type { AlbaJobFormData } from '../a/types';
 import { WizardProgress } from './components/wizard-progress';
 import { StepJobInfo } from './components/step-job-info';
 import { StepDetails } from './components/step-details';

@@ -7,7 +7,8 @@
 
 'use client';
 
-import { Briefcase, DollarSign, GraduationCap, Globe, AlertCircle } from 'lucide-react';
+import { Briefcase, DollarSign, GraduationCap, Globe, AlertCircle, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import type {
   FulltimeJobFormData,
   ExperienceLevel,
@@ -15,15 +16,16 @@ import type {
   EmploymentType,
   ContractPeriod,
   SalaryInputType,
+  E7JobCategory,
 } from './fulltime-types';
 import {
-  getJobCategoriesByGroup,
   CONTRACT_PERIOD_LABELS,
   SALARY_INPUT_TYPE_LABELS,
   convertHourlyToYearly,
   convertMonthlyToYearly,
   convertYearlyToHourly,
 } from './fulltime-types';
+import { fetchE7Categories } from '../api';
 
 interface StepBasicInfoProps {
   form: FulltimeJobFormData;
@@ -39,7 +41,25 @@ export default function StepBasicInfo({
   errors,
   updateForm,
 }: StepBasicInfoProps) {
-  const categoryGroups = getJobCategoriesByGroup();
+  const [categoryGroups, setCategoryGroups] = useState<Record<string, E7JobCategory[]>>({});
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
+  // 백엔드에서 E-7 직종 목록 로드 / Load E-7 categories from backend
+  useEffect(() => {
+    fetchE7Categories()
+      .then((res) => {
+        const groups: Record<string, E7JobCategory[]> = {};
+        res.categories.forEach((cat) => {
+          if (!groups[cat.categoryGroup]) groups[cat.categoryGroup] = [];
+          groups[cat.categoryGroup].push(cat);
+        });
+        setCategoryGroups(groups);
+      })
+      .catch(() => {
+        // 로드 실패 시 빈 목록으로 처리 — 사용자에게 select에서 안내
+      })
+      .finally(() => setCategoriesLoading(false));
+  }, []);
 
   const educationLabels: Record<EducationLevel, string> = {
     HIGH_SCHOOL: '고등학교',
@@ -71,24 +91,31 @@ export default function StepBasicInfo({
           <h3 className="text-base font-semibold text-gray-900">직종 선택</h3>
           <span className="text-xs text-gray-400">Job Category</span>
         </div>
-        <select
-          value={form.jobCategoryCode}
-          onChange={(e) => updateForm('jobCategoryCode', e.target.value)}
-          className={`w-full h-11 px-3 rounded-lg border text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition ${
-            errors.jobCategoryCode ? 'border-red-400' : 'border-gray-300'
-          }`}
-        >
-          <option value="">-- 직종을 선택하세요 --</option>
-          {Object.entries(categoryGroups).map(([group, cats]) => (
-            <optgroup key={group} label={group}>
-              {cats.map((cat) => (
-                <option key={cat.code} value={cat.code}>
-                  {cat.nameKo} ({cat.nameEn})
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
+        {categoriesLoading ? (
+          <div className="flex items-center gap-2 h-11 px-3 rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-400">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>직종 목록 로드 중...</span>
+          </div>
+        ) : (
+          <select
+            value={form.jobCategoryCode}
+            onChange={(e) => updateForm('jobCategoryCode', e.target.value)}
+            className={`w-full h-11 px-3 rounded-lg border text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition ${
+              errors.jobCategoryCode ? 'border-red-400' : 'border-gray-300'
+            }`}
+          >
+            <option value="">-- 직종을 선택하세요 --</option>
+            {Object.entries(categoryGroups).map(([group, cats]) => (
+              <optgroup key={group} label={group}>
+                {cats.map((cat) => (
+                  <option key={cat.code} value={cat.code}>
+                    {cat.nameKo} ({cat.nameEn})
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        )}
         {errors.jobCategoryCode && (
           <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
             <AlertCircle className="w-3 h-3" />

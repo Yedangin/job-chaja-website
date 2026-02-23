@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { AlbaJobFormData } from '../../../a/types';
+import type { AlbaJobFormData } from '../../a/types';
 import { ScheduleBuilder } from './schedule-builder';
 import {
   Briefcase, DollarSign, Users, Clock, Calendar,
