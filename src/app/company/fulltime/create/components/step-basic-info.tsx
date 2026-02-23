@@ -80,58 +80,19 @@ export default function StepBasicInfo({
     REGULAR: '정규직',
     CONTRACT: '계약직',
     INTERN: '인턴',
+    ALBA: '알바',
   };
 
   return (
     <div className="space-y-8">
-      {/* 직종 선택 / Job category */}
-      <section className="bg-white rounded-xl border border-gray-200 p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Briefcase className="w-5 h-5 text-blue-600" />
-          <h3 className="text-base font-semibold text-gray-900">직종 선택</h3>
-          <span className="text-xs text-gray-400">Job Category</span>
-        </div>
-        {categoriesLoading ? (
-          <div className="flex items-center gap-2 h-11 px-3 rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-400">
-            <Loader2 className="w-4 h-4 animate-spin" />
-            <span>직종 목록 로드 중...</span>
-          </div>
-        ) : (
-          <select
-            value={form.jobCategoryCode}
-            onChange={(e) => updateForm('jobCategoryCode', e.target.value)}
-            className={`w-full h-11 px-3 rounded-lg border text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition ${
-              errors.jobCategoryCode ? 'border-red-400' : 'border-gray-300'
-            }`}
-          >
-            <option value="">-- 직종을 선택하세요 --</option>
-            {Object.entries(categoryGroups).map(([group, cats]) => (
-              <optgroup key={group} label={group}>
-                {cats.map((cat) => (
-                  <option key={cat.code} value={cat.code}>
-                    {cat.nameKo} ({cat.nameEn})
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        )}
-        {errors.jobCategoryCode && (
-          <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
-            <AlertCircle className="w-3 h-3" />
-            {errors.jobCategoryCode}
-          </p>
-        )}
-      </section>
-
-      {/* 고용 형태 / Employment type */}
+      {/* 고용 형태 / Employment type — 직종 선택 전에 먼저 선택 */}
       <section className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex items-center gap-2 mb-4">
           <Briefcase className="w-5 h-5 text-blue-600" />
           <h3 className="text-base font-semibold text-gray-900">고용 형태</h3>
           <span className="text-xs text-gray-400">Employment Type</span>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           {(Object.keys(employmentLabels) as EmploymentType[]).map((type) => (
             <button
               key={type}
@@ -147,6 +108,25 @@ export default function StepBasicInfo({
             </button>
           ))}
         </div>
+
+        {/* 알바 선택 시 안내 메시지 / Alba notice */}
+        {form.employmentType === 'ALBA' && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-semibold text-green-900 mb-1">
+                  알바 채용 — 단시간 근로
+                </p>
+                <p className="text-green-800">
+                  알바는 <strong>D-2(유학), D-4, F비자, H비자</strong> 소지자가 지원 가능합니다.
+                  <br />
+                  현재 비자 기준으로 근무 가능 여부를 자동 판별합니다.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 인턴 선택 시 안내 메시지 */}
         {form.employmentType === 'INTERN' && (
@@ -204,6 +184,48 @@ export default function StepBasicInfo({
           </div>
         )}
       </section>
+
+      {/* 직종 선택 / Job category — 알바 선택 시 숨김 (E-7 직종 불필요) */}
+      {form.employmentType !== 'ALBA' && (
+        <section className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Briefcase className="w-5 h-5 text-blue-600" />
+            <h3 className="text-base font-semibold text-gray-900">직종 선택</h3>
+            <span className="text-xs text-gray-400">Job Category</span>
+          </div>
+          {categoriesLoading ? (
+            <div className="flex items-center gap-2 h-11 px-3 rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-400">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>직종 목록 로드 중...</span>
+            </div>
+          ) : (
+            <select
+              value={form.jobCategoryCode}
+              onChange={(e) => updateForm('jobCategoryCode', e.target.value)}
+              className={`w-full h-11 px-3 rounded-lg border text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition ${
+                errors.jobCategoryCode ? 'border-red-400' : 'border-gray-300'
+              }`}
+            >
+              <option value="">-- 직종을 선택하세요 --</option>
+              {Object.entries(categoryGroups).map(([group, cats]) => (
+                <optgroup key={group} label={group}>
+                  {cats.map((cat) => (
+                    <option key={cat.code} value={cat.code}>
+                      {cat.nameKo} ({cat.nameEn})
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          )}
+          {errors.jobCategoryCode && (
+            <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              {errors.jobCategoryCode}
+            </p>
+          )}
+        </section>
+      )}
 
       {/* 급여 정보 / Salary information */}
       <section className="bg-white rounded-xl border border-gray-200 p-5">

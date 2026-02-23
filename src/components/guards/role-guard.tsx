@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth, getRoleHomePath, type UserRole } from '@/contexts/auth-context';
 
 interface RoleGuardProps {
@@ -18,13 +18,15 @@ interface RoleGuardProps {
 export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
   const { user, isLoading, isLoggedIn, role } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (isLoading) return;
 
-    // 미로그인 → 로그인 페이지 / Not logged in → login page
+    // 미로그인 → 현재 경로를 redirect 파라미터로 전달해 로그인 페이지로 이동
+    // Not logged in → go to login with current path as redirect param
     if (!isLoggedIn) {
-      router.replace('/login');
+      router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
 

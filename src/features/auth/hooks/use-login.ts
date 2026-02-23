@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLanguage } from '@/i18n/LanguageProvider';
@@ -13,6 +13,7 @@ import type { MemberType } from '../types/auth.types';
  */
 export function useLogin() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLanguage();
   const [memberType, setMemberType] = useState<MemberType>('seeker');
   const [isLoading, setIsLoading] = useState(false);
@@ -45,16 +46,23 @@ export function useLogin() {
       // sessionId 저장 / Store sessionId
       localStorage.setItem('sessionId', response.sessionId);
 
-      // role에 따라 리디렉트 / Redirect based on role
-      const userRole = response.user?.role;
-      if (userRole === 5) {
-        router.push('/admin');
-      } else if (userRole === 4) {
-        router.push('/company/dashboard');
-      } else if (userRole === 3) {
-        router.push('/worker/dashboard');
+      // redirect 파라미터가 있으면 해당 경로로, 없으면 role 기반 기본 경로로 이동
+      // If redirect param exists, use it; otherwise fall back to role-based default
+      const redirectTo = searchParams.get('redirect');
+      if (redirectTo) {
+        router.push(redirectTo);
       } else {
-        router.push('/');
+        // role에 따라 리디렉트 / Redirect based on role
+        const userRole = response.user?.role;
+        if (userRole === 5) {
+          router.push('/admin');
+        } else if (userRole === 4) {
+          router.push('/company/dashboard');
+        } else if (userRole === 3) {
+          router.push('/worker/dashboard');
+        } else {
+          router.push('/');
+        }
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t('loginFail');
@@ -72,5 +80,6 @@ export function useLogin() {
     onSubmit: form.handleSubmit(onSubmit),
     memberType,
     setMemberType,
+    redirectTo: searchParams.get('redirect') ?? undefined,
   };
 }

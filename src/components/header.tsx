@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { User, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useAuth, getRoleHomePath } from '@/contexts/auth-context';
 import LanguageSwitcher from '@/components/language-switcher';
 
@@ -12,6 +13,7 @@ import LanguageSwitcher from '@/components/language-switcher';
  */
 export default function Header() {
   const { user, isLoggedIn, isLoading, role, logout } = useAuth();
+  const pathname = usePathname();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -250,8 +252,8 @@ export default function Header() {
             <div className="w-20 h-8" />
           ) : !isLoggedIn ? (
             <>
-              <Link href="/login" className="px-3 py-1.5 text-gray-600 hover:text-gray-900 font-medium transition">로그인</Link>
-              <Link href="/login" className="px-3 py-1.5 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition">회원가입</Link>
+              <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="px-3 py-1.5 text-gray-600 hover:text-gray-900 font-medium transition">로그인</Link>
+              <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="px-3 py-1.5 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition">회원가입</Link>
             </>
           ) : role === 'INDIVIDUAL' ? (
             <>

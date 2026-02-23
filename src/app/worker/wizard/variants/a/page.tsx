@@ -1,11 +1,11 @@
 'use client';
 
 /**
- * 시커 위저드 메인 페이지 — 시안 A: "카드 스택"
- * Seeker Wizard Main Page — Variant A: "Card Stack"
+ * 프로필 등록 페이지 — 시안 A: "카드 스택"
+ * Profile Registration Page — Variant A: "Card Stack"
  *
- * 모바일 퍼스트 풀스크린 위저드. 한 화면에 하나의 Step만 표시.
- * Mobile-first fullscreen wizard. Shows one step at a time.
+ * 단계별 입력 위저드. 한 화면에 하나의 Step만 표시.
+ * Step-by-step input wizard. Shows one step at a time.
  *
  * 기능:
  * - Step 라우팅 + 슬라이드 트랜지션
@@ -413,7 +413,7 @@ export default function SeekerWizardVariantAPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col max-w-lg mx-auto relative">
+    <div className="min-h-screen bg-gray-50 flex flex-col max-w-3xl mx-auto relative">
       {/* 프로그레스 바 / Progress bar */}
       <WizardProgressBar
         currentStep={currentStep}
@@ -454,7 +454,7 @@ export default function SeekerWizardVariantAPage() {
 
       {/* 하단 고정 버튼바 / Fixed bottom button bar */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-sm border-t border-gray-100 shadow-lg">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
           {/* 이전 버튼 / Previous button */}
           <Button
             type="button"

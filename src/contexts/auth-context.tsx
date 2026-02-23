@@ -70,8 +70,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // URL에서 sessionId 추출하여 localStorage에 저장
-  // Extract sessionId from URL and store in localStorage
+  // URL에서 sessionId 추출하여 localStorage에 저장 (소셜 로그인 OAuth 콜백 처리)
+  // Extract sessionId from URL after OAuth callback and handle pending redirect
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
@@ -79,8 +79,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (urlSessionId) {
       localStorage.setItem('sessionId', urlSessionId);
       window.history.replaceState({}, '', window.location.pathname);
+
+      // 소셜 로그인 전에 저장한 pending_redirect 쿠키 확인 후 이동
+      // Check pending_redirect cookie set before social login OAuth flow
+      const pendingRedirectCookie = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('pending_redirect='));
+      if (pendingRedirectCookie) {
+        const pendingRedirect = decodeURIComponent(pendingRedirectCookie.split('=')[1]);
+        // 쿠키 즉시 삭제 / Clear cookie immediately
+        document.cookie = 'pending_redirect=; path=/; max-age=0';
+        router.push(pendingRedirect);
+      }
     }
-  }, []);
+  }, [router]);
 
   const refreshAuth = useCallback(async () => {
     try {

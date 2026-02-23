@@ -4,18 +4,25 @@ import { authApi } from '../api/auth.api';
 
 interface SocialLoginButtonsProps {
   memberType?: string;
+  /** 로그인 성공 후 돌아갈 경로 / Path to return to after login */
+  redirectTo?: string;
 }
 
 /**
  * 소셜 로그인 버튼 (카카오, 구글)
  */
-export function SocialLoginButtons({ memberType }: SocialLoginButtonsProps) {
+export function SocialLoginButtons({ memberType, redirectTo }: SocialLoginButtonsProps) {
   const { t } = useLanguage();
   const userType = memberType === 'company' ? 'CORPORATE' : 'INDIVIDUAL';
 
   const handleSocialLogin = (url: string) => {
     // OAuth 콜백(localhost:8000)에서 읽을 수 있도록 쿠키를 먼저 설정
+    // Set cookies before OAuth redirect so callback can read them
     document.cookie = `pending_user_type=${userType}; path=/; max-age=300; SameSite=Lax`;
+    // OAuth 완료 후 돌아갈 경로 저장 / Save return path for after OAuth completes
+    if (redirectTo) {
+      document.cookie = `pending_redirect=${encodeURIComponent(redirectTo)}; path=/; max-age=300; SameSite=Lax`;
+    }
     window.location.href = url;
   };
 

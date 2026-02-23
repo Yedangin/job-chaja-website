@@ -28,16 +28,17 @@ import type {
 } from './components/fulltime-types';
 
 const INITIAL_FORM: FulltimeJobFormData = {
-  // Step 1
+  // Step 1 — 선택 필드는 빈값으로 초기화 (사용자가 직접 선택)
+  // Selection fields initialized empty (user must explicitly choose)
   jobCategoryCode: '',
-  employmentType: 'REGULAR',
-  salaryInputType: 'YEARLY',
+  employmentType: '' as unknown as FulltimeJobFormData['employmentType'],
+  salaryInputType: '' as unknown as FulltimeJobFormData['salaryInputType'],
   salaryMin: 0,
   salaryMax: 0,
   weeklyWorkHours: 40,
-  experienceLevel: 'ENTRY',
-  educationLevel: 'BACHELOR',
-  overseasHireWilling: false,
+  experienceLevel: '' as unknown as FulltimeJobFormData['experienceLevel'],
+  educationLevel: '' as unknown as FulltimeJobFormData['educationLevel'],
+  overseasHireWilling: true,  // 해외 인재 채용 기본값 "예" / Default overseas hire = yes
   // Step 2
   address: { sido: '', sigungu: '', detail: '' },
   preferredMajors: [],

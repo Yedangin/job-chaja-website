@@ -33,7 +33,7 @@ export type EducationLevel =
   | 'DOCTORATE';
 
 // 고용 형태 / Employment type
-export type EmploymentType = 'REGULAR' | 'CONTRACT' | 'INTERN';
+export type EmploymentType = 'REGULAR' | 'CONTRACT' | 'INTERN' | 'ALBA';
 
 // 계약 기간 / Contract period (계약직 전용)
 export type ContractPeriod = '6' | '12' | '18' | '24' | 'NEGOTIABLE';
@@ -236,6 +236,7 @@ export const EMPLOYMENT_LABELS: Record<EmploymentType, string> = {
   REGULAR: '정규직',
   CONTRACT: '계약직',
   INTERN: '인턴',
+  ALBA: '알바',
 };
 
 // 계약 기간 레이블 / Contract period labels

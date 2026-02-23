@@ -16,7 +16,7 @@ interface LoginFormProps {
  */
 export function LoginForm({ onSwitchView, memberType, onMemberTypeChange }: LoginFormProps) {
   const { t } = useLanguage();
-  const { form, isLoading, error, onSubmit, setMemberType } = useLogin();
+  const { form, isLoading, error, onSubmit, setMemberType, redirectTo } = useLogin();
 
   const { register, formState: { errors } } = form;
 
@@ -100,7 +100,7 @@ export function LoginForm({ onSwitchView, memberType, onMemberTypeChange }: Logi
         </div>
       </div>
 
-      <SocialLoginButtons memberType={memberType} />
+      <SocialLoginButtons memberType={memberType} redirectTo={redirectTo} />
     </div>
   );
 }

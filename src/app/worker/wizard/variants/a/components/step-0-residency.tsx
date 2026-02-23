@@ -90,8 +90,8 @@ export default function Step0Residency({ data, onChange }: Step0ResidencyProps) 
         </p>
       </div>
 
-      {/* 선택 카드 목록 / Selection card list */}
-      <div className="space-y-3 px-1">
+      {/* 선택 카드 목록 — 3칸 가로 배치 / Selection cards — 3-column grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-1">
         {RESIDENCY_OPTIONS.map((option) => {
           const isSelected = data.residencyStatus === option.value;
           const Icon = option.icon;
@@ -102,8 +102,8 @@ export default function Step0Residency({ data, onChange }: Step0ResidencyProps) 
               type="button"
               onClick={() => handleSelect(option.value)}
               className={cn(
-                'w-full text-left rounded-2xl border-2 p-5 transition-all duration-200',
-                'min-h-[100px] flex items-start gap-4',
+                'text-left rounded-2xl border-2 p-5 transition-all duration-200',
+                'flex flex-col items-center text-center gap-3',
                 'focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2',
                 isSelected
                   ? `${option.selectedBg} ${option.borderColor} shadow-sm`
@@ -115,24 +115,24 @@ export default function Step0Residency({ data, onChange }: Step0ResidencyProps) 
               {/* 아이콘 / Icon */}
               <div
                 className={cn(
-                  'w-12 h-12 rounded-xl flex items-center justify-center shrink-0',
+                  'w-14 h-14 rounded-2xl flex items-center justify-center shrink-0',
                   isSelected ? option.bgColor : 'bg-gray-100',
                 )}
               >
                 <Icon
                   className={cn(
-                    'w-6 h-6',
+                    'w-7 h-7',
                     isSelected ? option.color : 'text-gray-400',
                   )}
                 />
               </div>
 
               {/* 텍스트 / Text */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
+              <div className="w-full">
+                <div className="flex items-center justify-center gap-1.5 mb-1">
                   <h4
                     className={cn(
-                      'text-base font-bold',
+                      'text-sm font-bold',
                       isSelected ? 'text-gray-900' : 'text-gray-700',
                     )}
                   >
@@ -140,7 +140,7 @@ export default function Step0Residency({ data, onChange }: Step0ResidencyProps) 
                   </h4>
                   {isSelected && (
                     <span className={cn(
-                      'inline-flex w-5 h-5 rounded-full items-center justify-center text-white text-xs',
+                      'inline-flex w-4 h-4 rounded-full items-center justify-center text-white text-[10px] shrink-0',
                       option.value === ResidencyStatus.LONG_TERM ? 'bg-blue-500' :
                       option.value === ResidencyStatus.SHORT_TERM ? 'bg-amber-500' :
                       'bg-green-500',
@@ -149,17 +149,14 @@ export default function Step0Residency({ data, onChange }: Step0ResidencyProps) 
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-400 mb-2">{option.titleEn}</p>
+                <p className="text-[11px] text-gray-400 mb-2">{option.titleEn}</p>
                 <p
                   className={cn(
-                    'text-sm leading-relaxed',
+                    'text-xs leading-relaxed',
                     isSelected ? 'text-gray-700' : 'text-gray-500',
                   )}
                 >
                   {option.description}
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {option.descriptionEn}
                 </p>
               </div>
             </button>
