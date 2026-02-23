@@ -14,8 +14,8 @@ import type {
   FulltimeVisaMatchingResponse,
   ApplicationMethod,
   HiringTrack,
-  TRACK_INFO,
 } from './fulltime-types';
+import { TRACK_INFO } from './fulltime-types';
 
 interface StepVisaMatchingProps {
   form: FulltimeJobFormData;

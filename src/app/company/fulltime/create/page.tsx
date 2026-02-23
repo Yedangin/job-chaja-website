@@ -31,8 +31,10 @@ const INITIAL_FORM: FulltimeJobFormData = {
   // Step 1
   jobCategoryCode: '',
   employmentType: 'REGULAR',
+  salaryInputType: 'YEARLY',
   salaryMin: 0,
   salaryMax: 0,
+  weeklyWorkHours: 40,
   experienceLevel: 'ENTRY',
   educationLevel: 'BACHELOR',
   overseasHireWilling: false,

@@ -22,7 +22,7 @@ import {
   SALARY_INPUT_TYPE_LABELS,
   convertHourlyToYearly,
   convertMonthlyToYearly,
-  checkSalaryRequirement,
+  convertYearlyToHourly,
 } from './fulltime-types';
 
 interface StepBasicInfoProps {
@@ -360,7 +360,7 @@ export default function StepBasicInfo({
                         updateForm('salaryMin', convertHourlyToYearly(hourly, form.weeklyWorkHours));
                       }
                     }}
-                    placeholder="10,030"
+                    placeholder="10,320"
                     className="w-full h-11 px-3 pr-16 rounded-lg border border-gray-300 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
@@ -396,35 +396,6 @@ export default function StepBasicInfo({
               💡 연봉 환산 (주 {form.weeklyWorkHours}시간): 최소 {form.salaryMin.toLocaleString()}원/년 ~ 최대 {form.salaryMax.toLocaleString()}원/년
             </p>
           </div>
-        )}
-
-        {/* 비자별 경고 메시지 / Visa-specific warnings */}
-        {form.salaryMin > 0 && (
-          <>
-            {(() => {
-              const e71Check = checkSalaryRequirement(form.salaryMin, 'E-7-1', false);
-              const e72Check = checkSalaryRequirement(form.salaryMin, 'E-7-2', false);
-
-              return (
-                <>
-                  {e71Check.message && (
-                    <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                      <p className="text-xs text-orange-800 whitespace-pre-line">
-                        {e71Check.message}
-                      </p>
-                    </div>
-                  )}
-                  {e72Check.message && !e71Check.message && (
-                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-xs text-yellow-800">
-                        {e72Check.message}
-                      </p>
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-          </>
         )}
 
         {errors.salaryMin && (

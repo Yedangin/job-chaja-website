@@ -224,24 +224,6 @@ export const SALARY_INPUT_TYPE_LABELS: Record<SalaryInputType, string> = {
   HOURLY: '시급',
 };
 
-// 비자별 최저임금 기준 (2025년 기준)
-export const VISA_SALARY_THRESHOLDS = {
-  'E-7-1': {
-    standard: 34400000,     // GNI 80% (일반)
-    reduced: 30100000,      // GNI 70% (중소·벤처기업)
-  },
-  'E-7-2': {
-    hourly: 10030,          // 2025년 최저시급
-    monthly: 2096270,       // 주 40시간 기준 월급
-    yearly: 25155240,       // 주 40시간 기준 연봉
-  },
-  'E-7-3': {
-    hourly: 10030,
-    monthly: 2096270,
-    yearly: 25155240,
-  },
-};
-
 // 복리후생 레이블 / Benefit labels
 export const BENEFIT_LABELS: Record<BenefitType, string> = {
   MEAL: '식대 지원',
@@ -261,10 +243,15 @@ export const BENEFIT_LABELS: Record<BenefitType, string> = {
  * Salary conversion helper functions
  */
 
-// 시급 → 연봉 환산 (주 근무시간 기준)
+// 시급 → 연봉 환산 (한국 근로기준법 기준, 유급주휴 포함)
+// Hourly → Yearly conversion (Korean Labor Standards Act, includes paid weekly rest)
+// 주 40시간 기준: (40 + 8) × 365/7/12 = 209시간/월 → 연봉 = 시급 × 209 × 12
 export function convertHourlyToYearly(hourlyWage: number, weeklyHours: number = 40): number {
-  const monthlyHours = (weeklyHours * 52) / 12; // 주간 평균 근무시간
-  return Math.round(hourlyWage * monthlyHours * 12);
+  // 월 소정근로시간 = (주 소정근로시간 + 유급주휴시간) × (365 / 7) / 12
+  // 유급주휴시간 = 주 15시간 이상 → 주근로시간 / 5
+  const paidWeeklyRestHours = weeklyHours >= 15 ? weeklyHours / 5 : 0;
+  const monthlyHours = Math.round((weeklyHours + paidWeeklyRestHours) * 365 / 7 / 12);
+  return monthlyHours * 12 * hourlyWage;
 }
 
 // 월급 → 연봉 환산
@@ -272,43 +259,10 @@ export function convertMonthlyToYearly(monthlySalary: number): number {
   return monthlySalary * 12;
 }
 
-// 연봉 → 시급 환산 (주 근무시간 기준)
+// 연봉 → 시급 환산 (한국 근로기준법 기준, 유급주휴 포함)
 export function convertYearlyToHourly(yearlySalary: number, weeklyHours: number = 40): number {
-  const monthlyHours = (weeklyHours * 52) / 12;
+  const paidWeeklyRestHours = weeklyHours >= 15 ? weeklyHours / 5 : 0;
+  const monthlyHours = Math.round((weeklyHours + paidWeeklyRestHours) * 365 / 7 / 12);
   return Math.round(yearlySalary / 12 / monthlyHours);
 }
 
-// 급여가 비자 최저 요건을 충족하는지 확인
-export function checkSalaryRequirement(
-  yearlySalary: number,
-  visaType: 'E-7-1' | 'E-7-2' | 'E-7-3',
-  isSmallBusiness: boolean = false
-): {
-  meets: boolean;
-  threshold: number;
-  message?: string;
-} {
-  if (visaType === 'E-7-1') {
-    const threshold = isSmallBusiness
-      ? VISA_SALARY_THRESHOLDS['E-7-1'].reduced
-      : VISA_SALARY_THRESHOLDS['E-7-1'].standard;
-
-    return {
-      meets: yearlySalary >= threshold,
-      threshold,
-      message: yearlySalary < threshold
-        ? `⚠️ E-7-1(전문인력) 최소 임금요건은 약 ${(threshold / 10000).toLocaleString()}만원입니다.\n중소·벤처기업은 약 ${(VISA_SALARY_THRESHOLDS['E-7-1'].reduced / 10000).toLocaleString()}만원까지 완화 가능합니다.`
-        : undefined,
-    };
-  } else {
-    const threshold = VISA_SALARY_THRESHOLDS[visaType].yearly;
-
-    return {
-      meets: yearlySalary >= threshold,
-      threshold,
-      message: yearlySalary < threshold
-        ? `⚠️ 연봉이 최저임금 미만일 수 있습니다.\n실제 판단은 근무시간과 시급 기준으로 이루어집니다.`
-        : undefined,
-    };
-  }
-}

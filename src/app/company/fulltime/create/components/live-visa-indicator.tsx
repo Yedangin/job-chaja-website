@@ -93,22 +93,11 @@ export default function LiveVisaIndicator({ form }: LiveVisaIndicatorProps) {
     // 4. 학력 조건 체크 / Check education requirement
     if (form.educationLevel) {
       const userEducationLevel = EDUCATION_ORDER[form.educationLevel] ?? 0;
-      console.log('[학력 필터링]', {
-        입력학력: form.educationLevel,
-        학력레벨: userEducationLevel,
-        필터링전비자수: visas.length,
-      });
-
       visas = visas.filter((v) => {
         if (v.minEducation === null) return true; // 제한 없음 / No limit
         const requiredLevel = EDUCATION_ORDER[v.minEducation] ?? 0;
-        const pass = userEducationLevel >= requiredLevel;
-
-        console.log(`  ${v.visaCode}: 요구학력=${v.minEducation}(${requiredLevel}), 통과=${pass}`);
-        return pass;
+        return userEducationLevel >= requiredLevel;
       });
-
-      console.log('[학력 필터링 완료]', { 필터링후비자수: visas.length });
     }
 
     // 5. 경력 조건 체크 (D-2 필터링) / Check experience level requirement (D-2 filtering)
@@ -137,15 +126,6 @@ export default function LiveVisaIndicator({ form }: LiveVisaIndicatorProps) {
     availableVisas.forEach((visa) => {
       grouped[visa.hiringTrack]?.push(visa);
     });
-
-    console.log('[트랙별 그룹화 결과]', {
-      IMMEDIATE: grouped.IMMEDIATE.length,
-      SPONSOR: grouped.SPONSOR.length,
-      TRANSITION: grouped.TRANSITION.length,
-      TRANSFER: grouped.TRANSFER.length,
-      전체: availableVisas.length,
-    });
-    console.log('[TRANSFER 트랙 비자]', grouped.TRANSFER.map(v => v.visaCode));
 
     return grouped;
   }, [availableVisas]);
