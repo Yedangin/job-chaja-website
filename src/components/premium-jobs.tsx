@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, MapPin, Building2, Clock, Crown } from 'lucide-react';
+import { ArrowRight, MapPin, Clock, Crown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -36,11 +36,11 @@ function formatSalary(job: JobPosting): string {
 function getDDayLabel(d: string | null): { label: string; cls: string } {
   if (!d) return { label: '', cls: '' };
   const diff = Math.ceil((new Date(d).getTime() - Date.now()) / 86400000);
-  if (diff < 0) return { label: '마감', cls: 'text-slate-400 line-through' };
-  if (diff === 0) return { label: 'D-Day', cls: 'text-red-600 font-bold' };
-  if (diff <= 3) return { label: `D-${diff}`, cls: 'text-red-600 font-semibold' };
-  if (diff <= 7) return { label: `D-${diff}`, cls: 'text-orange-500 font-medium' };
-  return { label: `D-${diff}`, cls: 'text-slate-500' };
+  if (diff < 0) return { label: '마감', cls: 'text-slate-300' };
+  if (diff === 0) return { label: 'D-Day', cls: 'text-red-300 font-bold' };
+  if (diff <= 3) return { label: `D-${diff}`, cls: 'text-red-300 font-semibold' };
+  if (diff <= 7) return { label: `D-${diff}`, cls: 'text-amber-200 font-medium' };
+  return { label: `D-${diff}`, cls: 'text-amber-100/70' };
 }
 
 const AVATAR_COLORS = ['bg-sky-500', 'bg-emerald-500', 'bg-violet-500', 'bg-amber-500', 'bg-rose-500', 'bg-indigo-500'];
@@ -57,50 +57,56 @@ function PremiumJobCard({ job, faded }: { job: JobPosting; faded: boolean }) {
 
   return (
     <div
-      className={`group relative flex items-center gap-4 px-5 py-4 cursor-pointer transition-all duration-150 hover:bg-amber-50/60 border-l-[3px] border-l-amber-400 ${faded ? 'opacity-40' : ''}`}
+      className={`group bg-white rounded-2xl border border-amber-100 shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col ${faded ? 'opacity-40' : ''}`}
     >
-      {/* Company logo / avatar */}
-      <div className="shrink-0">
-        {job.company?.logoImageUrl ? (
-          <div className="w-12 h-12 rounded-xl overflow-hidden border border-amber-100 shadow-sm">
-            <Image src={job.company.logoImageUrl} alt={companyName} width={48} height={48} className="object-cover" />
-          </div>
-        ) : (
-          <div className={`w-12 h-12 rounded-xl ${avatarColor(companyName)} flex items-center justify-center text-white font-bold text-lg shadow-sm ring-2 ring-amber-200/70`}>
-            {companyName.charAt(0)}
-          </div>
+      {/* Amber gradient header band */}
+      <div className="bg-linear-to-r from-amber-400 to-amber-300 px-4 py-2.5 flex items-center justify-between shrink-0">
+        <span className="text-[11px] font-bold text-amber-900 bg-white/40 px-2 py-0.5 rounded-md">
+          ★ PREMIUM
+        </span>
+        {ddayLabel && (
+          <span className={`text-[11px] font-semibold ${ddayCls}`}>{ddayLabel}</span>
         )}
       </div>
 
-      {/* Center: title + meta + badges */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded">
-            ★ PREMIUM
-          </span>
-          <h3 className={`text-[15px] font-semibold text-slate-900 truncate group-hover:text-amber-700 transition-colors ${isClosed ? 'line-through text-slate-400' : ''}`}>
-            {job.title}
-          </h3>
+      {/* Card body */}
+      <div className="p-4 flex flex-col flex-1">
+        {/* Company row */}
+        <div className="flex items-center gap-3 mb-3">
+          {job.company?.logoImageUrl ? (
+            <div className="w-11 h-11 rounded-xl overflow-hidden border border-amber-100 shadow-sm shrink-0">
+              <Image src={job.company.logoImageUrl} alt={companyName} width={44} height={44} className="object-cover" />
+            </div>
+          ) : (
+            <div className={`w-11 h-11 rounded-xl ${avatarColor(companyName)} flex items-center justify-center text-white font-bold text-lg shadow-sm ring-2 ring-amber-100 shrink-0`}>
+              {companyName.charAt(0)}
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-slate-800 truncate">{companyName}</p>
+            <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+              <MapPin size={10} className="shrink-0" />
+              <span className="truncate">{job.displayAddress}</span>
+              <span className="text-slate-300">·</span>
+              <Clock size={10} className="shrink-0" />
+              {job.boardType === 'FULL_TIME' ? '정규직' : '알바'}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-3 text-sm text-slate-500 mb-1.5 flex-wrap">
-          <span className="flex items-center gap-1">
-            <Building2 className="w-3.5 h-3.5 text-slate-400" />{companyName}
-          </span>
-          <span className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-slate-400" />{job.displayAddress}
-          </span>
-          <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            {job.boardType === 'FULL_TIME' ? '정규직' : '알바'}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 flex-wrap">
+
+        {/* Job title */}
+        <h3 className={`text-[15px] font-bold leading-snug mb-3 line-clamp-2 group-hover:text-amber-700 transition-colors ${isClosed ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+          {job.title}
+        </h3>
+
+        {/* Visa + type badges */}
+        <div className="flex flex-wrap gap-1 mb-4">
           {visas.map((visa) => (
-            <span key={visa} className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
+            <span key={visa} className="text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded-full">
               {visa}
             </span>
           ))}
-          <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
+          <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full border ${
             job.boardType === 'FULL_TIME'
               ? 'text-emerald-700 bg-emerald-50 border-emerald-100'
               : 'text-orange-700 bg-orange-50 border-orange-100'
@@ -108,23 +114,22 @@ function PremiumJobCard({ job, faded }: { job: JobPosting; faded: boolean }) {
             {job.boardType === 'FULL_TIME' ? '정규직' : '아르바이트'}
           </span>
         </div>
-      </div>
 
-      {/* Right: salary + D-day + action */}
-      <div className="shrink-0 flex flex-col items-end gap-2 min-w-[140px]">
-        <span className="text-base font-bold text-amber-600 whitespace-nowrap">{salary}</span>
-        {ddayLabel && <span className={`text-xs ${ddayCls}`}>{ddayLabel}</span>}
-        <Link
-          href={job.id !== '0' ? `/jobs/${job.id}` : '#'}
-          onClick={(e) => e.stopPropagation()}
-          className={`text-xs font-semibold px-4 py-1.5 rounded-full transition whitespace-nowrap ${
-            isClosed
-              ? 'bg-slate-100 text-slate-400 cursor-not-allowed pointer-events-none'
-              : 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
-          }`}
-        >
-          {isClosed ? '마감' : '지원하기 →'}
-        </Link>
+        {/* Footer: salary + apply button */}
+        <div className="mt-auto flex items-center justify-between pt-3 border-t border-slate-50">
+          <span className="text-base font-bold text-amber-600">{salary}</span>
+          <Link
+            href={job.id !== '0' ? `/jobs/${job.id}` : '#'}
+            onClick={(e) => e.stopPropagation()}
+            className={`text-xs font-bold px-4 py-1.5 rounded-full transition whitespace-nowrap ${
+              isClosed
+                ? 'bg-slate-100 text-slate-400 pointer-events-none'
+                : 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
+            }`}
+          >
+            {isClosed ? '마감' : '지원하기 →'}
+          </Link>
+        </div>
       </div>
     </div>
   );
@@ -152,7 +157,8 @@ export default function PremiumJobs() {
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-3">
+      {/* Section header */}
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-amber-400 flex items-center justify-center shadow-sm shrink-0">
             <Crown size={15} className="text-white" />
@@ -167,33 +173,15 @@ export default function PremiumJobs() {
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-md border border-amber-200/80 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-3 bg-amber-50/70 border-b border-amber-100">
-          <span className="text-xs font-medium text-slate-600">
-            프리미엄 공고 <span className="text-amber-600 font-bold">{displayJobs.length}</span>건
-          </span>
-          <div className="flex gap-1 text-xs text-slate-500">
-            <span className="px-2 py-1 bg-white border border-slate-200 rounded cursor-pointer hover:bg-slate-50 transition">최신순</span>
-            <span className="px-2 py-1 bg-amber-100 border border-amber-200 text-amber-700 rounded cursor-pointer">급여순</span>
-          </div>
-        </div>
-
+      {/* 2-column card grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {displayJobs.map((job, idx) => (
-          <div key={job.id + idx}>
-            <PremiumJobCard job={job} faded={showExample} />
-            {idx < displayJobs.length - 1 && <div className="border-b border-amber-50 mx-5" />}
-          </div>
+          <PremiumJobCard key={job.id + idx} job={job} faded={showExample} />
         ))}
-
-        <div className="border-t border-amber-100 py-3.5 text-center bg-amber-50/40">
-          <Link href="/alba" className="inline-flex items-center gap-1.5 text-sm text-amber-600 font-medium hover:text-amber-700 hover:underline transition-colors">
-            더 많은 프리미엄 공고 보기 <ArrowRight size={14} />
-          </Link>
-        </div>
       </div>
 
       {showExample && (
-        <p className="text-center text-xs text-slate-400 mt-2">위 공고는 예시입니다.</p>
+        <p className="text-center text-xs text-slate-400 mt-3">위 공고는 예시입니다.</p>
       )}
     </section>
   );
