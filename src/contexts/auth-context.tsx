@@ -70,15 +70,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // URL에서 sessionId 추출하여 localStorage에 저장 (소셜 로그인 OAuth 콜백 처리)
-  // Extract sessionId from URL after OAuth callback and handle pending redirect
+  // 소셜 로그인 OAuth 콜백 처리: session_init 쿠키에서 sessionId 읽기
+  // Handle social login OAuth callback: read sessionId from session_init cookie (not URL)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const urlSessionId = params.get('sessionId');
-    if (urlSessionId) {
-      localStorage.setItem('sessionId', urlSessionId);
-      window.history.replaceState({}, '', window.location.pathname);
+
+    // session_init 쿠키에서 sessionId 추출 / Extract sessionId from session_init cookie
+    const sessionInitCookie = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('session_init='));
+
+    if (sessionInitCookie) {
+      const cookieSessionId = decodeURIComponent(sessionInitCookie.split('=')[1]);
+      if (cookieSessionId) {
+        localStorage.setItem('sessionId', cookieSessionId);
+      }
+      // 쿠키 즉시 삭제 (1회성) / Clear cookie immediately (one-time use)
+      document.cookie = 'session_init=; path=/; max-age=0';
 
       // 소셜 로그인 전에 저장한 pending_redirect 쿠키 확인 후 이동
       // Check pending_redirect cookie set before social login OAuth flow
@@ -87,9 +95,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .find(row => row.startsWith('pending_redirect='));
       if (pendingRedirectCookie) {
         const pendingRedirect = decodeURIComponent(pendingRedirectCookie.split('=')[1]);
-        // 쿠키 즉시 삭제 / Clear cookie immediately
         document.cookie = 'pending_redirect=; path=/; max-age=0';
-        router.push(pendingRedirect);
+        // 상대 경로만 허용 (open redirect 방지) / Only allow relative paths (prevent open redirect)
+        if (pendingRedirect.startsWith('/') && !pendingRedirect.startsWith('//')) {
+          router.push(pendingRedirect);
+        } else {
+          router.push('/');
+        }
       }
     }
   }, [router]);

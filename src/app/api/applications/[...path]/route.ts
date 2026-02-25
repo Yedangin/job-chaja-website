@@ -9,7 +9,17 @@ async function proxyRequest(
 ) {
   const { path } = await context.params;
   const search = request.nextUrl.search;
-  const url = `${BACKEND_URL}/${path.join('/')}${search}`;
+
+  // SSRF 방지: 경로에 '..' 또는 절대 경로 포함 시 차단
+  // Prevent SSRF: block path traversal attempts
+  const joinedPath = path.join('/');
+  if (joinedPath.includes('..') || joinedPath.startsWith('/')) {
+    return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
+  }
+
+  // applications/ 프리픽스 고정으로 다른 엔드포인트 접근 차단
+  // Fix prefix to 'applications/' to prevent accessing other endpoints
+  const url = `${BACKEND_URL}/applications/${joinedPath}${search}`;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

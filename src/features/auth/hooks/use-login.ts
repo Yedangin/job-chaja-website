@@ -49,7 +49,8 @@ export function useLogin() {
       // redirect 파라미터가 있으면 해당 경로로, 없으면 role 기반 기본 경로로 이동
       // If redirect param exists, use it; otherwise fall back to role-based default
       const redirectTo = searchParams.get('redirect');
-      if (redirectTo) {
+      // 상대 경로만 허용 (open redirect 방지) / Only allow relative paths (prevent open redirect)
+      if (redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
         router.push(redirectTo);
       } else {
         // role에 따라 리디렉트 / Redirect based on role
