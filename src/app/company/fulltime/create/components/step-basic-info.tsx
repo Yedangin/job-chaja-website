@@ -26,6 +26,9 @@ import {
   convertYearlyToHourly,
 } from './fulltime-types';
 import { fetchE7Categories } from '../api';
+// 알바 직종 목록 임포트 (알바 선택 시 E-7 직종 대신 표시)
+// Import alba job categories (shown instead of E-7 categories when ALBA is selected)
+import { CATEGORY_GROUPS as ALBA_CATEGORY_GROUPS } from '../../../alba/create/components/alba-types';
 
 interface StepBasicInfoProps {
   form: FulltimeJobFormData;
@@ -97,7 +100,16 @@ export default function StepBasicInfo({
             <button
               key={type}
               type="button"
-              onClick={() => updateForm('employmentType', type)}
+              onClick={() => {
+                // 알바 ↔ 정규직 전환 시 직종 코드 초기화 (코드 체계가 다름)
+                // Reset job category code when switching between ALBA and non-ALBA
+                const wasAlba = form.employmentType === 'ALBA';
+                const willBeAlba = type === 'ALBA';
+                if (wasAlba !== willBeAlba) {
+                  updateForm('jobCategoryCode', '');
+                }
+                updateForm('employmentType', type);
+              }}
               className={`p-3 border-2 rounded-lg transition text-sm font-medium ${
                 form.employmentType === type
                   ? 'border-blue-600 bg-blue-50 text-blue-900'
@@ -113,7 +125,7 @@ export default function StepBasicInfo({
         {form.employmentType === 'ALBA' && (
           <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
               <div className="text-sm">
                 <p className="font-semibold text-green-900 mb-1">
                   알바 채용 — 단시간 근로
@@ -132,7 +144,7 @@ export default function StepBasicInfo({
         {form.employmentType === 'INTERN' && (
           <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <div className="flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-5 h-5 text-yellow-600 shrink-0 mt-0.5" />
               <div className="text-sm">
                 <p className="font-semibold text-yellow-900 mb-1">
                   ⚠️ E-7 비자 아님 → D-10-1 대상 (최대 6개월)
@@ -174,7 +186,7 @@ export default function StepBasicInfo({
             {form.contractPeriod === '6' && form.overseasHireWilling && (
               <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
                 <p className="text-xs text-orange-800 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>
                     ⚠️ 계약기간이 6개월인 경우 해외 초청 비자 승인 가능성이 낮을 수 있습니다.
                   </span>
@@ -185,47 +197,76 @@ export default function StepBasicInfo({
         )}
       </section>
 
-      {/* 직종 선택 / Job category — 알바 선택 시 숨김 (E-7 직종 불필요) */}
-      {form.employmentType !== 'ALBA' && (
-        <section className="bg-white rounded-xl border border-gray-200 p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Briefcase className="w-5 h-5 text-blue-600" />
-            <h3 className="text-base font-semibold text-gray-900">직종 선택</h3>
-            <span className="text-xs text-gray-400">Job Category</span>
+      {/* 직종 선택 / Job category */}
+      {/* 알바: 알바 직종(단순노무/서비스직), 정규직·계약직·인턴: E-7 직종 */}
+      {/* ALBA: alba job categories, others: E-7 job categories from backend */}
+      <section className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Briefcase className="w-5 h-5 text-blue-600" />
+          <h3 className="text-base font-semibold text-gray-900">직종 선택</h3>
+          <span className="text-xs text-gray-400">Job Category</span>
+          {form.employmentType === 'ALBA' && (
+            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+              알바 직종
+            </span>
+          )}
+        </div>
+
+        {form.employmentType === 'ALBA' ? (
+          /* 알바 직종 선택 / Alba job categories (hardcoded, no backend call needed) */
+          <select
+            value={form.jobCategoryCode}
+            onChange={(e) => updateForm('jobCategoryCode', e.target.value)}
+            className={`w-full h-11 px-3 rounded-lg border text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition ${
+              errors.jobCategoryCode ? 'border-red-400' : 'border-gray-300'
+            }`}
+          >
+            <option value="">-- 알바 직종을 선택하세요 --</option>
+            {Object.entries(ALBA_CATEGORY_GROUPS).map(([group, cats]) => (
+              <optgroup key={group} label={group}>
+                {cats.map((cat) => (
+                  <option key={cat.code} value={cat.code}>
+                    {cat.name} ({cat.nameEn})
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        ) : categoriesLoading ? (
+          /* E-7 직종 로딩 중 / Loading E-7 categories */
+          <div className="flex items-center gap-2 h-11 px-3 rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-400">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>직종 목록 로드 중...</span>
           </div>
-          {categoriesLoading ? (
-            <div className="flex items-center gap-2 h-11 px-3 rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-400">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>직종 목록 로드 중...</span>
-            </div>
-          ) : (
-            <select
-              value={form.jobCategoryCode}
-              onChange={(e) => updateForm('jobCategoryCode', e.target.value)}
-              className={`w-full h-11 px-3 rounded-lg border text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition ${
-                errors.jobCategoryCode ? 'border-red-400' : 'border-gray-300'
-              }`}
-            >
-              <option value="">-- 직종을 선택하세요 --</option>
-              {Object.entries(categoryGroups).map(([group, cats]) => (
-                <optgroup key={group} label={group}>
-                  {cats.map((cat) => (
-                    <option key={cat.code} value={cat.code}>
-                      {cat.nameKo} ({cat.nameEn})
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          )}
-          {errors.jobCategoryCode && (
-            <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              {errors.jobCategoryCode}
-            </p>
-          )}
-        </section>
-      )}
+        ) : (
+          /* E-7 직종 선택 / E-7 job categories from backend */
+          <select
+            value={form.jobCategoryCode}
+            onChange={(e) => updateForm('jobCategoryCode', e.target.value)}
+            className={`w-full h-11 px-3 rounded-lg border text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition ${
+              errors.jobCategoryCode ? 'border-red-400' : 'border-gray-300'
+            }`}
+          >
+            <option value="">-- 직종을 선택하세요 --</option>
+            {Object.entries(categoryGroups).map(([group, cats]) => (
+              <optgroup key={group} label={group}>
+                {cats.map((cat) => (
+                  <option key={cat.code} value={cat.code}>
+                    {cat.nameKo} ({cat.nameEn})
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        )}
+
+        {errors.jobCategoryCode && (
+          <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
+            <AlertCircle className="w-3 h-3" />
+            {errors.jobCategoryCode}
+          </p>
+        )}
+      </section>
 
       {/* 급여 정보 / Salary information */}
       <section className="bg-white rounded-xl border border-gray-200 p-5">

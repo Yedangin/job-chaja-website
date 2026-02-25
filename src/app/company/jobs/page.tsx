@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   Plus, MoreHorizontal, Star, Clock, Users, Copy, Edit3,
   XCircle, Zap, Trash2, AlertTriangle, Loader2, Briefcase,
-  ChevronDown, RefreshCw,
+  ChevronDown, RefreshCw, Crown,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -54,7 +54,7 @@ export default function CompanyJobsPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        setJobs(Array.isArray(data) ? data : data.jobs || data.data || []);
+        setJobs(Array.isArray(data) ? data : data.items || data.jobs || data.data || []);
       } else { setJobs([]); }
     } catch { setJobs([]); }
     finally { setLoading(false); }
@@ -204,12 +204,12 @@ export default function CompanyJobsPage() {
 
             return (
               <div key={job.id} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-sm transition relative">
-                {/* 카드 본문 (클릭 → 지원자 관리) / Card body */}
+                {/* 카드 본문 (클릭 → 공고 상세) / Card body (click → job detail) */}
                 <div
                   onClick={() => {
                     if (isDraft && job.id === -1) { router.push('/company/jobs/create'); return; }
                     if (isDraft) { router.push(`/company/jobs/create?copy=${job.id}`); return; }
-                    router.push(`/company/jobs/${job.id}/applicants`);
+                    router.push(`/company/jobs/${job.id}`);
                   }}
                   className="cursor-pointer"
                 >
@@ -231,18 +231,23 @@ export default function CompanyJobsPage() {
                       </div>
 
                       {/* 비자 매칭 배지 / Visa match badges */}
-                      {job.allowedVisas && job.allowedVisas.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-1.5">
-                          {job.allowedVisas.slice(0, 5).map(v => (
-                            <span key={v} className="inline-flex items-center gap-0.5 text-xs px-2 py-0.5 bg-green-50 text-green-700 rounded-full">
-                              <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />{v}
-                            </span>
-                          ))}
-                          {job.allowedVisas.length > 5 && (
-                            <span className="text-xs text-gray-400">+{job.allowedVisas.length - 5}</span>
-                          )}
-                        </div>
-                      )}
+                      {job.allowedVisas && (typeof job.allowedVisas === 'string' ? job.allowedVisas : '').length > 0 && (() => {
+                        const visas = typeof job.allowedVisas === 'string'
+                          ? job.allowedVisas.split(',').map(v => v.trim()).filter(Boolean)
+                          : Array.isArray(job.allowedVisas) ? job.allowedVisas : [];
+                        return visas.length > 0 ? (
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {visas.slice(0, 5).map(v => (
+                              <span key={v} className="inline-flex items-center gap-0.5 text-xs px-2 py-0.5 bg-green-50 text-green-700 rounded-full">
+                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />{v}
+                              </span>
+                            ))}
+                            {visas.length > 5 && (
+                              <span className="text-xs text-gray-400">+{visas.length - 5}</span>
+                            )}
+                          </div>
+                        ) : null;
+                      })()}
 
                       {/* 메타 정보 / Meta */}
                       <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 flex-wrap">
@@ -264,12 +269,17 @@ export default function CompanyJobsPage() {
                   </div>
 
                   {/* 상태별 CTA / Status-specific CTAs */}
-                  {!isPremium && job.status === 'ACTIVE' && (
+                  {job.status === 'ACTIVE' && (
                     <div className="mt-3 pt-3 border-t border-gray-100">
                       <button type="button"
-                        onClick={(e) => { e.stopPropagation(); router.push(`/company/payments?upgrade=${job.id}`); }}
-                        className="text-xs text-amber-600 font-medium hover:text-amber-700 flex items-center gap-1">
-                        <Zap className="w-3 h-3" /> 프리미엄 업그레이드
+                        onClick={(e) => { e.stopPropagation(); router.push(`/company/payments/premium?jobId=${job.id}`); }}
+                        className={`text-xs font-medium flex items-center gap-1 ${
+                          isPremium
+                            ? 'text-amber-500 hover:text-amber-600'
+                            : 'text-amber-600 hover:text-amber-700'
+                        }`}>
+                        <Crown className="w-3 h-3" />
+                        {isPremium ? '상위노출 연장하기' : '상위노출 신청'}
                       </button>
                     </div>
                   )}
@@ -307,9 +317,9 @@ export default function CompanyJobsPage() {
                               className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2">
                               <XCircle className="w-3.5 h-3.5" /> 마감
                             </button>
-                            <button onClick={() => { setOpenMenu(null); router.push(`/company/payments?upgrade=${job.id}`); }}
+                            <button onClick={() => { setOpenMenu(null); router.push(`/company/payments/premium?jobId=${job.id}`); }}
                               className="w-full text-left px-4 py-2 text-sm text-amber-600 hover:bg-amber-50 flex items-center gap-2">
-                              <Zap className="w-3.5 h-3.5" /> 프리미엄 업그레이드
+                              <Crown className="w-3.5 h-3.5" /> {isPremium ? '상위노출 연장' : '상위노출 신청'}
                             </button>
                           </>
                         )}

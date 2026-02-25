@@ -1,11 +1,9 @@
 'use client';
 
 /**
- * 기업 결제 내역 페이지 / Company payment history page
+ * 결제 내역 페이지 / Payment history page
  * - 결제 주문 목록 조회, 상태별 필터, 취소 기능
  * - Lists payment orders with status filtering and cancellation support
- * - 상품 유형: 프리미엄 공고 업그레이드, 열람권 구매
- * - Product types: premium job upgrade, viewing credit purchase
  * - 결제 후 7일 이내만 취소 가능 / Only cancellable within 7 days of payment
  * - 취소 확인 시 인라인 환불 안내 표시 / Inline refund info shown on cancel confirm
  */
@@ -26,9 +24,6 @@ import {
   TrendingUp,
   Calendar,
   Smartphone,
-  Star,
-  Eye,
-  FileText,
   Ban,
   AlertTriangle,
 } from 'lucide-react';
@@ -51,7 +46,6 @@ interface Order {
   createdAt: string;       // 생성 시각 / Created at
   jobId?: string;          // 관련 공고 ID / Related job ID
   jobTitle?: string;       // 관련 공고 제목 / Related job title
-  productType?: string;    // 상품 유형 (PREMIUM | VIEWING_CREDIT) / Product type
 }
 
 // 주문 목록 API 응답 / Order list API response
@@ -191,43 +185,6 @@ function formatPaymentMethod(method: string | undefined): string {
 }
 
 /**
- * 상품 유형에 따른 아이콘 및 색상 반환 / Return icon and color based on product type
- */
-function getProductTypeConfig(order: Order): {
-  icon: React.FC<{ className?: string }>;
-  iconBg: string;
-  iconColor: string;
-  typeLabelKo: string;
-} {
-  // 상품명 또는 productType으로 유형 판별 / Determine type from orderName or productType
-  const name = order.orderName.toLowerCase();
-  const type = order.productType?.toUpperCase() ?? '';
-
-  if (type === 'PREMIUM' || name.includes('프리미엄') || name.includes('premium')) {
-    return {
-      icon: Star,
-      iconBg: 'bg-amber-50',
-      iconColor: 'text-amber-500',
-      typeLabelKo: '프리미엄 공고',
-    };
-  }
-  if (type === 'VIEWING_CREDIT' || name.includes('열람권') || name.includes('credit')) {
-    return {
-      icon: Eye,
-      iconBg: 'bg-purple-50',
-      iconColor: 'text-purple-500',
-      typeLabelKo: '이력서 열람권',
-    };
-  }
-  return {
-    icon: CreditCard,
-    iconBg: 'bg-blue-50',
-    iconColor: 'text-blue-500',
-    typeLabelKo: '결제',
-  };
-}
-
-/**
  * 결제 취소 가능 여부 판단 / Determine if order is cancellable
  * - PAID 상태이면서 결제일로부터 7일 이내 / PAID status and within 7 days of payment
  */
@@ -252,17 +209,13 @@ function SkeletonCard() {
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-5 animate-pulse">
       <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3 flex-1">
-          {/* 아이콘 자리 / Icon placeholder */}
-          <div className="w-10 h-10 rounded-xl bg-gray-200 shrink-0" />
-          <div className="flex-1">
-            {/* 상품명 자리 / Product name placeholder */}
-            <div className="h-5 w-48 bg-gray-200 rounded mb-2" />
-            <div className="h-4 w-32 bg-gray-200 rounded mb-3" />
-            <div className="flex gap-3">
-              <div className="h-3 w-24 bg-gray-200 rounded" />
-              <div className="h-3 w-24 bg-gray-200 rounded" />
-            </div>
+        <div className="flex-1">
+          {/* 상품명 자리 / Product name placeholder */}
+          <div className="h-5 w-48 bg-gray-200 rounded mb-2" />
+          <div className="h-4 w-32 bg-gray-200 rounded mb-3" />
+          <div className="flex gap-3">
+            <div className="h-3 w-24 bg-gray-200 rounded" />
+            <div className="h-3 w-24 bg-gray-200 rounded" />
           </div>
         </div>
         <div className="text-right shrink-0">
@@ -298,21 +251,10 @@ function SummaryCards({ orders }: SummaryCardsProps) {
     })
     .reduce((sum, o) => sum + o.amount, 0);
 
-  // 프리미엄 공고 업그레이드 건수 / Premium upgrade count
-  const premiumCount = orders.filter((o) => {
-    if (o.status !== 'PAID') return false;
-    const name = o.orderName.toLowerCase();
-    const type = o.productType?.toUpperCase() ?? '';
-    return type === 'PREMIUM' || name.includes('프리미엄') || name.includes('premium');
-  }).length;
-
-  // 열람권 구매 건수 / Viewing credit purchase count
-  const creditCount = orders.filter((o) => {
-    if (o.status !== 'PAID') return false;
-    const name = o.orderName.toLowerCase();
-    const type = o.productType?.toUpperCase() ?? '';
-    return type === 'VIEWING_CREDIT' || name.includes('열람권') || name.includes('credit');
-  }).length;
+  // 결제완료 건수 / Total paid count
+  const paidCount = orders.filter((o) => o.status === 'PAID').length;
+  // 취소 건수 / Cancelled count
+  const cancelledCount = orders.filter((o) => o.status === 'CANCELLED').length;
 
   const cards = [
     {
@@ -329,27 +271,27 @@ function SummaryCards({ orders }: SummaryCardsProps) {
       labelEn: 'This Month',
       value: formatAmount(thisMonthPaid),
       icon: Calendar,
-      iconColor: 'text-indigo-500',
-      bgColor: 'bg-indigo-50',
-      borderColor: 'border-indigo-200',
-    },
-    {
-      label: '프리미엄 구매',
-      labelEn: 'Premium',
-      value: `${premiumCount}건`,
-      icon: Star,
-      iconColor: 'text-amber-500',
-      bgColor: 'bg-amber-50',
-      borderColor: 'border-amber-200',
-    },
-    {
-      label: '열람권 구매',
-      labelEn: 'Credits',
-      value: `${creditCount}건`,
-      icon: Eye,
       iconColor: 'text-purple-500',
       bgColor: 'bg-purple-50',
       borderColor: 'border-purple-200',
+    },
+    {
+      label: '결제 완료',
+      labelEn: 'Completed',
+      value: `${paidCount}건`,
+      icon: CheckCircle2,
+      iconColor: 'text-green-500',
+      bgColor: 'bg-green-50',
+      borderColor: 'border-green-200',
+    },
+    {
+      label: '취소됨',
+      labelEn: 'Cancelled',
+      value: `${cancelledCount}건`,
+      icon: XCircle,
+      iconColor: 'text-gray-400',
+      bgColor: 'bg-gray-50',
+      borderColor: 'border-gray-200',
     },
   ];
 
@@ -455,8 +397,6 @@ function OrderCard({
 }: OrderCardProps) {
   const config = STATUS_CONFIG[order.status];
   const StatusIcon = config.icon;
-  const productConfig = getProductTypeConfig(order);
-  const ProductIcon = productConfig.icon;
 
   // 취소 가능 여부 / Can this order be cancelled
   const cancellable = canCancel(order);
@@ -468,50 +408,41 @@ function OrderCard({
   const showConfirm = cancelConfirmId === order.id;
   const isCancelling = cancellingId === order.id;
 
-  // 결제 날짜 표시 (paidAt > cancelledAt > createdAt 우선) / Show most relevant date
+  // 결제 날짜 표시 (paidAt > createdAt 우선) / Show paid date (paidAt preferred)
   const displayDate = order.paidAt ?? order.cancelledAt ?? order.createdAt;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-5 hover:border-blue-200 hover:shadow-sm transition">
       <div className="flex items-start justify-between gap-4">
-        {/* 왼쪽: 상품 아이콘 + 정보 / Left: product icon + info */}
-        <div className="flex items-start gap-3 flex-1 min-w-0">
-          {/* 상품 유형 아이콘 / Product type icon */}
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${productConfig.iconBg}`}>
-            <ProductIcon className={`w-5 h-5 ${productConfig.iconColor}`} />
-          </div>
+        {/* 왼쪽: 상품 정보 / Left: product info */}
+        <div className="flex-1 min-w-0">
+          {/* 상품명 / Product name */}
+          <p className="text-base font-bold text-gray-900 mb-1 truncate">
+            {order.orderName}
+          </p>
 
-          <div className="flex-1 min-w-0">
-            {/* 상품 유형 레이블 / Product type label */}
-            <p className="text-xs font-medium text-gray-400 mb-0.5">{productConfig.typeLabelKo}</p>
-            {/* 상품명 / Product name */}
-            <p className="text-base font-bold text-gray-900 mb-1 truncate">
-              {order.orderName}
-            </p>
+          {/* 관련 공고 (있을 경우) / Related job (if any) */}
+          {order.jobTitle && order.jobId && (
+            <Link
+              href={`/worker/jobs/${order.jobId}`}
+              className="text-sm text-blue-600 hover:underline block truncate mb-2"
+            >
+              {order.jobTitle}
+            </Link>
+          )}
 
-            {/* 관련 공고 (있을 경우) / Related job (if any) */}
-            {order.jobTitle && order.jobId && (
-              <Link
-                href={`/company/jobs/${order.jobId}`}
-                className="text-sm text-blue-600 hover:underline block truncate mb-2"
-              >
-                {order.jobTitle}
-              </Link>
-            )}
-
-            {/* 메타 정보 행 / Meta info row */}
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400 mt-2">
-              {/* 결제 수단 / Payment method */}
-              <span className="flex items-center gap-1">
-                <Smartphone className="w-3 h-3" />
-                {formatPaymentMethod(order.paymentMethod)}
-              </span>
-              {/* 결제일 / Payment date */}
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                {formatDateTime(displayDate)}
-              </span>
-            </div>
+          {/* 메타 정보 행 / Meta info row */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400 mt-2">
+            {/* 결제 수단 / Payment method */}
+            <span className="flex items-center gap-1">
+              <Smartphone className="w-3 h-3" />
+              {formatPaymentMethod(order.paymentMethod)}
+            </span>
+            {/* 결제일 / Payment date */}
+            <span className="flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              {formatDateTime(displayDate)}
+            </span>
           </div>
         </div>
 
@@ -538,19 +469,10 @@ function OrderCard({
         </div>
       </div>
 
-      {/* ── 하단 액션 영역 / Bottom action area ── */}
-
-      {/* 취소 가능 + 확인 패널 미표시 / Cancellable, confirm panel not shown */}
+      {/* ── 취소 버튼 영역 / Cancel button area ── */}
+      {/* PAID + 7일 이내 → 취소 버튼 / PAID within 7 days → show cancel button */}
       {cancellable && !showConfirm && (
-        <div className="mt-4 flex justify-between items-center border-t border-gray-100 pt-4">
-          {/* 세금계산서 링크 / Tax invoice link */}
-          <Link
-            href="/company/payments/tax"
-            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-blue-600 transition"
-          >
-            <FileText className="w-3 h-3" />
-            세금계산서 발급
-          </Link>
+        <div className="mt-4 flex justify-end border-t border-gray-100 pt-4">
           <button
             type="button"
             onClick={() => onCancelRequest(order.id)}
@@ -562,41 +484,22 @@ function OrderCard({
         </div>
       )}
 
-      {/* 취소 가능 + 확인 패널 표시 / Cancellable, showing confirm panel */}
+      {/* PAID + 7일 이내 + 확인 패널 표시 중 / Show inline cancel confirm panel */}
       {cancellable && showConfirm && (
-        <>
-          {/* 세금계산서 링크는 유지 / Keep tax invoice link */}
-          <div className="mt-4 flex justify-start border-t border-gray-100 pt-4">
-            <Link
-              href="/company/payments/tax"
-              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-blue-600 transition"
-            >
-              <FileText className="w-3 h-3" />
-              세금계산서 발급
-            </Link>
-          </div>
-          <CancelConfirmPanel
-            orderId={order.id}
-            amount={order.amount}
-            onConfirm={onCancelConfirm}
-            onClose={onCancelClose}
-            isCancelling={isCancelling}
-          />
-        </>
+        <CancelConfirmPanel
+          orderId={order.id}
+          amount={order.amount}
+          onConfirm={onCancelConfirm}
+          onClose={onCancelClose}
+          isCancelling={isCancelling}
+        />
       )}
 
-      {/* PAID이지만 7일 초과 → 취소 불가 + 세금계산서 / PAID but past 7 days → expired */}
+      {/* PAID이지만 7일 초과 → 취소 불가 표시 / PAID but past 7 days → expired notice */}
       {expiredCancel && (
-        <div className="mt-4 flex justify-between items-center border-t border-gray-100 pt-4">
-          <Link
-            href="/company/payments/tax"
-            className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-blue-600 transition"
-          >
-            <FileText className="w-3 h-3" />
-            세금계산서 발급
-          </Link>
-          <span className="flex items-center gap-1 text-xs text-gray-300 font-medium">
-            <Ban className="w-3 h-3" />
+        <div className="mt-4 flex justify-end items-center gap-1.5 border-t border-gray-100 pt-4">
+          <Ban className="w-3 h-3 text-gray-300" />
+          <span className="text-xs text-gray-300 font-medium">
             취소 불가 (기간 만료 {daysSincePaid(order)}일 경과) / Cancellation expired
           </span>
         </div>
@@ -693,30 +596,12 @@ function EmptyState({ isFiltered }: { isFiltered: boolean }) {
       <p className="text-sm text-gray-400 mb-6">
         {isFiltered
           ? '다른 필터를 선택하거나 전체 보기로 전환해보세요.'
-          : '프리미엄 공고 업그레이드 또는 이력서 열람권 구매 내역이 여기에 표시됩니다.'}
+          : '공고 프리미엄 등록 또는 이력서 열람권 구매 내역이 여기에 표시됩니다.'}
         <br />
         {isFiltered
           ? 'Try a different filter or switch to All.'
           : 'Your purchase history will appear here.'}
       </p>
-      {!isFiltered && (
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link
-            href="/company/jobs"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-blue-700 transition"
-          >
-            <Star className="w-4 h-4" />
-            공고 등록하기
-          </Link>
-          <Link
-            href="/company/payments/credits"
-            className="inline-flex items-center gap-2 border border-gray-200 text-gray-700 text-sm font-semibold px-5 py-2.5 rounded-xl hover:border-blue-300 hover:text-blue-600 transition"
-          >
-            <Eye className="w-4 h-4" />
-            열람권 구매
-          </Link>
-        </div>
-      )}
     </div>
   );
 }
@@ -752,8 +637,8 @@ function NotLoggedIn() {
 // 메인 페이지 컴포넌트 / Main page component
 // ══════════════════════════════════════════════════════════════════════════════
 
-export default function CompanyPaymentHistoryPage() {
-  // 전체 주문 목록 (요약 카드용) / All orders for summary cards
+export default function WorkerPaymentsPage() {
+  // 전체 주문 목록 (전체 페이지 합산 — 요약 카드용) / All orders for summary cards
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   // 현재 페이지 주문 목록 / Current page orders
   const [orders, setOrders] = useState<Order[]>([]);
@@ -782,9 +667,9 @@ export default function CompanyPaymentHistoryPage() {
     tab: OrderStatus | 'all',
     currentPage: number,
   ) => {
-    // 세션 ID 확인 / Check session ID
     const sessionId = localStorage.getItem('sessionId');
     if (!sessionId) {
+      // 세션 없음 → 미로그인 / No session → not logged in
       setIsLoggedIn(false);
       setLoading(false);
       return;
@@ -940,20 +825,10 @@ export default function CompanyPaymentHistoryPage() {
         </div>
         {/* 로그인 상태 + 로드 완료 시 총 건수 표시 / Show total when logged in & loaded */}
         {!loading && isLoggedIn && total > 0 && (
-          <div className="flex items-center gap-3">
-            {/* 세금계산서 바로가기 / Tax invoice shortcut */}
-            <Link
-              href="/company/payments/tax"
-              className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-blue-600 border border-gray-200 hover:border-blue-300 px-3 py-1.5 rounded-lg transition"
-            >
-              <FileText className="w-4 h-4" />
-              세금계산서
-            </Link>
-            <span className="text-sm text-gray-400 flex items-center gap-1.5">
-              <CreditCard className="w-4 h-4" />
-              총 {total}건
-            </span>
-          </div>
+          <span className="text-sm text-gray-400 flex items-center gap-1.5">
+            <CreditCard className="w-4 h-4" />
+            총 {total}건
+          </span>
         )}
       </div>
 

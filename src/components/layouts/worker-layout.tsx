@@ -26,7 +26,7 @@ import {
   MessageSquare,
   BookOpen,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // 사이드바 아이템 타입 / Sidebar item type
 interface SidebarItem {
@@ -53,6 +53,28 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileDropdown, setProfileDropdown] = useState(false);
+  // 읽지 않은 알림 수 (헤더 뱃지용) / Unread notification count (for header badge)
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // 마운트 시 읽지 않은 알림 수 로드 / Load unread count on mount
+  useEffect(() => {
+    const sessionId = localStorage.getItem('sessionId');
+    if (!sessionId) return;
+
+    fetch('/api/notifications/unread-count', {
+      headers: { Authorization: `Bearer ${sessionId}` },
+    })
+      .then((res) => {
+        if (res.ok) return res.json() as Promise<{ count: number }>;
+        return null;
+      })
+      .then((data) => {
+        if (data) setUnreadCount(data.count ?? 0);
+      })
+      .catch(() => {
+        // 알림 수 로드 실패는 무시 / Silently ignore failure
+      });
+  }, []);
 
   // 사이드바 아이템 활성 여부 판별
   // Active check: 대시보드는 정확히 일치, 나머지는 startsWith
@@ -162,8 +184,14 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
 
           {/* 우측: 알림 + 언어 + 프로필 드롭다운 / Right: Bell + Language + Profile dropdown */}
           <div className="ml-auto flex items-center gap-2">
+            {/* 알림 아이콘 + 미읽음 뱃지 / Notification bell + unread badge */}
             <Link href="/worker/notifications" className="relative p-2 text-gray-500 hover:text-gray-700 transition">
               <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </Link>
             <LanguageSwitcher />
             <div className="relative">
@@ -332,6 +360,8 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
             // 홈 탭은 정확 일치, 나머지는 prefix 매칭
             // Home tab uses exact match; others use prefix match
             const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href);
+            // 알림 탭에만 미읽음 뱃지 표시 / Show unread badge only on notifications tab
+            const isNotifTab = tab.href === '/worker/notifications';
             return (
               <Link
                 key={tab.label}
@@ -340,7 +370,15 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
                   active ? 'text-blue-600' : 'text-gray-400'
                 }`}
               >
-                <tab.icon className={`w-5 h-5 ${active ? 'text-blue-600' : 'text-gray-400'}`} />
+                {/* 아이콘 컨테이너 (알림 뱃지 포함) / Icon container (with notification badge) */}
+                <div className="relative">
+                  <tab.icon className={`w-5 h-5 ${active ? 'text-blue-600' : 'text-gray-400'}`} />
+                  {isNotifTab && unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 text-white text-[8px] font-bold rounded-full flex items-center justify-center">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </div>
                 <span className={`text-[10px] mt-0.5 ${active ? 'font-semibold' : ''}`}>{tab.label}</span>
               </Link>
             );

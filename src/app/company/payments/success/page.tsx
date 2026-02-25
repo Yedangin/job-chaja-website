@@ -13,6 +13,10 @@ export default function PaymentSuccessPage() {
 
   // 상품별 성공 메시지 / Product-specific success message
   const getMessage = () => {
+    if (productCode.startsWith('PREMIUM_')) {
+      const days = productCode.replace('PREMIUM_', '').replace('D', '');
+      return `공고가 ${days}일간 상위노출됩니다!`;
+    }
     if (productCode === 'JOB_PREMIUM') {
       return '공고가 프리미엄으로 업그레이드되었습니다!';
     }
@@ -27,11 +31,15 @@ export default function PaymentSuccessPage() {
   };
 
   const getNextAction = () => {
-    if (productCode === 'JOB_PREMIUM' || productCode === 'JOB_EXTENSION') {
-      return { label: '내 공고 관리', href: '/biz/jobs' };
+    if (
+      productCode.startsWith('PREMIUM_') ||
+      productCode === 'JOB_PREMIUM' ||
+      productCode === 'JOB_EXTENSION'
+    ) {
+      return { label: '내 공고 관리', href: '/company/jobs' };
     }
     if (productCode.startsWith('VIEW_')) {
-      return { label: '인재 검색하기', href: '/resume' };
+      return { label: '인재 검색하기', href: '/company/talents' };
     }
     return { label: '홈으로', href: '/' };
   };

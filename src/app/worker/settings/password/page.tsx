@@ -4,11 +4,12 @@
  * 비밀번호 변경 / Change password
  * - 이메일 회원: Step1(현재 비밀번호 확인) → Step2(비밀번호 변경 폼)
  * - 소셜 회원: 소셜 로그인 안내 메시지 표시
+ * - 새 비밀번호 입력 시 실시간 강도 표시기 / Real-time password strength indicator
  * Email users: Step1(verify) → Step2(change form) / Social users: info message
  */
 
 import { useState, useEffect } from 'react';
-import { Lock, Eye, EyeOff, Loader2, Check, ShieldCheck } from 'lucide-react';
+import { Lock, Eye, EyeOff, Loader2, Check, ShieldCheck, X } from 'lucide-react';
 
 type SocialProvider = 'NONE' | 'GOOGLE' | 'KAKAO' | 'APPLE' | 'FACEBOOK' | string;
 
@@ -19,6 +20,85 @@ const SOCIAL_NAMES: Record<string, string> = {
   APPLE:    'Apple',
   FACEBOOK: 'Facebook',
 };
+
+// 비밀번호 강도 계산 함수 / Password strength calculation
+function getPasswordStrength(password: string): {
+  level: 0 | 1 | 2 | 3;
+  label: string;
+  labelEn: string;
+  color: string;
+  barColor: string;
+  bars: number; // 채울 바 개수 / Number of bars to fill (1~4)
+} {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 1) return { level: 0, label: '약함',    labelEn: 'Weak',        color: 'text-red-500',    barColor: 'bg-red-400',    bars: 1 };
+  if (score <= 2) return { level: 1, label: '보통',    labelEn: 'Fair',        color: 'text-yellow-500', barColor: 'bg-yellow-400', bars: 2 };
+  if (score <= 3) return { level: 2, label: '강함',    labelEn: 'Strong',      color: 'text-blue-600',   barColor: 'bg-blue-500',   bars: 3 };
+  return              { level: 3, label: '매우 강함', labelEn: 'Very Strong', color: 'text-green-600',  barColor: 'bg-green-500',  bars: 4 };
+}
+
+// 비밀번호 체크 항목 / Password requirement checks
+function getPasswordChecks(password: string): { label: string; passed: boolean }[] {
+  return [
+    { label: '8자 이상 / 8+ chars',              passed: password.length >= 8 },
+    { label: '숫자 포함 / Includes number',       passed: /[0-9]/.test(password) },
+    { label: '특수문자 포함 권장 / Special char', passed: /[^A-Za-z0-9]/.test(password) },
+  ];
+}
+
+// 비밀번호 강도 표시기 컴포넌트 / Password strength indicator component
+function PasswordStrengthIndicator({ password }: { password: string }) {
+  if (!password) return null;
+
+  const strength = getPasswordStrength(password);
+  const checks   = getPasswordChecks(password);
+
+  return (
+    <div className="mt-2 space-y-2">
+      {/* 강도 바 + 레이블 / Strength bars + label */}
+      <div className="flex items-center gap-2">
+        <div className="flex gap-1 flex-1">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                i <= strength.bars ? strength.barColor : 'bg-gray-200'
+              }`}
+            />
+          ))}
+        </div>
+        <span className={`text-xs font-semibold shrink-0 ${strength.color}`}>
+          {strength.label}
+        </span>
+      </div>
+
+      {/* 체크 항목 / Requirement checks */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        {checks.map((check) => (
+          <span
+            key={check.label}
+            className={`flex items-center gap-1 text-xs ${
+              check.passed ? 'text-green-600' : 'text-gray-400'
+            }`}
+          >
+            {check.passed ? (
+              <Check className="w-3 h-3" />
+            ) : (
+              <X className="w-3 h-3" />
+            )}
+            {check.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function WorkerPasswordPage() {
   const [socialProvider, setSocialProvider] = useState<SocialProvider | null>(null);
@@ -257,50 +337,85 @@ export default function WorkerPasswordPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                {[
-                  {
-                    label: '현재 비밀번호', labelEn: 'Current Password',
-                    value: oldPassword, setter: setOldPassword,
-                    show: showOld, toggleShow: () => setShowOld((v) => !v),
-                    autoComplete: 'current-password',
-                  },
-                  {
-                    label: '새 비밀번호', labelEn: 'New Password',
-                    value: newPassword, setter: setNewPassword,
-                    show: showNew, toggleShow: () => setShowNew((v) => !v),
-                    autoComplete: 'new-password',
-                  },
-                  {
-                    label: '새 비밀번호 확인', labelEn: 'Confirm Password',
-                    value: confirmPassword, setter: setConfirmPassword,
-                    show: showConfirm, toggleShow: () => setShowConfirm((v) => !v),
-                    autoComplete: 'new-password',
-                  },
-                ].map((field) => (
-                  <div key={field.labelEn}>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                      {field.label}{' '}
-                      <span className="text-gray-400 font-normal">/ {field.labelEn}</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={field.show ? 'text' : 'password'}
-                        value={field.value}
-                        onChange={(e) => field.setter(e.target.value)}
-                        autoComplete={field.autoComplete}
-                        required
-                        className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-                      />
-                      <button
-                        type="button"
-                        onClick={field.toggleShow}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                      >
-                        {field.show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
+                {/* 현재 비밀번호 필드 / Current password field */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    현재 비밀번호 <span className="text-gray-400 font-normal">/ Current Password</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showOld ? 'text' : 'password'}
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                      autoComplete="current-password"
+                      required
+                      className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowOld((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showOld ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
-                ))}
+                </div>
+
+                {/* 새 비밀번호 필드 + 강도 표시기 / New password field + strength indicator */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    새 비밀번호 <span className="text-gray-400 font-normal">/ New Password</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showNew ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      autoComplete="new-password"
+                      required
+                      className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNew((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {/* 비밀번호 강도 표시기 / Password strength indicator */}
+                  <PasswordStrengthIndicator password={newPassword} />
+                </div>
+
+                {/* 새 비밀번호 확인 필드 / Confirm password field */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    새 비밀번호 확인 <span className="text-gray-400 font-normal">/ Confirm Password</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirm ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      autoComplete="new-password"
+                      required
+                      className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm((v) => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {/* 비밀번호 불일치 인라인 표시 / Inline mismatch indicator */}
+                  {confirmPassword.length > 0 && newPassword !== confirmPassword && (
+                    <p className="text-xs text-red-500 mt-1">
+                      비밀번호가 일치하지 않습니다. / Passwords do not match.
+                    </p>
+                  )}
+                </div>
 
                 {error && (
                   <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">

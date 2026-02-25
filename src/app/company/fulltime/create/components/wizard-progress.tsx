@@ -33,33 +33,33 @@ export default function WizardProgress({
             type="button"
             onClick={() => onStepClick?.(s.step)}
             disabled={s.step > currentStep}
-            className={`flex flex-col items-center gap-2 ${
+            className={`flex flex-col items-center gap-1 ${
               onStepClick && s.step <= currentStep
                 ? 'cursor-pointer'
                 : 'cursor-default'
             }`}
           >
             <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition ${
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition ${
                 s.step < currentStep
                   ? 'bg-blue-600 text-white'
                   : s.step === currentStep
-                  ? 'bg-blue-600 text-white ring-4 ring-blue-100'
+                  ? 'bg-blue-600 text-white ring-2 ring-blue-100'
                   : 'bg-gray-200 text-gray-500'
               }`}
             >
               {s.step < currentStep ? (
-                <Check className="w-5 h-5" />
+                <Check className="w-3.5 h-3.5" />
               ) : (
                 s.step
               )}
             </div>
             <span
-              className={`text-xs font-medium whitespace-nowrap ${
+              className={`text-[11px] font-medium whitespace-nowrap ${
                 s.step === currentStep
                   ? 'text-blue-600'
                   : s.step < currentStep
-                  ? 'text-gray-700'
+                  ? 'text-gray-600'
                   : 'text-gray-400'
               }`}
             >
@@ -68,7 +68,7 @@ export default function WizardProgress({
           </button>
 
           {index < steps.length - 1 && (
-            <div className="flex-1 h-0.5 mx-2 bg-gray-200">
+            <div className="flex-1 h-0.5 mx-1.5 bg-gray-200">
               <div
                 className={`h-full transition-all duration-300 ${
                   s.step < currentStep ? 'bg-blue-600' : 'bg-gray-200'

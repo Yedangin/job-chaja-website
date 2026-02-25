@@ -225,95 +225,109 @@ export default function FulltimeCreatePage() {
     );
   }
 
+  // 이전/다음 네비게이션 버튼 / Prev/next navigation buttons
+  const NavButtons = () => (
+    <div className="flex items-center justify-between pt-5 mt-5 border-t border-gray-100">
+      {step > 1 ? (
+        <button
+          type="button"
+          onClick={handlePrev}
+          className="px-5 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+        >
+          이전
+        </button>
+      ) : (
+        <div />
+      )}
+      {step < 5 ? (
+        <button
+          type="button"
+          onClick={handleNext}
+          className="px-7 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition min-w-[100px]"
+        >
+          다음
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={submitting}
+          className="px-7 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {submitting ? (
+            <>
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              등록 중...
+            </>
+          ) : (
+            '최종 등록하기'
+          )}
+        </button>
+      )}
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 상단 헤더 */}
-      <div className="sticky top-14 z-30 bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/company/fulltime" className="p-1.5 text-gray-500 hover:text-gray-700">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <h1 className="text-base font-bold text-gray-900">정규채용 공고 등록</h1>
+    <div className="bg-gray-50">
+      {/* 상단 컴팩트 스티키 바: 제목 + 진행 단계 / Compact sticky bar: title + step progress */}
+      <div className="sticky top-0 z-30 bg-white border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-4">
+          {/* 제목 행 / Title row */}
+          <div className="h-11 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Link href="/company/fulltime" className="p-1 text-gray-500 hover:text-gray-700">
+                <ArrowLeft className="w-4 h-4" />
+              </Link>
+              <h1 className="text-sm font-bold text-gray-900">정규채용 공고 등록</h1>
+            </div>
+            <button
+              type="button"
+              className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">임시저장</span>
+            </button>
           </div>
-          <button
-            type="button"
-            className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
-          >
-            <Save className="w-4 h-4" />
-            <span className="hidden sm:inline">임시저장</span>
-          </button>
+          {/* 진행 단계 표시 / Step progress */}
+          <div className="pb-2.5">
+            <WizardProgress currentStep={step} onStepClick={(s) => setStep(s)} />
+          </div>
         </div>
       </div>
 
-      {/* 진행 표시 */}
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <WizardProgress currentStep={step} onStepClick={(s) => setStep(s)} />
-      </div>
-
-      {/* 스텝 컨텐츠 */}
-      <div className="max-w-4xl mx-auto px-4 pb-32">
-        {step === 1 && <StepBasicInfo form={form} errors={errors} updateForm={updateForm} />}
-        {step === 2 && <StepWorkConditions form={form} errors={errors} updateForm={updateForm} />}
-        {step === 3 && <StepDetails form={form} errors={errors} updateForm={updateForm} />}
-        {step === 4 && (
-          <StepVisaMatching
-            form={form}
-            errors={errors}
-            updateForm={updateForm}
-            matchResult={matchResult}
-            isMatchLoading={isMatchLoading}
-            onRequestMatch={handleRequestMatch}
-          />
-        )}
-        {step === 5 && <StepPreview form={form} onGoToStep={setStep} />}
-      </div>
-
-      {/* 실시간 비자 필터링 인디케이터 / Real-time visa filtering indicator */}
-      <LiveVisaIndicator form={form} />
-
-      {/* 하단 네비게이션 */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          {step > 1 ? (
-            <button
-              type="button"
-              onClick={handlePrev}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-            >
-              이전
-            </button>
-          ) : (
-            <div />
-          )}
-
-          {step < 5 ? (
-            <button
-              type="button"
-              onClick={handleNext}
-              className="px-8 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition min-w-[120px]"
-            >
-              다음
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={submitting}
-              className="px-8 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition min-w-[120px] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {submitting ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  등록 중...
-                </>
-              ) : (
-                '최종 등록하기'
-              )}
-            </button>
-          )}
+      {/* 스텝 컨텐츠 — Steps 1~3: 2컬럼 (폼 + 비자 패널), Steps 4~5: 단일 컬럼 */}
+      {/* Step content — Steps 1~3: 2-column (form + visa panel), Steps 4~5: single column */}
+      {step <= 3 ? (
+        <div className="max-w-6xl mx-auto px-4 pt-5 pb-8">
+          <div className="flex gap-5 items-start">
+            <div className="flex-1 min-w-0">
+              {step === 1 && <StepBasicInfo form={form} errors={errors} updateForm={updateForm} />}
+              {step === 2 && <StepWorkConditions form={form} errors={errors} updateForm={updateForm} />}
+              {step === 3 && <StepDetails form={form} errors={errors} updateForm={updateForm} />}
+            </div>
+            {/* 우측 비자 패널 (sticky) / Right visa panel (sticky) */}
+            <div className="w-64 shrink-0 sticky top-[100px]">
+              <LiveVisaIndicator form={form} />
+            </div>
+          </div>
+          <NavButtons />
         </div>
-      </div>
+      ) : (
+        <div className="max-w-4xl mx-auto px-4 pt-5 pb-8">
+          {step === 4 && (
+            <StepVisaMatching
+              form={form}
+              errors={errors}
+              updateForm={updateForm}
+              matchResult={matchResult}
+              isMatchLoading={isMatchLoading}
+              onRequestMatch={handleRequestMatch}
+            />
+          )}
+          {step === 5 && <StepPreview form={form} onGoToStep={setStep} />}
+          <NavButtons />
+        </div>
+      )}
     </div>
   );
 }

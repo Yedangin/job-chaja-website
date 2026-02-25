@@ -86,9 +86,19 @@ export default function CompanyJobDetailPage() {
     const fetchJob = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/jobs/${id}`, { credentials: 'include' });
+        const sessionId = localStorage.getItem('sessionId');
+        const res = await fetch(`/api/jobs/${id}`, {
+          credentials: 'include',
+          headers: sessionId ? { 'Authorization': `Bearer ${sessionId}` } : {},
+        });
         if (res.ok) {
           const data = await res.json();
+          // allowedVisas 문자열→배열 변환 / Convert allowedVisas string to array
+          if (typeof data.allowedVisas === 'string') {
+            data.allowedVisas = data.allowedVisas.split(',').map((v: string) => v.trim()).filter(Boolean);
+          } else if (!Array.isArray(data.allowedVisas)) {
+            data.allowedVisas = [];
+          }
           setJob(data);
         } else {
           setError('공고를 불러올 수 없습니다.');
@@ -164,6 +174,9 @@ export default function CompanyJobDetailPage() {
           <ArrowLeft className="w-4 h-4" /> 뒤로
         </button>
         <div className="flex items-center gap-2">
+          <Link href={`/company/jobs/${id}/applicants`}>
+            <Button variant="outline" size="sm" className="text-xs gap-1 text-blue-600 border-blue-200 hover:bg-blue-50"><Users className="w-3 h-3" /> 지원자 관리</Button>
+          </Link>
           <Link href={`/company/jobs/create?copy=${id}`}>
             <Button variant="outline" size="sm" className="text-xs gap-1"><FileText className="w-3 h-3" /> 복사</Button>
           </Link>

@@ -1,10 +1,10 @@
 'use client';
 
 /**
- * 기업 쿠폰함 페이지 / Company Coupon Wallet Page
+ * 쿠폰함 페이지 / Coupon Wallet Page
  * - 쿠폰 코드 입력 및 유효성 검증 / Coupon code input and validation
  * - 등록된 쿠폰 목록 표시 (localStorage 기반) / Display registered coupons (localStorage-based)
- * - 공고 등록 시 쿠폰 사용 안내 / Coupon usage guide for job posting
+ * - 쿠폰 사용 방법 안내 / Coupon usage guide
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -24,8 +24,6 @@ import {
   Ticket,
   Percent,
   Wallet,
-  Star,
-  Briefcase,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -77,8 +75,8 @@ interface ValidateCouponResponse {
   message?: string;
 }
 
-// localStorage 키 (기업 전용 키) / localStorage key (company-specific)
-const COUPONS_STORAGE_KEY = 'jobchaja_company_registered_coupons';
+// localStorage 키 / localStorage key
+const COUPONS_STORAGE_KEY = 'jobchaja_registered_coupons';
 
 // ── 유틸 함수 / Utility functions ────────────────────────────────────────────
 
@@ -292,7 +290,7 @@ function CouponCard({ coupon }: CouponCardProps) {
         {/* 복사 버튼 / Copy button */}
         <button
           type="button"
-          onClick={() => void handleCopy()}
+          onClick={handleCopy}
           disabled={unavailable}
           className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg border transition shrink-0 disabled:opacity-40 disabled:cursor-not-allowed border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50"
         >
@@ -341,26 +339,23 @@ const FILTER_TABS: { key: FilterType; label: string }[] = [
   { key: 'unavailable', label: '만료/사용완료' },
 ];
 
-// ── 쿠폰 사용 안내 (기업용) / Coupon usage guide (company) ──────────────────
+// ── 쿠폰 사용 안내 / Coupon usage guide ─────────────────────────────────────
 function CouponGuide() {
-  // 기업용 안내 단계 목록 / Company-specific guide step list
+  // 안내 단계 목록 / Guide step list
   const steps = [
     {
       icon: <Tag className="w-4 h-4 text-blue-500" />,
       title: '쿠폰 코드 등록',
-      titleEn: 'Register Coupon Code',
       desc: '위 입력창에 쿠폰 코드를 입력하고 등록하기 버튼을 클릭하세요.',
     },
     {
-      icon: <Star className="w-4 h-4 text-amber-500" />,
-      title: '공고 등록 결제 시 적용',
-      titleEn: 'Apply on Job Posting',
-      desc: '프리미엄 공고 등록 또는 열람권 구매 결제 단계에서 쿠폰 코드를 입력하거나 보유 쿠폰을 선택하세요.',
+      icon: <ChevronRight className="w-4 h-4 text-blue-500" />,
+      title: '공고 등록 시 적용',
+      desc: '채용공고 등록 결제 단계에서 보유 쿠폰을 선택하거나 코드를 직접 입력하세요.',
     },
     {
-      icon: <CheckCircle2 className="w-4 h-4 text-green-500" />,
-      title: '할인 혜택 자동 적용',
-      titleEn: 'Discount Applied',
+      icon: <CheckCircle2 className="w-4 h-4 text-blue-500" />,
+      title: '할인 혜택 적용',
       desc: '결제 금액에서 쿠폰 할인이 자동으로 차감됩니다.',
     },
   ];
@@ -370,7 +365,7 @@ function CouponGuide() {
       {/* 안내 헤더 / Guide header */}
       <div className="flex items-center gap-2 mb-4">
         <Info className="w-4 h-4 text-blue-500 shrink-0" />
-        <h3 className="text-sm font-bold text-blue-700">쿠폰 사용 방법 / How to Use Coupons</h3>
+        <h3 className="text-sm font-bold text-blue-700">쿠폰 사용 방법</h3>
       </div>
       {/* 단계별 안내 / Step-by-step guide */}
       <div className="space-y-3">
@@ -381,33 +376,12 @@ function CouponGuide() {
               {idx + 1}
             </span>
             <div>
-              <div className="flex items-baseline gap-2">
-                <p className="text-sm font-semibold text-blue-800">{step.title}</p>
-                <p className="text-xs text-blue-500">{step.titleEn}</p>
-              </div>
+              <p className="text-sm font-semibold text-blue-800">{step.title}</p>
               <p className="text-xs text-blue-600 mt-0.5">{step.desc}</p>
             </div>
           </div>
         ))}
       </div>
-
-      {/* 적용 가능 상품 안내 / Applicable product guide */}
-      <div className="mt-4 pt-4 border-t border-blue-100">
-        <p className="text-xs font-semibold text-blue-700 mb-2">쿠폰 사용 가능 상품</p>
-        <div className="flex flex-wrap gap-2">
-          {/* 프리미엄 공고 / Premium job */}
-          <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">
-            <Star className="w-3 h-3" />
-            프리미엄 공고 업그레이드
-          </span>
-          {/* 열람권 / Viewing credits */}
-          <span className="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full font-medium">
-            <Briefcase className="w-3 h-3" />
-            이력서 열람권 구매
-          </span>
-        </div>
-      </div>
-
       {/* 유의사항 / Notes */}
       <div className="mt-4 pt-4 border-t border-blue-100">
         <p className="text-xs text-blue-500">
@@ -422,33 +396,10 @@ function CouponGuide() {
   );
 }
 
-// ── 공고 등록 바로가기 배너 / Job registration shortcut banner ───────────────
-function JobPostingBanner() {
-  return (
-    <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 text-white">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <p className="text-sm font-bold mb-1">공고 등록하고 쿠폰 사용하기</p>
-          <p className="text-xs text-blue-100">
-            프리미엄 공고 업그레이드 시 쿠폰으로 최대 할인 혜택을 받아보세요.
-          </p>
-        </div>
-        <Link
-          href="/company/jobs/create"
-          className="flex items-center gap-1.5 bg-white text-blue-700 text-xs font-bold px-3.5 py-2 rounded-xl hover:bg-blue-50 transition shrink-0"
-        >
-          공고 등록
-          <ChevronRight className="w-3.5 h-3.5" />
-        </Link>
-      </div>
-    </div>
-  );
-}
-
 // ══════════════════════════════════════════════════════════════════════════════
 // 메인 페이지 컴포넌트 / Main page component
 // ══════════════════════════════════════════════════════════════════════════════
-export default function CompanyCouponsPage() {
+export default function WorkerCouponsPage() {
   // 로그인 여부 / Whether user is logged in
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   // 쿠폰 목록 (localStorage 기반) / Coupon list (localStorage-based)
@@ -605,8 +556,8 @@ export default function CompanyCouponsPage() {
       {/* 페이지 헤더 / Page header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">쿠폰함</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Coupon Wallet</p>
+          <h1 className="text-xl font-bold text-gray-900">내 쿠폰함</h1>
+          <p className="text-sm text-gray-500 mt-0.5">My Coupon Wallet</p>
         </div>
         {isLoggedIn && (
           <div className="text-right">
@@ -622,9 +573,6 @@ export default function CompanyCouponsPage() {
       {/* 로그인 상태 / Logged in */}
       {isLoggedIn && (
         <div className="space-y-6">
-
-          {/* ── 공고 등록 바로가기 배너 / Job posting shortcut banner ──────── */}
-          <JobPostingBanner />
 
           {/* ── 쿠폰 등록 섹션 / Coupon registration section ─────────────────── */}
           <section className="bg-white rounded-2xl border border-gray-200 p-5">
@@ -647,7 +595,7 @@ export default function CompanyCouponsPage() {
                   value={inputCode}
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
-                  placeholder="쿠폰 코드 입력 (예: COMPANY2026)"
+                  placeholder="쿠폰 코드 입력 (예: JOBCHAJA2026)"
                   maxLength={50}
                   className={`w-full pl-9 pr-4 py-3 text-sm rounded-xl border transition outline-none font-mono tracking-wider ${
                     inputError
@@ -689,7 +637,7 @@ export default function CompanyCouponsPage() {
             {/* 섹션 헤더 / Section header */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-bold text-gray-900">
-                보유 쿠폰 목록
+                내 쿠폰 목록
                 {coupons.length > 0 && (
                   <span className="ml-2 text-xs font-semibold text-gray-400">
                     총 {coupons.length}개
