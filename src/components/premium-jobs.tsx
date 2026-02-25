@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, MapPin, Building2, Clock } from 'lucide-react';
+import { ArrowRight, MapPin, Building2, Clock, Crown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -27,7 +27,7 @@ function formatSalary(job: JobPosting): string {
   if (job.fulltimeAttributes) {
     const lo = job.fulltimeAttributes.salaryMin;
     const hi = job.fulltimeAttributes.salaryMax;
-    const fmt = (v: number | null) => v ? Math.round(v / 10000).toLocaleString() : '';
+    const fmt = (v: number | null) => (v ? Math.round(v / 10000).toLocaleString() : '');
     return `연봉 ${fmt(lo)}~${fmt(hi)}만원`;
   }
   return '급여 협의';
@@ -48,31 +48,25 @@ function avatarColor(name: string) {
   return AVATAR_COLORS[(name.charCodeAt(0) || 0) % AVATAR_COLORS.length];
 }
 
-function HorizontalJobCard({ job, faded }: { job: JobPosting; faded: boolean }) {
+function PremiumJobCard({ job, faded }: { job: JobPosting; faded: boolean }) {
   const companyName = job.company?.brandName || job.company?.companyName || '';
   const { label: ddayLabel, cls: ddayCls } = getDDayLabel(job.closingDate);
   const salary = formatSalary(job);
   const visas = job.allowedVisas.split(',').map((v) => v.trim()).slice(0, 4);
-  const isPremium = job.tierType === 'PREMIUM';
   const isClosed = ddayLabel === '마감';
 
   return (
     <div
-      className={`
-        group relative flex items-center gap-4 px-5 py-4 cursor-pointer transition-all duration-150
-        hover:bg-sky-50/60
-        ${isPremium ? 'border-l-[3px] border-l-sky-500' : 'border-l-[3px] border-l-transparent'}
-        ${faded ? 'opacity-40' : ''}
-      `}
+      className={`group relative flex items-center gap-4 px-5 py-4 cursor-pointer transition-all duration-150 hover:bg-amber-50/60 border-l-[3px] border-l-amber-400 ${faded ? 'opacity-40' : ''}`}
     >
       {/* Company logo / avatar */}
       <div className="shrink-0">
         {job.company?.logoImageUrl ? (
-          <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100 shadow-sm">
+          <div className="w-12 h-12 rounded-xl overflow-hidden border border-amber-100 shadow-sm">
             <Image src={job.company.logoImageUrl} alt={companyName} width={48} height={48} className="object-cover" />
           </div>
         ) : (
-          <div className={`w-12 h-12 rounded-xl ${avatarColor(companyName)} flex items-center justify-center text-white font-bold text-lg shadow-sm`}>
+          <div className={`w-12 h-12 rounded-xl ${avatarColor(companyName)} flex items-center justify-center text-white font-bold text-lg shadow-sm ring-2 ring-amber-200/70`}>
             {companyName.charAt(0)}
           </div>
         )}
@@ -80,38 +74,29 @@ function HorizontalJobCard({ job, faded }: { job: JobPosting; faded: boolean }) 
 
       {/* Center: title + meta + badges */}
       <div className="flex-1 min-w-0">
-        {/* Title row */}
         <div className="flex items-center gap-2 mb-1 flex-wrap">
-          {isPremium && (
-            <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded">
-              PREMIUM
-            </span>
-          )}
-          <h3 className={`text-[15px] font-semibold text-slate-900 truncate group-hover:text-sky-600 transition-colors ${isClosed ? 'line-through text-slate-400' : ''}`}>
+          <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded">
+            ★ PREMIUM
+          </span>
+          <h3 className={`text-[15px] font-semibold text-slate-900 truncate group-hover:text-amber-700 transition-colors ${isClosed ? 'line-through text-slate-400' : ''}`}>
             {job.title}
           </h3>
         </div>
-
-        {/* Company + location meta */}
         <div className="flex items-center gap-3 text-sm text-slate-500 mb-1.5 flex-wrap">
           <span className="flex items-center gap-1">
-            <Building2 className="w-3.5 h-3.5 text-slate-400" />
-            {companyName}
+            <Building2 className="w-3.5 h-3.5 text-slate-400" />{companyName}
           </span>
           <span className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-slate-400" />
-            {job.displayAddress}
+            <MapPin className="w-3.5 h-3.5 text-slate-400" />{job.displayAddress}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-slate-400" />
             {job.boardType === 'FULL_TIME' ? '정규직' : '알바'}
           </span>
         </div>
-
-        {/* Visa + type badges */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {visas.map((visa) => (
-            <span key={visa} className="text-xs font-medium text-sky-700 bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">
+            <span key={visa} className="text-xs font-medium text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
               {visa}
             </span>
           ))}
@@ -127,7 +112,7 @@ function HorizontalJobCard({ job, faded }: { job: JobPosting; faded: boolean }) 
 
       {/* Right: salary + D-day + action */}
       <div className="shrink-0 flex flex-col items-end gap-2 min-w-[140px]">
-        <span className="text-base font-bold text-sky-600 whitespace-nowrap">{salary}</span>
+        <span className="text-base font-bold text-amber-600 whitespace-nowrap">{salary}</span>
         {ddayLabel && <span className={`text-xs ${ddayCls}`}>{ddayLabel}</span>}
         <Link
           href={job.id !== '0' ? `/jobs/${job.id}` : '#'}
@@ -135,7 +120,7 @@ function HorizontalJobCard({ job, faded }: { job: JobPosting; faded: boolean }) 
           className={`text-xs font-semibold px-4 py-1.5 rounded-full transition whitespace-nowrap ${
             isClosed
               ? 'bg-slate-100 text-slate-400 cursor-not-allowed pointer-events-none'
-              : 'bg-slate-900 hover:bg-slate-700 text-white shadow-sm'
+              : 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
           }`}
         >
           {isClosed ? '마감' : '지원하기 →'}
@@ -168,37 +153,41 @@ export default function PremiumJobs() {
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900">주목할 만한 공고</h2>
-          <p className="text-xs text-slate-500 mt-0.5">프리미엄 채용 공고</p>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-amber-400 flex items-center justify-center shadow-sm shrink-0">
+            <Crown size={15} className="text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">주목할 만한 공고</h2>
+            <p className="text-xs text-amber-600 mt-0.5 font-medium">프리미엄 파트너 공고</p>
+          </div>
         </div>
-        <Link href="/alba" className="text-sm text-slate-500 hover:text-sky-600 transition flex items-center gap-1 font-medium">
+        <Link href="/alba" className="text-sm text-slate-500 hover:text-amber-600 transition flex items-center gap-1 font-medium">
           전체보기 <ArrowRight size={14} />
         </Link>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        {/* List header — Saramin-style count + sort */}
-        <div className="flex items-center justify-between px-5 py-3 bg-slate-50 border-b border-slate-100">
+      <div className="bg-white rounded-2xl shadow-md border border-amber-200/80 overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3 bg-amber-50/70 border-b border-amber-100">
           <span className="text-xs font-medium text-slate-600">
-            프리미엄 공고 <span className="text-sky-600 font-bold">{displayJobs.length}</span>건
+            프리미엄 공고 <span className="text-amber-600 font-bold">{displayJobs.length}</span>건
           </span>
           <div className="flex gap-1 text-xs text-slate-500">
             <span className="px-2 py-1 bg-white border border-slate-200 rounded cursor-pointer hover:bg-slate-50 transition">최신순</span>
-            <span className="px-2 py-1 bg-sky-50 border border-sky-200 text-sky-600 rounded cursor-pointer">급여순</span>
+            <span className="px-2 py-1 bg-amber-100 border border-amber-200 text-amber-700 rounded cursor-pointer">급여순</span>
           </div>
         </div>
 
         {displayJobs.map((job, idx) => (
           <div key={job.id + idx}>
-            <HorizontalJobCard job={job} faded={showExample} />
-            {idx < displayJobs.length - 1 && <div className="border-b border-slate-100 mx-5" />}
+            <PremiumJobCard job={job} faded={showExample} />
+            {idx < displayJobs.length - 1 && <div className="border-b border-amber-50 mx-5" />}
           </div>
         ))}
 
-        <div className="border-t border-slate-100 py-3.5 text-center bg-slate-50/50">
-          <Link href="/alba" className="text-sm text-sky-600 font-medium hover:text-sky-700 hover:underline transition-colors">
-            더 많은 프리미엄 공고 보기 →
+        <div className="border-t border-amber-100 py-3.5 text-center bg-amber-50/40">
+          <Link href="/alba" className="inline-flex items-center gap-1.5 text-sm text-amber-600 font-medium hover:text-amber-700 hover:underline transition-colors">
+            더 많은 프리미엄 공고 보기 <ArrowRight size={14} />
           </Link>
         </div>
       </div>

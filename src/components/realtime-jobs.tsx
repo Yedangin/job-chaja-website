@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, MapPin, Building2, Clock } from 'lucide-react';
+import { ArrowRight, MapPin, Building2, Clock, Zap } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -46,7 +46,7 @@ function avatarColor(name: string) {
   return AVATAR_COLORS[(name.charCodeAt(0) || 0) % AVATAR_COLORS.length];
 }
 
-function HorizontalJobCard({ job, faded }: { job: JobPosting; faded: boolean }) {
+function StandardJobCard({ job, faded }: { job: JobPosting; faded: boolean }) {
   const companyName = job.company?.brandName || job.company?.companyName || '';
   const { label: ddayLabel, cls: ddayCls } = getDDayLabel(job.closingDate);
   const salary = formatSalary(job);
@@ -54,15 +54,15 @@ function HorizontalJobCard({ job, faded }: { job: JobPosting; faded: boolean }) 
   const isClosed = ddayLabel === '마감';
 
   return (
-    <div className={`group flex items-center gap-4 px-5 py-4 cursor-pointer transition-all duration-150 hover:bg-sky-50/60 border-l-[3px] border-l-transparent ${faded ? 'opacity-40' : ''}`}>
+    <div className={`group flex items-center gap-4 px-5 py-4 cursor-pointer transition-all duration-150 hover:bg-sky-50/50 border-l-[3px] border-l-transparent hover:border-l-sky-300 ${faded ? 'opacity-40' : ''}`}>
       {/* Company logo / avatar */}
       <div className="shrink-0">
         {job.company?.logoImageUrl ? (
-          <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100 shadow-sm">
-            <Image src={job.company.logoImageUrl} alt={companyName} width={48} height={48} className="object-cover" />
+          <div className="w-11 h-11 rounded-xl overflow-hidden border border-slate-100 shadow-sm">
+            <Image src={job.company.logoImageUrl} alt={companyName} width={44} height={44} className="object-cover" />
           </div>
         ) : (
-          <div className={`w-12 h-12 rounded-xl ${avatarColor(companyName)} flex items-center justify-center text-white font-bold text-lg shadow-sm`}>
+          <div className={`w-11 h-11 rounded-xl ${avatarColor(companyName)} flex items-center justify-center text-white font-bold text-base shadow-sm`}>
             {companyName.charAt(0)}
           </div>
         )}
@@ -71,29 +71,29 @@ function HorizontalJobCard({ job, faded }: { job: JobPosting; faded: boolean }) 
       {/* Center: title + meta + badges */}
       <div className="flex-1 min-w-0">
         <div className="mb-1">
-          <h3 className={`text-[15px] font-semibold text-slate-900 truncate group-hover:text-sky-600 transition-colors ${isClosed ? 'line-through text-slate-400' : ''}`}>
+          <h3 className={`text-[14px] font-semibold text-slate-800 truncate group-hover:text-sky-600 transition-colors ${isClosed ? 'line-through text-slate-400' : ''}`}>
             {job.title}
           </h3>
         </div>
-        <div className="flex items-center gap-3 text-sm text-slate-500 mb-1.5 flex-wrap">
+        <div className="flex items-center gap-3 text-xs text-slate-500 mb-1.5 flex-wrap">
           <span className="flex items-center gap-1">
-            <Building2 className="w-3.5 h-3.5 text-slate-400" />{companyName}
+            <Building2 className="w-3 h-3 text-slate-400" />{companyName}
           </span>
           <span className="flex items-center gap-1">
-            <MapPin className="w-3.5 h-3.5 text-slate-400" />{job.displayAddress}
+            <MapPin className="w-3 h-3 text-slate-400" />{job.displayAddress}
           </span>
           <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
+            <Clock className="w-3 h-3 text-slate-400" />
             {job.boardType === 'FULL_TIME' ? '정규직' : '알바'}
           </span>
         </div>
         <div className="flex items-center gap-1.5 flex-wrap">
           {visas.map((visa) => (
-            <span key={visa} className="text-xs font-medium text-sky-700 bg-sky-50 border border-sky-100 px-2 py-0.5 rounded-full">
+            <span key={visa} className="text-[11px] font-medium text-sky-700 bg-sky-50 border border-sky-100 px-1.5 py-0.5 rounded-full">
               {visa}
             </span>
           ))}
-          <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
+          <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full border ${
             job.boardType === 'FULL_TIME'
               ? 'text-emerald-700 bg-emerald-50 border-emerald-100'
               : 'text-orange-700 bg-orange-50 border-orange-100'
@@ -104,13 +104,13 @@ function HorizontalJobCard({ job, faded }: { job: JobPosting; faded: boolean }) 
       </div>
 
       {/* Right: salary + D-day + action */}
-      <div className="shrink-0 flex flex-col items-end gap-2 min-w-[140px]">
-        <span className="text-base font-bold text-sky-600 whitespace-nowrap">{salary}</span>
-        {ddayLabel && <span className={`text-xs ${ddayCls}`}>{ddayLabel}</span>}
+      <div className="shrink-0 flex flex-col items-end gap-1.5 min-w-[130px]">
+        <span className="text-sm font-bold text-sky-600 whitespace-nowrap">{salary}</span>
+        {ddayLabel && <span className={`text-[11px] ${ddayCls}`}>{ddayLabel}</span>}
         <Link
           href={job.id !== '0' ? `/jobs/${job.id}` : '#'}
           onClick={(e) => e.stopPropagation()}
-          className={`text-xs font-semibold px-4 py-1.5 rounded-full transition whitespace-nowrap ${
+          className={`text-xs font-semibold px-3.5 py-1.5 rounded-full transition whitespace-nowrap ${
             isClosed
               ? 'bg-slate-100 text-slate-400 cursor-not-allowed pointer-events-none'
               : 'bg-slate-900 hover:bg-slate-700 text-white shadow-sm'
@@ -155,16 +155,21 @@ export default function RealtimeJobs() {
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900">실시간 채용 정보</h2>
-          <p className="text-xs text-slate-500 mt-0.5">지금 막 올라온 최신 공고</p>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-sky-500 flex items-center justify-center shadow-sm shrink-0">
+            <Zap size={15} className="text-white" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">실시간 채용 정보</h2>
+            <p className="text-xs text-sky-600 mt-0.5 font-medium">지금 막 올라온 최신 공고</p>
+          </div>
         </div>
         <div className="flex gap-1">
           {categories.map((cat) => (
             <button
               key={cat.value}
               onClick={() => setBoardFilter(cat.value)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                 boardFilter === cat.value ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-100'
               }`}
             >
@@ -187,7 +192,7 @@ export default function RealtimeJobs() {
 
         {displayJobs.map((job, idx) => (
           <div key={job.id + idx}>
-            <HorizontalJobCard job={job} faded={showExample} />
+            <StandardJobCard job={job} faded={showExample} />
             {idx < displayJobs.length - 1 && <div className="border-b border-slate-100 mx-5" />}
           </div>
         ))}
