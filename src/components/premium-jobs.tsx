@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, MapPin, Clock, Crown } from 'lucide-react';
+import { ArrowRight, MapPin, Crown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -70,53 +70,50 @@ function PremiumJobCard({ job, faded }: { job: JobPosting; faded: boolean }) {
       </div>
 
       {/* Card body */}
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-3.5 flex flex-col flex-1">
         {/* Company row */}
-        <div className="flex items-center gap-3 mb-3">
+        <div className="flex items-center gap-2.5 mb-2.5">
           {job.company?.logoImageUrl ? (
-            <div className="w-11 h-11 rounded-xl overflow-hidden border border-amber-100 shadow-sm shrink-0">
-              <Image src={job.company.logoImageUrl} alt={companyName} width={44} height={44} className="object-cover" />
+            <div className="w-9 h-9 rounded-xl overflow-hidden border border-amber-100 shadow-sm shrink-0">
+              <Image src={job.company.logoImageUrl} alt={companyName} width={36} height={36} className="object-cover" />
             </div>
           ) : (
-            <div className={`w-11 h-11 rounded-xl ${avatarColor(companyName)} flex items-center justify-center text-white font-bold text-lg shadow-sm ring-2 ring-amber-100 shrink-0`}>
+            <div className={`w-9 h-9 rounded-xl ${avatarColor(companyName)} flex items-center justify-center text-white font-bold text-base shadow-sm ring-2 ring-amber-100 shrink-0`}>
               {companyName.charAt(0)}
             </div>
           )}
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-800 truncate">{companyName}</p>
-            <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-              <MapPin size={10} className="shrink-0" />
+            <p className="text-xs font-semibold text-slate-800 truncate">{companyName}</p>
+            <p className="text-[10px] text-slate-400 flex items-center gap-0.5 mt-0.5">
+              <MapPin size={9} className="shrink-0" />
               <span className="truncate">{job.displayAddress}</span>
-              <span className="text-slate-300">·</span>
-              <Clock size={10} className="shrink-0" />
-              {job.boardType === 'FULL_TIME' ? '정규직' : '알바'}
             </p>
           </div>
         </div>
 
         {/* Job title */}
-        <h3 className={`text-[15px] font-bold leading-snug mb-3 line-clamp-2 group-hover:text-amber-700 transition-colors ${isClosed ? 'line-through text-slate-400' : 'text-slate-900'}`}>
+        <h3 className={`text-[13px] font-bold leading-snug mb-2.5 line-clamp-2 group-hover:text-amber-700 transition-colors ${isClosed ? 'line-through text-slate-400' : 'text-slate-900'}`}>
           {job.title}
         </h3>
 
         {/* Visa + type badges */}
-        <div className="flex flex-wrap gap-1 mb-4">
+        <div className="flex flex-wrap gap-1 mb-3">
           {visas.map((visa) => (
-            <span key={visa} className="text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded-full">
+            <span key={visa} className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded-full">
               {visa}
             </span>
           ))}
-          <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded-full border ${
+          <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full border ${
             job.boardType === 'FULL_TIME'
               ? 'text-emerald-700 bg-emerald-50 border-emerald-100'
               : 'text-orange-700 bg-orange-50 border-orange-100'
           }`}>
-            {job.boardType === 'FULL_TIME' ? '정규직' : '아르바이트'}
+            {job.boardType === 'FULL_TIME' ? '정규직' : '알바'}
           </span>
         </div>
 
         {/* Footer: salary + apply button */}
-        <div className="mt-auto flex items-center justify-between pt-3 border-t border-slate-50">
+        <div className="mt-auto flex items-center justify-between pt-2.5 border-t border-slate-50">
           <span className="text-base font-bold text-amber-600">{salary}</span>
           <Link
             href={job.id !== '0' ? `/jobs/${job.id}` : '#'}
@@ -173,8 +170,8 @@ export default function PremiumJobs() {
         </Link>
       </div>
 
-      {/* 2-column card grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* 4-column card grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {displayJobs.map((job, idx) => (
           <PremiumJobCard key={job.id + idx} job={job} faded={showExample} />
         ))}
