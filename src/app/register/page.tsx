@@ -70,8 +70,8 @@ export default function RegisterPage() {
 
   // 세션 확인 + 기업 인증 상태 조회
   useEffect(() => {
-    const sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') : null;
-    if (!sessionId) {
+    const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    if (!accessToken) {
       setAuthLoading(false);
       return;
     }
@@ -80,7 +80,7 @@ export default function RegisterPage() {
       try {
         const profileRes = await fetch('/api/auth/profile', {
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionId}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
         });
         if (!profileRes.ok) { setAuthLoading(false); return; }
         const profile = await profileRes.json();
@@ -89,7 +89,7 @@ export default function RegisterPage() {
         // 기업 인증 상태 조회
         const verifyRes = await fetch('/api/auth/corporate-verify', {
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionId}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
         });
         if (verifyRes.ok) {
           const data = await verifyRes.json();
@@ -205,7 +205,7 @@ export default function RegisterPage() {
     setUploading(true);
 
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const formData = new FormData();
       formData.append('file', file);
       formData.append('docType', docType);
@@ -215,7 +215,7 @@ export default function RegisterPage() {
       const res = await fetch(`${backendUrl}/auth/upload-corporate-doc`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Authorization': `Bearer ${sessionId}` },
+        headers: { 'Authorization': `Bearer ${accessToken}` },
         body: formData,
       });
 
@@ -258,11 +258,11 @@ export default function RegisterPage() {
     if (!canSubmit) return;
     setSubmitting(true);
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const res = await fetch('/api/auth/corporate-verify', {
         method: 'PUT',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionId}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
         body: JSON.stringify({
           bizRegNumber: formData.bizNo,
           companyNameOfficial: formData.companyName,

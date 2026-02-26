@@ -67,8 +67,8 @@ export default function AlbaPage() {
 
   // 사용자 상태 확인 / Check user auth state + visa verification
   useEffect(() => {
-    const sessionId = localStorage.getItem('sessionId');
-    if (!sessionId) {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
       setUserMode('guest');
       return;
     }

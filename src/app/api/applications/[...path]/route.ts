@@ -9,7 +9,7 @@ async function proxyRequest(
 ) {
   const { path } = await context.params;
   const search = request.nextUrl.search;
-  const url = `${BACKEND_URL}/${path.join('/')}${search}`;
+  const url = `${BACKEND_URL}/applications/${path.join('/')}${search}`;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

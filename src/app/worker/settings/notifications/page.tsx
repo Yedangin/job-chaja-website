@@ -72,9 +72,9 @@ export default function WorkerNotificationsSettingsPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const sessionId = localStorage.getItem('sessionId');
+        const accessToken = localStorage.getItem('accessToken');
         const res = await fetch('/api/auth/my/notification-settings', {
-          headers: sessionId ? { Authorization: `Bearer ${sessionId}` } : {},
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
         });
         if (!res.ok) return;
         const data = await res.json();
@@ -103,12 +103,12 @@ export default function WorkerNotificationsSettingsPage() {
     setSaving(true);
     setError(null);
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const res = await fetch('/api/auth/my/notification-settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...(sessionId ? { Authorization: `Bearer ${sessionId}` } : {}),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
           sms:      settings.sms,
@@ -122,7 +122,7 @@ export default function WorkerNotificationsSettingsPage() {
 
       // 저장 후 갱신된 설정 반영 / Reload to get updated timestamps
       const refreshRes = await fetch('/api/auth/my/notification-settings', {
-        headers: sessionId ? { Authorization: `Bearer ${sessionId}` } : {},
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
       });
       if (refreshRes.ok) {
         const refreshed = await refreshRes.json();

@@ -14,9 +14,10 @@ export interface LoginRequest {
   password: string;
 }
 
-// 로그인 응답
+// 로그인 응답 (백엔드가 accessToken 또는 sessionId를 반환할 수 있음)
 export interface LoginResponse {
-  sessionId: string;
+  accessToken?: string;
+  sessionId?: string;
   user: {
     id: string;
     email: string;

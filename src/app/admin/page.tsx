@@ -186,7 +186,7 @@ export default function AdminPage() {
   // Policy management state
   const [policyTab, setPolicyTab] = useState('changes');
 
-  const sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') : null;
+  const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
   const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     return fetch(url, {
@@ -194,7 +194,7 @@ export default function AdminPage() {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${sessionId}`,
+        'Authorization': `Bearer ${accessToken}`,
         ...(options.headers || {}),
       },
     });
@@ -203,10 +203,10 @@ export default function AdminPage() {
   useEffect(() => {
     const checkAuthAndLoadStats = async () => {
       try {
-        if (!sessionId) { router.push('/login'); return; }
+        if (!accessToken) { router.push('/login'); return; }
 
         const profileRes = await fetchWithAuth('/api/auth/profile');
-        if (!profileRes.ok) { localStorage.removeItem('sessionId'); router.push('/login'); return; }
+        if (!profileRes.ok) { localStorage.removeItem('accessToken'); router.push('/login'); return; }
 
         const profileData = await profileRes.json();
         if (profileData.user?.role !== 5) { router.push('/'); return; }
@@ -292,9 +292,9 @@ export default function AdminPage() {
 
   const handleLogout = async () => {
     try {
-      if (sessionId) await fetchWithAuth('/api/auth/logout', { method: 'POST' });
+      if (accessToken) await fetchWithAuth('/api/auth/logout', { method: 'POST' });
     } catch { }
-    localStorage.removeItem('sessionId');
+    localStorage.removeItem('accessToken');
     router.push('/login');
   };
 

@@ -70,26 +70,32 @@ export default function CompanyApplicantsPage() {
   const [interviewModal, setInterviewModal] = useState<Applicant | null>(null);
   const [interviewDate, setInterviewDate] = useState('');
   const [interviewNote, setInterviewNote] = useState('');
+  const [interviewMethod, setInterviewMethod] = useState<'ONLINE' | 'OFFLINE'>('OFFLINE');
+  const [interviewDate2, setInterviewDate2] = useState('');
+  const [meetingLink, setMeetingLink] = useState('');
+  const [interviewAddress, setInterviewAddress] = useState('');
+  const [interviewDirections, setInterviewDirections] = useState('');
+  const [whatToBring, setWhatToBring] = useState('');
   const [resultModal, setResultModal] = useState<{ applicant: Applicant; type: 'accept' | 'reject' } | null>(null);
   const [resultMessage, setResultMessage] = useState('');
   const [creditModal, setCreditModal] = useState<Applicant | null>(null);
 
   // 데이터 로드 / Load data
   useEffect(() => {
-    const sessionId = localStorage.getItem('sessionId');
-    if (!sessionId) return;
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) return;
 
     // 공고 정보 / Job info
-    fetch(`/api/jobs/${jobId}`, { credentials: 'include', headers: { 'Authorization': `Bearer ${sessionId}` } })
+    fetch(`/api/jobs/${jobId}`, { credentials: 'include', headers: { 'Authorization': `Bearer ${accessToken}` } })
       .then(r => r.ok ? r.json() : null)
       .then(data => { if (data) setJob({ id: data.id, title: data.title, closingDate: data.closingDate, allowedVisas: data.allowedVisas, applicantCount: data.applicantCount }); })
       .catch(() => {});
 
     // 지원자 목록 / Applicants
-    fetch(`/api/applications/job/${jobId}`, { credentials: 'include', headers: { 'Authorization': `Bearer ${sessionId}` } })
+    fetch(`/api/applications/job/${jobId}`, { credentials: 'include', headers: { 'Authorization': `Bearer ${accessToken}` } })
       .then(r => r.ok ? r.json() : [])
       .then(data => {
-        const list = Array.isArray(data) ? data : data.applications || data.data || [];
+        const list = Array.isArray(data) ? data : data.items || data.applications || data.data || [];
         setApplicants(list.map((a: Record<string, unknown>) => ({
           id: a.id as number,
           userId: a.userId as number | undefined,
@@ -129,10 +135,10 @@ export default function CompanyApplicantsPage() {
   // 지원자 상태 변경 / Update applicant status
   const updateStatus = async (applicant: Applicant, newStatus: Stage) => {
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const res = await fetch(`/api/applications/${applicant.id}/status`, {
         method: 'PUT', credentials: 'include',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionId}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
         body: JSON.stringify({ status: newStatus }),
       });
       if (res.ok) {
@@ -178,20 +184,92 @@ export default function CompanyApplicantsPage() {
 
   // 면접 제의 / Send interview request
   const sendInterview = async () => {
-    if (!interviewModal || !interviewDate) { toast.error('면접 일시를 선택해주세요.'); return; }
-    await updateStatus(interviewModal, 'INTERVIEW');
-    toast.success(`${interviewModal.fullName}님에게 면접이 제의되었습니다.`);
+    if (!interviewModal || !interviewDate) { toast.error('1순위 면접 일시를 선택해주세요.'); return; }
+    if (!interviewDate2) { toast.error('2순위 면접 일시를 선택해주세요.'); return; }
+    if (interviewMethod === 'ONLINE' && !meetingLink) { toast.error('미팅 링크를 입력해주세요.'); return; }
+    if (interviewMethod === 'OFFLINE' && !interviewAddress) { toast.error('면접 장소를 입력해주세요.'); return; }
+
+    const notePayload = JSON.stringify({
+      method: interviewMethod,
+      slot1: interviewDate,
+      slot2: interviewDate2,
+      meetingLink: interviewMethod === 'ONLINE' ? meetingLink : '',
+      address: interviewMethod === 'OFFLINE' ? interviewAddress : '',
+      directions: interviewMethod === 'OFFLINE' ? interviewDirections : '',
+      whatToBring,
+      selectedSlot: null,
+      cancelledBy: null,
+      cancelReason: null,
+      resultMessage: '',
+    });
+
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      const res = await fetch(`/api/applications/${interviewModal.id}/status`, {
+        method: 'PUT', credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+        body: JSON.stringify({ status: 'INTERVIEW_REQUESTED', interviewDate, interviewNote: notePayload }),
+      });
+      if (res.ok) {
+        setApplicants(prev => prev.map(a => a.id === interviewModal.id ? { ...a, status: 'INTERVIEW' as Stage } : a));
+        toast.success(`${interviewModal.fullName}님에게 면접이 제의되었습니다.`);
+      } else { toast.error('면접 제의에 실패했습니다.'); }
+    } catch { toast.error('네트워크 오류'); }
+
     setInterviewModal(null);
     setInterviewDate('');
+    setInterviewDate2('');
     setInterviewNote('');
+    setInterviewMethod('OFFLINE');
+    setMeetingLink('');
+    setInterviewAddress('');
+    setInterviewDirections('');
+    setWhatToBring('');
   };
 
   // 합격/불합격 통보 / Send result
   const sendResult = async () => {
     if (!resultModal) return;
     const newStatus: Stage = resultModal.type === 'accept' ? 'ACCEPTED' : 'REJECTED';
-    await updateStatus(resultModal.applicant, newStatus);
-    toast.success(`${resultModal.applicant.fullName}님에게 ${resultModal.type === 'accept' ? '합격' : '불합격'} 통보가 발송되었습니다.`);
+
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+
+      // Read existing interviewNote and update with resultMessage
+      let updatedNote: Record<string, unknown> = {};
+      try {
+        const appRes = await fetch(`/api/applications/${resultModal.applicant.id}`, {
+          credentials: 'include',
+          headers: { 'Authorization': `Bearer ${accessToken}` },
+        });
+        if (appRes.ok) {
+          const appData = await appRes.json();
+          if (appData.interviewNote) {
+            updatedNote = JSON.parse(appData.interviewNote);
+          }
+        }
+      } catch { /* ignore parse errors, proceed with empty note */ }
+      updatedNote.resultMessage = resultMessage;
+
+      const body: Record<string, string> = {
+        status: resultModal.type === 'accept' ? 'ACCEPTED' : 'REJECTED',
+        interviewNote: JSON.stringify(updatedNote),
+      };
+      if (resultModal.type === 'reject' && resultMessage) {
+        body.rejectionReason = resultMessage;
+      }
+
+      const res = await fetch(`/api/applications/${resultModal.applicant.id}/status`, {
+        method: 'PUT', credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        setApplicants(prev => prev.map(a => a.id === resultModal.applicant.id ? { ...a, status: newStatus } : a));
+        toast.success(`${resultModal.applicant.fullName}님에게 ${resultModal.type === 'accept' ? '합격' : '불합격'} 통보가 발송되었습니다.`);
+      } else { toast.error('통보 발송에 실패했습니다.'); }
+    } catch { toast.error('네트워크 오류'); }
+
     setResultModal(null);
     setResultMessage('');
   };
@@ -448,25 +526,69 @@ export default function CompanyApplicantsPage() {
       {/* 면접 제의 / Interview request modal */}
       {interviewModal && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-sm w-full p-6">
+          <div className="bg-white rounded-xl max-w-md w-full max-h-[85vh] overflow-y-auto p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-gray-900">면접 제의</h3>
-              <button onClick={() => setInterviewModal(null)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+              <button onClick={() => { setInterviewModal(null); setInterviewDate(''); setInterviewDate2(''); setInterviewNote(''); setInterviewMethod('OFFLINE'); setMeetingLink(''); setInterviewAddress(''); setInterviewDirections(''); setWhatToBring(''); }} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
             </div>
             <p className="text-sm text-gray-500 mb-4">{interviewModal.fullName}님에게 면접을 제의합니다.</p>
             <div className="space-y-3">
+              {/* 면접 방식 / Interview method toggle */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">면접 일시 <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">면접 방식 <span className="text-red-500">*</span></label>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setInterviewMethod('ONLINE')}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg border transition ${
+                      interviewMethod === 'ONLINE' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                    }`}>
+                    온라인
+                  </button>
+                  <button type="button" onClick={() => setInterviewMethod('OFFLINE')}
+                    className={`flex-1 py-2 text-sm font-medium rounded-lg border transition ${
+                      interviewMethod === 'OFFLINE' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                    }`}>
+                    오프라인
+                  </button>
+                </div>
+              </div>
+              {/* 1순위 면접 일시 / 1st priority datetime */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">1순위 면접 일시 <span className="text-red-500">*</span></label>
                 <Input type="datetime-local" value={interviewDate} onChange={e => setInterviewDate(e.target.value)} />
               </div>
+              {/* 2순위 면접 일시 / 2nd priority datetime */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">안내 메시지 (선택)</label>
-                <textarea value={interviewNote} onChange={e => setInterviewNote(e.target.value)} rows={3} placeholder="면접 장소, 준비사항 등"
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" />
+                <label className="block text-xs font-medium text-gray-700 mb-1">2순위 면접 일시 <span className="text-red-500">*</span></label>
+                <Input type="datetime-local" value={interviewDate2} onChange={e => setInterviewDate2(e.target.value)} />
+              </div>
+              {/* 온라인: 미팅 링크 / Online: meeting link */}
+              {interviewMethod === 'ONLINE' && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">미팅 링크 <span className="text-red-500">*</span></label>
+                  <Input type="text" value={meetingLink} onChange={e => setMeetingLink(e.target.value)} placeholder="https://zoom.us/..." />
+                </div>
+              )}
+              {/* 오프라인: 주소 / Offline: address */}
+              {interviewMethod === 'OFFLINE' && (
+                <>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">면접 장소 <span className="text-red-500">*</span></label>
+                    <Input type="text" value={interviewAddress} onChange={e => setInterviewAddress(e.target.value)} placeholder="서울시 강남구 테헤란로 123" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">층/호수/찾아오는 길 (선택)</label>
+                    <Input type="text" value={interviewDirections} onChange={e => setInterviewDirections(e.target.value)} placeholder="3층 301호, 엘리베이터 이용" />
+                  </div>
+                </>
+              )}
+              {/* 준비물 / What to bring */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">준비물 (선택)</label>
+                <Input type="text" value={whatToBring} onChange={e => setWhatToBring(e.target.value)} placeholder="여권, 이력서 등" />
               </div>
             </div>
             <div className="flex gap-2 mt-4">
-              <Button variant="outline" className="flex-1" onClick={() => setInterviewModal(null)}>취소</Button>
+              <Button variant="outline" className="flex-1" onClick={() => { setInterviewModal(null); setInterviewDate(''); setInterviewDate2(''); setInterviewNote(''); setInterviewMethod('OFFLINE'); setMeetingLink(''); setInterviewAddress(''); setInterviewDirections(''); setWhatToBring(''); }}>취소</Button>
               <Button className="flex-1 bg-amber-500 hover:bg-amber-600 text-white gap-1" onClick={sendInterview}>
                 <Send className="w-3.5 h-3.5" /> 면접 제의
               </Button>

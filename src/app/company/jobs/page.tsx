@@ -47,10 +47,10 @@ export default function CompanyJobsPage() {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const res = await fetch(`/api/jobs/my/list?status=${statusMap[activeTab]}&page=1&limit=50`, {
         credentials: 'include',
-        headers: { 'Authorization': `Bearer ${sessionId}` },
+        headers: { 'Authorization': `Bearer ${accessToken}` },
       });
       if (res.ok) {
         const data = await res.json();
@@ -94,10 +94,10 @@ export default function CompanyJobsPage() {
   // 공고 마감 / Close job
   const handleClose = async (jobId: number) => {
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const res = await fetch(`/api/jobs/${jobId}/close`, {
         method: 'POST', credentials: 'include',
-        headers: { 'Authorization': `Bearer ${sessionId}` },
+        headers: { 'Authorization': `Bearer ${accessToken}` },
       });
       if (res.ok) { toast.success('공고가 마감되었습니다.'); fetchJobs(); }
       else { toast.error('마감 처리에 실패했습니다.'); }

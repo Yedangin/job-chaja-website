@@ -45,16 +45,16 @@ export default function AdminGuidePage() {
     thumbnail: '',
   });
 
-  const getSessionId = () =>
-    typeof window !== 'undefined' ? localStorage.getItem('sessionId') : null;
+  const getAccessToken = () =>
+    typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
   const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-    const sessionId = getSessionId();
+    const accessToken = getAccessToken();
     return fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        ...(sessionId ? { Authorization: `Bearer ${sessionId}` } : {}),
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         ...((options.headers as Record<string, string>) || {}),
       },
     });
@@ -76,8 +76,8 @@ export default function AdminGuidePage() {
   };
 
   useEffect(() => {
-    const sessionId = getSessionId();
-    if (!sessionId) {
+    const accessToken = getAccessToken();
+    if (!accessToken) {
       router.push('/login');
       return;
     }

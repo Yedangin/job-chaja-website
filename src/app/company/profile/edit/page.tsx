@@ -63,10 +63,10 @@ export default function CompanyProfileEditPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const sessionId = localStorage.getItem('sessionId');
+        const accessToken = localStorage.getItem('accessToken');
         const res = await fetch('/api/auth/corporate-verify', {
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionId}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
         });
         if (res.ok) {
           const data = await res.json();
@@ -117,11 +117,11 @@ export default function CompanyProfileEditPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const res = await fetch('/api/auth/corporate-verify', {
         method: 'PUT',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionId}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
         body: JSON.stringify({
           industry: form.industry,
           companySize: form.companySize,

@@ -76,7 +76,7 @@ export default function WorkerProfilePage() {
     setSaveSuccess(false);
 
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const body: Record<string, string> = { fullName: fullName.trim() };
       if (imageToSave) body.profileImageUrl = imageToSave;
 
@@ -84,7 +84,7 @@ export default function WorkerProfilePage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          ...(sessionId ? { Authorization: `Bearer ${sessionId}` } : {}),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify(body),
       });

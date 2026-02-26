@@ -9,13 +9,13 @@ export const apiClient = axios.create({
   },
 });
 
-// 요청 인터셉터: sessionId 자동 추가
+// 요청 인터셉터: accessToken 자동 추가
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      const sessionId = localStorage.getItem('sessionId');
-      if (sessionId) {
-        config.headers.Authorization = `Bearer ${sessionId}`;
+      const accessToken = localStorage.getItem('accessToken');
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
       }
     }
     return config;
@@ -34,7 +34,7 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         const isLoginPage = window.location.pathname.startsWith('/login');
-        localStorage.removeItem('sessionId');
+        localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
         if (!isLoginPage) {
           window.location.href = '/login';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { User, ChevronDown } from 'lucide-react';
+import { ChevronDown, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth, getRoleHomePath } from '@/contexts/auth-context';
@@ -253,28 +253,34 @@ export default function Header() {
           ) : !isLoggedIn ? (
             <>
               <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="px-3 py-1.5 text-gray-600 hover:text-gray-900 font-medium transition">로그인</Link>
-              <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="px-3 py-1.5 bg-sky-600 text-white rounded-xl font-semibold hover:bg-sky-700 transition">회원가입</Link>
+              <Link href={`/register?redirect=${encodeURIComponent(pathname)}`} className="px-3 py-1.5 bg-sky-600 text-white rounded-xl font-semibold hover:bg-sky-700 transition">회원가입</Link>
             </>
-          ) : role === 'INDIVIDUAL' ? (
-            <>
-              <Link href="/worker/mypage" className="px-2 py-1.5 text-gray-600 hover:text-sky-600 transition flex items-center gap-1">
-                <User className="w-4 h-4" />
-                <span className="hidden sm:inline">마이페이지</span>
+          ) : (
+            <div className="flex items-center gap-2">
+              {/* Avatar + profile link */}
+              <Link
+                href={role === 'CORPORATE' ? '/company/mypage' : role === 'ADMIN' ? '/admin' : '/worker/mypage'}
+                className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-sky-50 transition group"
+              >
+                <div className="w-7 h-7 rounded-full bg-sky-500 flex items-center justify-center text-white text-xs font-bold shadow-sm shrink-0">
+                  {user?.fullName?.charAt(0) || 'U'}
+                </div>
+                {/* <span className="hidden sm:inline text-sm text-gray-700 group-hover:text-sky-600 font-medium truncate max-w-[120px]">
+                  {role === 'CORPORATE' ? (user?.companyName || user?.fullName) : user?.fullName}
+                </span>*/}
               </Link>
-              <Link href="/worker/dashboard" className="px-2 py-1.5 text-gray-600 hover:text-sky-600 font-medium transition">대시보드</Link>
-              <button onClick={logout} className="px-2 py-1.5 text-gray-400 hover:text-gray-600 transition">로그아웃</button>
-            </>
-          ) : role === 'CORPORATE' ? (
-            <>
-              <Link href="/company/dashboard" className="px-2 py-1.5 text-gray-600 hover:text-sky-600 font-medium transition">기업 대시보드</Link>
-              <button onClick={logout} className="px-2 py-1.5 text-gray-400 hover:text-gray-600 transition">로그아웃</button>
-            </>
-          ) : role === 'ADMIN' ? (
-            <>
-              <Link href="/admin" className="px-2 py-1.5 text-gray-600 hover:text-sky-600 font-medium transition">관리자</Link>
-              <button onClick={logout} className="px-2 py-1.5 text-gray-400 hover:text-gray-600 transition">로그아웃</button>
-            </>
-          ) : null}
+
+              {/* Logout */}
+              <button
+                onClick={logout}
+                className="flex items-center gap-1 px-2 py-1.5 text-gray-400 hover:text-red-500 transition rounded-lg hover:bg-red-50 text-sm"
+                title="로그아웃"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">로그아웃</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

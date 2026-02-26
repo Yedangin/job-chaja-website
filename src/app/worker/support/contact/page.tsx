@@ -33,13 +33,13 @@ export default function WorkerSupportContactPage() {
     setSubmitting(true);
     setError(null);
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const fullTitle = category ? `[${category}] ${title.trim()}` : title.trim();
       const res = await fetch('/api/auth/support-ticket', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(sessionId ? { Authorization: `Bearer ${sessionId}` } : {}),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({ title: fullTitle, content: content.trim() }),
       });

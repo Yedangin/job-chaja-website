@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 /**
  * 사용자 역할 / User role enum
@@ -68,16 +68,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const pathname = usePathname();
 
-  // URL에서 sessionId 추출하여 localStorage에 저장 (소셜 로그인 OAuth 콜백 처리)
-  // Extract sessionId from URL after OAuth callback and handle pending redirect
+  // URL에서 accessToken 추출하여 localStorage에 저장 (소셜 로그인 OAuth 콜백 처리)
+  // Extract accessToken from URL after OAuth callback and handle pending redirect
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
-    const urlSessionId = params.get('sessionId');
-    if (urlSessionId) {
-      localStorage.setItem('sessionId', urlSessionId);
+    // 백엔드가 accessToken 또는 sessionId를 반환할 수 있음
+    const urlToken = params.get('accessToken') || params.get('sessionId');
+    if (urlToken) {
+      localStorage.setItem('accessToken', urlToken);
       window.history.replaceState({}, '', window.location.pathname);
 
       // 소셜 로그인 전에 저장한 pending_redirect 쿠키 확인 후 이동
@@ -96,14 +96,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshAuth = useCallback(async () => {
     try {
-      const sessionId = typeof window !== 'undefined'
-        ? localStorage.getItem('sessionId')
+      const accessToken = typeof window !== 'undefined'
+        ? localStorage.getItem('accessToken')
         : null;
 
-      console.log('[AuthContext] refreshAuth - sessionId:', sessionId ? 'EXISTS' : 'NULL');
+      console.log('[AuthContext] refreshAuth - accessToken:', accessToken ? 'EXISTS' : 'NULL');
 
-      if (!sessionId) {
-        console.log('[AuthContext] No sessionId, setting user to null');
+      if (!accessToken) {
+        console.log('[AuthContext] No accessToken, setting user to null');
         setUser(null);
         setIsLoading(false);
         return;
@@ -114,15 +114,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionId}`,
+          'Authorization': `Bearer ${accessToken}`,
         },
       });
 
       console.log('[AuthContext] Response status:', res.status);
 
       if (!res.ok) {
-        console.log('[AuthContext] Profile fetch failed, removing sessionId');
-        localStorage.removeItem('sessionId');
+        console.log('[AuthContext] Profile fetch failed, removing accessToken');
+        localStorage.removeItem('accessToken');
         setUser(null);
         setIsLoading(false);
         return;
@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             credentials: 'include',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${sessionId}`,
+              'Authorization': `Bearer ${accessToken}`,
             },
           });
           if (verifyRes.ok) {
@@ -162,7 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         companyName: data.user?.companyName || data.user?.fullName || '',
       });
     } catch {
-      localStorage.removeItem('sessionId');
+      localStorage.removeItem('accessToken');
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -175,21 +175,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
-      const sessionId = localStorage.getItem('sessionId');
-      if (sessionId) {
+      const accessToken = localStorage.getItem('accessToken');
+      if (accessToken) {
         await fetch('/api/auth/logout', {
           method: 'POST',
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sessionId}`,
+            'Authorization': `Bearer ${accessToken}`,
           },
         });
       }
     } catch {
       // 로그아웃 실패 무시 / Ignore logout failure
     } finally {
-      localStorage.removeItem('sessionId');
+      localStorage.removeItem('accessToken');
       setUser(null);
       router.push('/login');
     }

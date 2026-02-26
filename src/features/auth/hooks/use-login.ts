@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLanguage } from '@/i18n/LanguageProvider';
+import { useAuth } from '@/contexts/auth-context';
 import { authApi } from '../api/auth.api';
 import { loginSchema, type LoginFormData } from '../schemas/auth.schema';
 import { toast } from '@/lib/toast';
@@ -15,6 +16,7 @@ export function useLogin() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();
+  const { refreshAuth } = useAuth();
   const [memberType, setMemberType] = useState<MemberType>('seeker');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,13 +40,20 @@ export function useLogin() {
     try {
       const response = await authApi.login({ ...data, memberType });
 
-      if (!response.sessionId) {
-        setError('서버에서 세션ID를 받지 못했습니다');
+      // 백엔드가 accessToken 또는 sessionId를 반환할 수 있음
+      // Backend may return accessToken or sessionId
+      const token = response.accessToken || response.sessionId;
+      if (!token) {
+        setError('서버에서 토큰을 받지 못했습니다');
         return;
       }
 
-      // sessionId 저장 / Store sessionId
-      localStorage.setItem('sessionId', response.sessionId);
+      // accessToken으로 저장 / Store as accessToken
+      localStorage.setItem('accessToken', token);
+
+      // AuthContext 새로고침 — RoleGuard/Header가 즉시 인증 상태를 인식
+      // Refresh auth context so RoleGuard/Header see the logged-in state immediately
+      await refreshAuth();
 
       // redirect 파라미터가 있으면 해당 경로로, 없으면 role 기반 기본 경로로 이동
       // If redirect param exists, use it; otherwise fall back to role-based default

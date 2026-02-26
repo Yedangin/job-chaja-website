@@ -46,9 +46,9 @@ export default function WorkerPasswordPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const sessionId = localStorage.getItem('sessionId');
+        const accessToken = localStorage.getItem('accessToken');
         const res = await fetch('/api/auth/my/profile-detail', {
-          headers: sessionId ? { Authorization: `Bearer ${sessionId}` } : {},
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
         });
         if (res.ok) {
           const data = await res.json();
@@ -71,12 +71,12 @@ export default function WorkerPasswordPage() {
     }
     setVerifying(true);
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const res = await fetch('/api/auth/verify-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(sessionId ? { Authorization: `Bearer ${sessionId}` } : {}),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({ password: verifyPw }),
       });
@@ -107,12 +107,12 @@ export default function WorkerPasswordPage() {
     }
     setSaving(true);
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const res = await fetch('/api/auth/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(sessionId ? { Authorization: `Bearer ${sessionId}` } : {}),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({ oldPassword, newPassword }),
       });

@@ -81,14 +81,14 @@ export default function CompanyVerificationPage() {
 
   // 기업 인증 상태 조회 / Fetch corporate verification status
   useEffect(() => {
-    const sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') : null;
-    if (!sessionId) { setPageLoading(false); return; }
+    const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    if (!accessToken) { setPageLoading(false); return; }
 
     const fetchStatus = async () => {
       try {
         const res = await fetch('/api/auth/corporate-verify', {
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionId}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
         });
         if (res.ok) {
           const data = await res.json();
@@ -170,7 +170,7 @@ export default function CompanyVerificationPage() {
     setUploading(true);
 
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const fd = new FormData();
       fd.append('file', file);
       fd.append('docType', docType);
@@ -179,7 +179,7 @@ export default function CompanyVerificationPage() {
       const res = await fetch(`${backendUrl}/auth/upload-corporate-doc`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Authorization': `Bearer ${sessionId}` },
+        headers: { 'Authorization': `Bearer ${accessToken}` },
         body: fd,
       });
       const data = await res.json();
@@ -215,11 +215,11 @@ export default function CompanyVerificationPage() {
     if (!canSubmit) return;
     setSubmitting(true);
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const res = await fetch('/api/auth/corporate-verify', {
         method: 'PUT',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionId}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
         body: JSON.stringify({
           bizRegNumber: formData.bizNo,
           companyNameOfficial: formData.companyName,

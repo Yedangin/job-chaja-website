@@ -39,10 +39,10 @@ export default function CompanyProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const sessionId = localStorage.getItem('sessionId');
+        const accessToken = localStorage.getItem('accessToken');
         const res = await fetch('/api/auth/corporate-verify', {
           credentials: 'include',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sessionId}` },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${accessToken}` },
         });
         if (res.ok) {
           const data = await res.json();

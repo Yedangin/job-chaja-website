@@ -16,9 +16,13 @@ interface RoleGuardProps {
  * Redirects to role's home if not an allowed role
  */
 export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
-  const { user, isLoading, isLoggedIn, role } = useAuth();
+  const { isLoading, isLoggedIn, role } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+
+  // 개발 환경에서는 역할 체크 건너뜀 (로그인만 확인)
+  // Skip role check in development (only require login)
+  const isDev = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
     if (isLoading) return;
@@ -30,11 +34,12 @@ export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
       return;
     }
 
-    // 역할 불일치 → 해당 역할 홈 / Role mismatch → role home
-    if (!allowedRoles.includes(role)) {
+    // 역할 불일치 → 해당 역할 홈 (개발 환경에서는 건너뜀)
+    // Role mismatch → role home (skipped in dev)
+    if (!isDev && !allowedRoles.includes(role)) {
       router.replace(getRoleHomePath(role));
     }
-  }, [isLoading, isLoggedIn, role, allowedRoles, router]);
+  }, [isLoading, isLoggedIn, role, allowedRoles, router, isDev]);
 
   // 로딩 중 / Loading
   if (isLoading) {
@@ -45,8 +50,9 @@ export default function RoleGuard({ allowedRoles, children }: RoleGuardProps) {
     );
   }
 
-  // 미로그인 또는 역할 불일치 / Not logged in or wrong role
-  if (!isLoggedIn || !allowedRoles.includes(role)) {
+  // 미로그인 → 렌더링 안 함 / Not logged in → don't render
+  // 프로덕션에서는 역할 불일치도 차단 / In production, also block role mismatch
+  if (!isLoggedIn || (!isDev && !allowedRoles.includes(role))) {
     return null;
   }
 

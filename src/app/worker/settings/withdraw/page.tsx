@@ -20,12 +20,12 @@ export default function WorkerWithdrawPage() {
     setLoading(true);
     setError(null);
     try {
-      const sessionId = localStorage.getItem('sessionId');
+      const accessToken = localStorage.getItem('accessToken');
       const res = await fetch('/api/auth/delete-account', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(sessionId ? { Authorization: `Bearer ${sessionId}` } : {}),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({ password }),
       });
