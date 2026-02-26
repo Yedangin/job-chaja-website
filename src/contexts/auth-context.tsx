@@ -63,6 +63,8 @@ export function getRoleHomePath(role: UserRole): string {
 
 /**
  * 인증 컨텍스트 Provider / Auth context provider
+ * httpOnly 쿠키 기반 인증 / httpOnly cookie-based authentication
+ * localStorage는 하위호환용 fallback / localStorage kept as backward-compat fallback
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -71,11 +73,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   // 소셜 로그인 OAuth 콜백 처리: session_init 쿠키에서 sessionId 읽기
-  // Handle social login OAuth callback: read sessionId from session_init cookie (not URL)
+  // Handle social login OAuth callback: read sessionId from session_init cookie
+  // httpOnly 쿠키는 이미 백엔드에서 설정됨 / httpOnly cookie already set by backend
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // session_init 쿠키에서 sessionId 추출 / Extract sessionId from session_init cookie
+    // session_init 쿠키에서 sessionId 추출 (하위호환용 localStorage 저장)
+    // Extract sessionId from session_init cookie (store in localStorage for backward compat)
     const sessionInitCookie = document.cookie
       .split('; ')
       .find(row => row.startsWith('session_init='));
@@ -83,6 +87,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (sessionInitCookie) {
       const cookieSessionId = decodeURIComponent(sessionInitCookie.split('=')[1]);
       if (cookieSessionId) {
+        // 하위호환: 직접 fetch 사용하는 페이지들을 위해 localStorage에도 저장
+        // Backward compat: store in localStorage for pages using direct fetch
         localStorage.setItem('sessionId', cookieSessionId);
       }
       // 쿠키 즉시 삭제 (1회성) / Clear cookie immediately (one-time use)
@@ -108,28 +114,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshAuth = useCallback(async () => {
     try {
-      const sessionId = typeof window !== 'undefined'
-        ? localStorage.getItem('sessionId')
-        : null;
-
-
-      if (!sessionId) {
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
-
+      // httpOnly 쿠키 기반: localStorage 체크 없이 항상 프로필 API 호출
+      // httpOnly cookie-based: always call profile API (cookie auto-sent)
       const res = await fetch('/api/auth/profile', {
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionId}`,
-        },
       });
 
-
       if (!res.ok) {
-        localStorage.removeItem('sessionId');
+        // 인증 실패 시 localStorage도 정리 / Clean up localStorage on auth failure
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('sessionId');
+        }
         setUser(null);
         setIsLoading(false);
         return;
@@ -145,10 +140,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const verifyRes = await fetch('/api/auth/corporate-verify', {
             credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${sessionId}`,
-            },
           });
           if (verifyRes.ok) {
             const verifyData = await verifyRes.json();
@@ -169,7 +160,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         companyName: data.user?.companyName || data.user?.fullName || '',
       });
     } catch {
-      localStorage.removeItem('sessionId');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sessionId');
+      }
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -182,21 +175,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
-      const sessionId = localStorage.getItem('sessionId');
-      if (sessionId) {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sessionId}`,
-          },
-        });
-      }
+      // httpOnly 쿠키 기반 로그아웃: credentials: 'include'로 쿠키 자동 전송
+      // httpOnly cookie-based logout: auto-send cookie via credentials: 'include'
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
     } catch {
       // 로그아웃 실패 무시 / Ignore logout failure
     } finally {
-      localStorage.removeItem('sessionId');
+      // 하위호환: localStorage도 정리 / Backward compat: clean up localStorage too
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sessionId');
+      }
       setUser(null);
       router.push('/login');
     }

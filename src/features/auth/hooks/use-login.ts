@@ -38,13 +38,16 @@ export function useLogin() {
     try {
       const response = await authApi.login({ ...data, memberType });
 
-      if (!response.sessionId) {
-        setError('서버에서 세션ID를 받지 못했습니다');
+      if (!response.success && !response.sessionId) {
+        setError('로그인에 실패했습니다 / Login failed');
         return;
       }
 
-      // sessionId 저장 / Store sessionId
-      localStorage.setItem('sessionId', response.sessionId);
+      // 하위호환: localStorage에도 sessionId 저장 (직접 fetch 사용하는 페이지용)
+      // Backward compat: store sessionId in localStorage (for pages using direct fetch)
+      if (response.sessionId) {
+        localStorage.setItem('sessionId', response.sessionId);
+      }
 
       // redirect 파라미터가 있으면 해당 경로로, 없으면 role 기반 기본 경로로 이동
       // If redirect param exists, use it; otherwise fall back to role-based default

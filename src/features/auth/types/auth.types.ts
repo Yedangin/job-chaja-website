@@ -14,10 +14,14 @@ export interface LoginRequest {
   password: string;
 }
 
-// 로그인 응답
+// 로그인 응답 / Login response
+// httpOnly 쿠키 전환 후 sessionId는 선택적 (쿠키로 대체)
+// After httpOnly cookie transition, sessionId is optional (replaced by cookie)
 export interface LoginResponse {
-  sessionId: string;
-  user: {
+  success?: boolean;
+  sessionId?: string;
+  message?: string;
+  user?: {
     id: string;
     email: string;
     fullName: string;

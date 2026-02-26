@@ -61,9 +61,9 @@ export function useDashboardData(): UseDashboardDataResult {
         result.viewingCredits = res.data?.balance ?? res.data?.remaining ?? 0;
       }),
 
-      // 2. 내 공고 목록 / My job listings
-      apiClient.get('/jobs/listing', { params: { myJobs: true } }).then(res => {
-        const jobs = res.data?.jobs ?? res.data ?? [];
+      // 2. 내 공고 목록 / My job listings (GET /jobs/my/list)
+      apiClient.get('/jobs/my/list', { params: { limit: 50 } }).then(res => {
+        const jobs = res.data?.items ?? res.data?.jobs ?? res.data ?? [];
         if (Array.isArray(jobs)) {
           result.activeJobCount = jobs.filter((j: Record<string, unknown>) =>
             j.status === 'ACTIVE' || j.status === 'active'
@@ -72,10 +72,10 @@ export function useDashboardData(): UseDashboardDataResult {
             id: j.id as number,
             title: (j.title as string) || '',
             status: (j.status as string) || 'ACTIVE',
-            applicantCount: (j.applicantCount as number) || 0,
+            applicantCount: (j.applicantCount as number) || (j.applyCount as number) || 0,
             createdAt: (j.createdAt as string) || '',
             expiresAt: (j.expiresAt as string) || '',
-            tier: ((j.tier as string) || 'STANDARD') as 'STANDARD' | 'PREMIUM',
+            tier: ((j.tierType as string) || (j.tier as string) || 'STANDARD') as 'STANDARD' | 'PREMIUM',
           }));
         }
       }),
