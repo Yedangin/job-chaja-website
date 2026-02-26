@@ -12,6 +12,11 @@ COPY . .
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
+# BACKEND_URL을 빌드 시 주입 (rewrites에서 사용)
+# Inject BACKEND_URL at build time (used by rewrites in next.config.ts)
+ARG BACKEND_URL=http://localhost:8000
+ENV BACKEND_URL=$BACKEND_URL
+
 RUN npm run build
 
 # Step 4: Runner image
