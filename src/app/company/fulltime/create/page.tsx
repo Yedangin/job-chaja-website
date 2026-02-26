@@ -21,6 +21,7 @@ import StepVisaMatching from './components/step-visa-matching';
 import StepPreview from './components/step-preview';
 import LiveVisaIndicator from './components/live-visa-indicator';
 import { matchFulltimeVisa, createFulltimeJob } from './api';
+import { useAuth } from '@/contexts/auth-context';
 import type {
   FulltimeJobFormData,
   FulltimeVisaMatchingResponse,
@@ -52,9 +53,14 @@ const INITIAL_FORM: FulltimeJobFormData = {
   applicationMethod: 'PLATFORM',
   applicationDeadline: null,
   isOpenEnded: false,
+  // 담당자 정보 (프로필에서 자동 입력) / Contact info (auto-filled from profile)
+  contactName: '',
+  contactPhone: '',
+  contactEmail: '',
 };
 
 export default function FulltimeCreatePage() {
+  const { user } = useAuth();
   const [step, setStep] = useState<WizardStep>(1);
   const [form, setForm] = useState<FulltimeJobFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -62,6 +68,17 @@ export default function FulltimeCreatePage() {
   const [isMatchLoading, setIsMatchLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [completed, setCompleted] = useState(false);
+
+  // 프로필에서 담당자 정보 자동 입력 / Auto-fill contact info from profile
+  useEffect(() => {
+    if (user && !form.contactName && !form.contactEmail) {
+      setForm((prev) => ({
+        ...prev,
+        contactName: prev.contactName || user.fullName || '',
+        contactEmail: prev.contactEmail || user.email || '',
+      }));
+    }
+  }, [user]);
 
   // 폼 업데이트 / Update form field
   const updateForm = useCallback(
@@ -126,12 +143,15 @@ export default function FulltimeCreatePage() {
     return Object.keys(errs).length === 0;
   };
 
-  // Step 4 유효성 검증
+  // Step 4 유효성 검증 (접수 설정 + 담당자 정보)
+  // Step 4 validation (application settings + contact info)
   const validateStep4 = (): boolean => {
     const errs: Record<string, string> = {};
     if (!form.applicationMethod) errs.applicationMethod = '접수 방법을 선택해주세요';
     if (!form.isOpenEnded && !form.applicationDeadline)
       errs.applicationDeadline = '마감일을 선택하거나 "채용 시까지"를 체크해주세요';
+    if (!form.contactName.trim()) errs.contactName = '담당자 이름을 입력해주세요';
+    if (!form.contactPhone.trim()) errs.contactPhone = '담당자 전화번호를 입력해주세요';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -173,15 +193,17 @@ export default function FulltimeCreatePage() {
     }
   }, [form, isMatchLoading]);
 
-  // 공고 등록
+  // 공고 등록 (비자 매칭 결과도 함께 전송)
+  // Submit job posting (includes visa matching result)
   const handleSubmit = async () => {
     if (submitting) return;
     setSubmitting(true);
     try {
-      await createFulltimeJob(form);
+      await createFulltimeJob(form, matchResult);
       setCompleted(true);
-    } catch {
-      alert('공고 등록에 실패했습니다. 다시 시도해주세요.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '공고 등록에 실패했습니다.';
+      alert(message);
     } finally {
       setSubmitting(false);
     }

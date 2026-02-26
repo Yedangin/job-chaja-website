@@ -119,6 +119,11 @@ export interface FulltimeJobFormData {
   applicationMethod: ApplicationMethod; // 접수 방법
   applicationDeadline: string | null;  // 접수 마감일 (YYYY-MM-DD)
   isOpenEnded: boolean;                // 채용 시까지 여부
+
+  // Step 4: 담당자 정보 / Contact info
+  contactName: string;                 // 담당자 이름
+  contactPhone: string;                // 담당자 전화번호
+  contactEmail: string;                // 담당자 이메일
 }
 
 // 비자 평가 결과 (백엔드 VisaEvalResultDto와 동일)

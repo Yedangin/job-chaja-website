@@ -103,7 +103,7 @@ export default function Header() {
                   <Link href="/company/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
                     대시보드
                   </Link>
-                  <Link href="/company/alba" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/alba" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
                     알바채용관
                   </Link>
                   <Link href="/company/alba/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>

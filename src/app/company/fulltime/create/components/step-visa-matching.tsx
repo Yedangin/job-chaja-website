@@ -292,6 +292,63 @@ export default function StepVisaMatching({
             <p className="mt-2 text-sm text-red-600">{errors.applicationDeadline}</p>
           )}
         </div>
+
+        {/* 담당자 정보 / Contact information */}
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">
+            👤 담당자 정보
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                담당자 이름 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={form.contactName}
+                onChange={(e) => updateForm('contactName', e.target.value)}
+                placeholder="채용 담당자명"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {errors.contactName && (
+                <p className="mt-1 text-sm text-red-600">{errors.contactName}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                전화번호 <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="tel"
+                  value={form.contactPhone}
+                  onChange={(e) => updateForm('contactPhone', e.target.value)}
+                  placeholder="010-0000-0000"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              {errors.contactPhone && (
+                <p className="mt-1 text-sm text-red-600">{errors.contactPhone}</p>
+              )}
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                이메일 (선택)
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="email"
+                  value={form.contactEmail}
+                  onChange={(e) => updateForm('contactEmail', e.target.value)}
+                  placeholder="hr@company.com"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

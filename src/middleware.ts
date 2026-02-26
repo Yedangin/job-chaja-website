@@ -22,7 +22,7 @@ const REDIRECT_MAP: Array<{ from: string; to: string; exact?: boolean }> = [
 
   // 공고 라우트 / Job routes
   { from: '/jobs/create', to: '/company/jobs/create' },
-  { from: '/jobs', to: '/alba' },
+  { from: '/jobs', to: '/alba', exact: true },
 
   // 개인회원 라우트 / Worker routes
   { from: '/profile', to: '/worker/mypage' },
@@ -37,13 +37,22 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   for (const rule of REDIRECT_MAP) {
-    // 정확 매칭 또는 접두사 매칭 / Exact match or prefix match
-    if (pathname === rule.from || pathname.startsWith(rule.from + '/')) {
-      // 하위 경로 보존 / Preserve sub-paths
-      const subPath = pathname.slice(rule.from.length);
-      const searchParams = request.nextUrl.search;
-      const url = new URL(rule.to + subPath + searchParams, request.url);
-      return NextResponse.redirect(url, 301);
+    if (rule.exact) {
+      // 정확 매칭만 허용 / Only exact match (e.g. /jobs → /alba, but /jobs/123 passes through)
+      if (pathname === rule.from) {
+        const searchParams = request.nextUrl.search;
+        const url = new URL(rule.to + searchParams, request.url);
+        return NextResponse.redirect(url, 301);
+      }
+    } else {
+      // 정확 매칭 또는 접두사 매칭 / Exact match or prefix match
+      if (pathname === rule.from || pathname.startsWith(rule.from + '/')) {
+        // 하위 경로 보존 / Preserve sub-paths
+        const subPath = pathname.slice(rule.from.length);
+        const searchParams = request.nextUrl.search;
+        const url = new URL(rule.to + subPath + searchParams, request.url);
+        return NextResponse.redirect(url, 301);
+      }
     }
   }
 
