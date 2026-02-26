@@ -46,7 +46,7 @@ export default function Header() {
 
           <nav className="hidden md:flex items-center ml-8 gap-1 text-sm">
             {/* 비자진단 / Visa Diagnosis */}
-            <Link href="/diagnosis" className="px-3 py-2 text-blue-600 hover:text-blue-700 font-semibold transition">
+            <Link href="/diagnosis" className="px-3 py-2 text-sky-600 hover:text-sky-700 font-semibold transition">
               비자진단
             </Link>
 
@@ -54,35 +54,35 @@ export default function Header() {
             <div className="relative">
               <button
                 onClick={() => toggleDropdown('worker')}
-                className="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1"
+                className="px-3 py-2 text-gray-600 hover:text-sky-600 font-medium transition flex items-center gap-1"
               >
                 구직자
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === 'worker' ? 'rotate-180' : ''}`} />
               </button>
               {openDropdown === 'worker' && (
                 <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border py-1 z-50">
-                  <Link href="/worker/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/worker/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     대시보드
                   </Link>
-                  <Link href="/worker/jobs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/worker/jobs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     채용공고
                   </Link>
-                  <Link href="/worker/alba" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/worker/alba" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     알바공고
                   </Link>
-                  <Link href="/worker/resume" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/worker/resume" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     이력서
                   </Link>
-                  <Link href="/worker/visa" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/worker/visa" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     비자관리
                   </Link>
-                  <Link href="/worker/visa-verification" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/worker/visa-verification" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     비자인증
                   </Link>
-                  <Link href="/worker/notifications" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/worker/notifications" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     알림
                   </Link>
-                  <Link href="/worker/mypage" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/worker/mypage" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     마이페이지
                   </Link>
                 </div>
@@ -93,53 +93,53 @@ export default function Header() {
             <div className="relative">
               <button
                 onClick={() => toggleDropdown('company')}
-                className="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1"
+                className="px-3 py-2 text-gray-600 hover:text-sky-600 font-medium transition flex items-center gap-1"
               >
                 기업
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === 'company' ? 'rotate-180' : ''}`} />
               </button>
               {openDropdown === 'company' && (
                 <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border py-1 z-50 max-h-[70vh] overflow-y-auto">
-                  <Link href="/company/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     대시보드
                   </Link>
-                  <Link href="/alba" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/alba" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     알바채용관
                   </Link>
-                  <Link href="/company/alba/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/alba/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     알바 공고등록
                   </Link>
-                  <Link href="/company/fulltime/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/fulltime/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     정규직 공고등록
                   </Link>
-                  <Link href="/company/jobs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/jobs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     공고관리
                   </Link>
-                  <Link href="/company/applicants" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/applicants" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     지원자관리
                   </Link>
-                  <Link href="/company/talents" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/talents" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     인재탐색
                   </Link>
-                  <Link href="/company/interviews" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/interviews" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     면접관리
                   </Link>
-                  <Link href="/company/visa-status" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/visa-status" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     비자현황
                   </Link>
-                  <Link href="/company/visa-guide" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/visa-guide" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     비자가이드
                   </Link>
-                  <Link href="/company/verification" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/verification" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     기업인증
                   </Link>
-                  <Link href="/company/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     기업프로필
                   </Link>
-                  <Link href="/company/notifications" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/notifications" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     알림
                   </Link>
-                  <Link href="/company/mypage" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/company/mypage" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     마이페이지
                   </Link>
                 </div>
@@ -210,13 +210,13 @@ export default function Header() {
                     ))}
                   </div>
                   <hr className="my-1" />
-                  <Link href="/job-cards/designs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/job-cards/designs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     채용카드 디자인 시안
                   </Link>
-                  <Link href="/job-cards/designs-gemini" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/job-cards/designs-gemini" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     채용카드 Gemini 시안
                   </Link>
-                  <Link href="/diagnosis/designs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" onClick={closeDropdown}>
+                  <Link href="/diagnosis/designs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     비자진단 디자인 시안
                   </Link>
                   <hr className="my-1" />
@@ -238,7 +238,7 @@ export default function Header() {
             </div>
 
             {/* 관리자 / Admin */}
-            <Link href="/admin" className="px-3 py-2 text-gray-600 hover:text-blue-600 font-medium transition">
+            <Link href="/admin" className="px-3 py-2 text-gray-600 hover:text-sky-600 font-medium transition">
               관리자
             </Link>
           </nav>
@@ -253,25 +253,25 @@ export default function Header() {
           ) : !isLoggedIn ? (
             <>
               <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="px-3 py-1.5 text-gray-600 hover:text-gray-900 font-medium transition">로그인</Link>
-              <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="px-3 py-1.5 bg-blue-600 text-white rounded-md font-semibold hover:bg-blue-700 transition">회원가입</Link>
+              <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="px-3 py-1.5 bg-sky-600 text-white rounded-xl font-semibold hover:bg-sky-700 transition">회원가입</Link>
             </>
           ) : role === 'INDIVIDUAL' ? (
             <>
-              <Link href="/worker/mypage" className="px-2 py-1.5 text-gray-600 hover:text-blue-600 transition flex items-center gap-1">
+              <Link href="/worker/mypage" className="px-2 py-1.5 text-gray-600 hover:text-sky-600 transition flex items-center gap-1">
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">마이페이지</span>
               </Link>
-              <Link href="/worker/dashboard" className="px-2 py-1.5 text-gray-600 hover:text-blue-600 font-medium transition">대시보드</Link>
+              <Link href="/worker/dashboard" className="px-2 py-1.5 text-gray-600 hover:text-sky-600 font-medium transition">대시보드</Link>
               <button onClick={logout} className="px-2 py-1.5 text-gray-400 hover:text-gray-600 transition">로그아웃</button>
             </>
           ) : role === 'CORPORATE' ? (
             <>
-              <Link href="/company/dashboard" className="px-2 py-1.5 text-gray-600 hover:text-blue-600 font-medium transition">기업 대시보드</Link>
+              <Link href="/company/dashboard" className="px-2 py-1.5 text-gray-600 hover:text-sky-600 font-medium transition">기업 대시보드</Link>
               <button onClick={logout} className="px-2 py-1.5 text-gray-400 hover:text-gray-600 transition">로그아웃</button>
             </>
           ) : role === 'ADMIN' ? (
             <>
-              <Link href="/admin" className="px-2 py-1.5 text-gray-600 hover:text-blue-600 font-medium transition">관리자</Link>
+              <Link href="/admin" className="px-2 py-1.5 text-gray-600 hover:text-sky-600 font-medium transition">관리자</Link>
               <button onClick={logout} className="px-2 py-1.5 text-gray-400 hover:text-gray-600 transition">로그아웃</button>
             </>
           ) : null}
