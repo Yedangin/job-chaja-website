@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// 캐싱 방지: 매 요청마다 새로 실행 / Prevent caching: run fresh on every request
+export const dynamic = 'force-dynamic';
+
 // 백엔드 기본 URL / Backend base URL
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
@@ -35,7 +38,7 @@ export async function GET(
   const headers = buildHeaders(request);
 
   try {
-    const response = await fetch(url, { method: 'GET', headers });
+    const response = await fetch(url, { method: 'GET', headers, cache: 'no-store' });
 
     // 바이너리 응답 처리 / Handle binary response
     const contentType = response.headers.get('content-type') || '';
@@ -84,7 +87,7 @@ export async function PATCH(
 
   try {
     const body = await request.text();
-    const response = await fetch(url, { method: 'PATCH', headers, body });
+    const response = await fetch(url, { method: 'PATCH', headers, body, cache: 'no-store' });
 
     const contentType = response.headers.get('content-type') || '';
     // 응답 본문이 비어있을 수 있음 (204 No Content) / Response body may be empty (204)
@@ -125,7 +128,7 @@ export async function POST(
 
   try {
     const body = await request.text();
-    const response = await fetch(url, { method: 'POST', headers, body });
+    const response = await fetch(url, { method: 'POST', headers, body, cache: 'no-store' });
     const data = await response.json();
 
     const nextResponse = NextResponse.json(data, { status: response.status });
@@ -159,7 +162,7 @@ export async function DELETE(
   const headers = buildHeaders(request);
 
   try {
-    const response = await fetch(url, { method: 'DELETE', headers });
+    const response = await fetch(url, { method: 'DELETE', headers, cache: 'no-store' });
 
     if (response.status === 204) {
       return new NextResponse(null, { status: 204 });

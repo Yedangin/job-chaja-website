@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { apiClient } from '@/lib/api-client';
 
 /**
  * 사용자 역할 / User role enum
@@ -54,9 +55,9 @@ function roleNumberToString(role: number): UserRole {
  */
 export function getRoleHomePath(role: UserRole): string {
   switch (role) {
-    case 'CORPORATE': return '/company/dashboard';
-    case 'INDIVIDUAL': return '/worker/dashboard';
     case 'ADMIN': return '/admin';
+    case 'CORPORATE': return '/';
+    case 'INDIVIDUAL': return '/';
     default: return '/';
   }
 }
@@ -64,7 +65,7 @@ export function getRoleHomePath(role: UserRole): string {
 /**
  * 인증 컨텍스트 Provider / Auth context provider
  * httpOnly 쿠키 기반 인증 / httpOnly cookie-based authentication
- * localStorage는 하위호환용 fallback / localStorage kept as backward-compat fallback
+ * localStorage는 더 이상 사용하지 않음 / localStorage is NO LONGER used for auth
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -72,25 +73,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // 소셜 로그인 OAuth 콜백 처리: session_init 쿠키에서 sessionId 읽기
-  // Handle social login OAuth callback: read sessionId from session_init cookie
+  // 중복 호출 방지용 ref / Ref to prevent duplicate concurrent calls
+  const isRefreshingRef = useRef(false);
+  // 초기 마운트 여부 추적 / Track initial mount
+  const hasMountedRef = useRef(false);
+
+  // 소셜 로그인 OAuth 콜백 처리: session_init 쿠키 정리
+  // Handle social login OAuth callback: clean up session_init cookie
   // httpOnly 쿠키는 이미 백엔드에서 설정됨 / httpOnly cookie already set by backend
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // session_init 쿠키에서 sessionId 추출 (하위호환용 localStorage 저장)
-    // Extract sessionId from session_init cookie (store in localStorage for backward compat)
+    // session_init 쿠키 확인 (소셜 로그인 후 리다이렉트 처리용)
+    // Check session_init cookie (for post-social-login redirect handling)
     const sessionInitCookie = document.cookie
       .split('; ')
       .find(row => row.startsWith('session_init='));
 
     if (sessionInitCookie) {
-      const cookieSessionId = decodeURIComponent(sessionInitCookie.split('=')[1]);
-      if (cookieSessionId) {
-        // 하위호환: 직접 fetch 사용하는 페이지들을 위해 localStorage에도 저장
-        // Backward compat: store in localStorage for pages using direct fetch
-        localStorage.setItem('sessionId', cookieSessionId);
-      }
       // 쿠키 즉시 삭제 (1회성) / Clear cookie immediately (one-time use)
       document.cookie = 'session_init=; path=/; max-age=0';
 
@@ -112,64 +112,78 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [router]);
 
+  // refreshAuth: httpOnly 쿠키만으로 인증 상태 확인 / Check auth state using httpOnly cookie only
+  // useRef로 동시 호출 방지 / Prevent concurrent calls with useRef
   const refreshAuth = useCallback(async () => {
+    // 이미 실행 중이면 스킵 (F5 연타 시 중복 요청 방지)
+    // Skip if already running (prevent duplicate requests on rapid F5)
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
+
     try {
-      // httpOnly 쿠키 기반: localStorage 체크 없이 항상 프로필 API 호출
-      // httpOnly cookie-based: always call profile API (cookie auto-sent)
-      const res = await fetch('/api/auth/profile', {
-        credentials: 'include',
-      });
+      // validateStatus: 모든 HTTP 상태 코드를 에러 없이 처리 (429 rate limit 포함)
+      // validateStatus: handle all HTTP status codes without throwing (including 429 rate limit)
+      // 이전: 429도 catch로 빠져서 setUser(null) → F5 연타 시 로그아웃
+      // Before: 429 fell into catch → setUser(null) → rapid F5 caused logout
+      const response = await apiClient.get('/auth/profile', {
+        _suppressAuthRedirect: true,
+        validateStatus: () => true,
+      } as Record<string, unknown>);
 
-      if (!res.ok) {
-        // 인증 실패 시 localStorage도 정리 / Clean up localStorage on auth failure
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('sessionId');
-        }
-        setUser(null);
-        setIsLoading(false);
-        return;
-      }
+      // 200: 인증 성공 → 사용자 정보 설정 / 200: Auth success → set user info
+      if (response.status === 200 && response.data?.user) {
+        const roleStr = roleNumberToString(response.data.user.role);
 
-      const data = await res.json();
-      const roleStr = roleNumberToString(data.user?.role);
+        let verificationStatus: VerificationStatus = 'NONE';
 
-      let verificationStatus: VerificationStatus = 'NONE';
-
-      // 기업회원인 경우 인증 상태 조회 / Check verification status for corporate users
-      if (roleStr === 'CORPORATE') {
-        try {
-          const verifyRes = await fetch('/api/auth/corporate-verify', {
-            credentials: 'include',
-          });
-          if (verifyRes.ok) {
-            const verifyData = await verifyRes.json();
-            verificationStatus = verifyData.verificationStatus || verifyData.status || 'NONE';
+        // 기업회원인 경우 인증 상태 조회 / Check verification status for corporate users
+        if (roleStr === 'CORPORATE') {
+          try {
+            const { data: verifyData } = await apiClient.get('/auth/corporate-verify', {
+              _suppressAuthRedirect: true,
+              validateStatus: () => true,
+            } as Record<string, unknown>);
+            if (verifyData?.verificationStatus || verifyData?.status) {
+              verificationStatus = verifyData.verificationStatus || verifyData.status || 'NONE';
+            }
+          } catch {
+            // 인증 상태 조회 실패 시 NONE 유지 / Keep NONE on failure
           }
-        } catch {
-          // 인증 상태 조회 실패 시 NONE 유지 / Keep NONE on failure
         }
-      }
 
-      setUser({
-        id: data.user?.id || '',
-        email: data.user?.email || '',
-        fullName: data.user?.fullName || '',
-        role: roleStr,
-        roleNumber: data.user?.role || 0,
-        verificationStatus,
-        companyName: data.user?.companyName || data.user?.fullName || '',
-      });
-    } catch {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('sessionId');
+        setUser({
+          id: response.data.user.id || '',
+          email: response.data.user.email || '',
+          fullName: response.data.user.fullName || '',
+          role: roleStr,
+          roleNumber: response.data.user.role || 0,
+          verificationStatus,
+          companyName: response.data.user.companyName || response.data.user.fullName || '',
+        });
+      } else if (response.status === 401) {
+        // 401: httpOnly 쿠키가 없거나 만료됨 → 비로그인 상태
+        // 401: httpOnly cookie missing or expired → not logged in
+        setUser(null);
       }
-      setUser(null);
+      // 429(rate limit), 500(서버 에러) 등: 현재 상태 유지 (로그아웃하지 않음)
+      // 429 (rate limit), 500 (server error), etc.: keep current state (don't logout)
+    } catch {
+      // 네트워크 에러만 여기 도달 (서버 연결 불가 등)
+      // Only network errors reach here (server unreachable, etc.)
+      // 기존 사용자 정보가 없을 때만 null 설정 / Only set null when no existing user
+      setUser((prev) => prev);
     } finally {
       setIsLoading(false);
+      isRefreshingRef.current = false;
     }
   }, []);
 
+  // 마운트 시 1회만 호출 / Call only once on mount
+  // useCallback([]) 의존성이 비어있으므로 refreshAuth는 절대 변경되지 않음
+  // useCallback([]) empty deps means refreshAuth NEVER changes
   useEffect(() => {
+    if (hasMountedRef.current) return;
+    hasMountedRef.current = true;
     refreshAuth();
   }, [refreshAuth]);
 

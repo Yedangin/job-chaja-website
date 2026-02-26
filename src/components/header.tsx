@@ -252,8 +252,8 @@ export default function Header() {
             <div className="w-20 h-8" />
           ) : !isLoggedIn ? (
             <>
-              <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="px-3 py-1.5 text-gray-600 hover:text-gray-900 font-medium transition">로그인</Link>
-              <Link href={`/login?redirect=${encodeURIComponent(pathname)}`} className="px-3 py-1.5 bg-sky-600 text-white rounded-xl font-semibold hover:bg-sky-700 transition">회원가입</Link>
+              <Link href={pathname === '/' ? '/login' : `/login?redirect=${encodeURIComponent(pathname)}`} className="px-3 py-1.5 text-gray-600 hover:text-gray-900 font-medium transition">로그인</Link>
+              <Link href={pathname === '/' ? '/login' : `/login?redirect=${encodeURIComponent(pathname)}`} className="px-3 py-1.5 bg-sky-600 text-white rounded-xl font-semibold hover:bg-sky-700 transition">회원가입</Link>
             </>
           ) : role === 'INDIVIDUAL' ? (
             <>

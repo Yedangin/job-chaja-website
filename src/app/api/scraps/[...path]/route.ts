@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// 캐싱 방지: 매 요청마다 새로 실행 / Prevent caching: run fresh on every request
+export const dynamic = 'force-dynamic';
+
 // 백엔드 URL 환경변수 / Backend URL from environment variable
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
@@ -46,7 +49,7 @@ export async function GET(
   const headers = buildHeaders(request);
 
   try {
-    const response = await fetch(url, { method: 'GET', headers });
+    const response = await fetch(url, { method: 'GET', headers, cache: 'no-store' });
 
     const contentType = response.headers.get('content-type') || '';
     // 비JSON 응답 그대로 전달 / Pass through non-JSON responses
@@ -102,6 +105,7 @@ export async function POST(
       method: 'POST',
       headers,
       body,
+      cache: 'no-store',
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...(isMultipart ? { duplex: 'half' as any } : {}),
     });
@@ -140,7 +144,7 @@ export async function DELETE(
   const headers = buildHeaders(request);
 
   try {
-    const response = await fetch(url, { method: 'DELETE', headers });
+    const response = await fetch(url, { method: 'DELETE', headers, cache: 'no-store' });
 
     const resContentType = response.headers.get('content-type') || '';
     if (!resContentType.includes('application/json')) {

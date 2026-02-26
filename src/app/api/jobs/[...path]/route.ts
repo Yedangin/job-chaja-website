@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// API 프록시는 캐싱 금지 / API proxy must not be cached
+export const dynamic = 'force-dynamic';
+
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
 async function proxyRequest(
@@ -26,7 +29,7 @@ async function proxyRequest(
       options.body = await request.text();
     }
 
-    const response = await fetch(url, options);
+    const response = await fetch(url, { ...options, cache: 'no-store' });
     const data = await response.json();
 
     const nextResponse = NextResponse.json(data, { status: response.status });

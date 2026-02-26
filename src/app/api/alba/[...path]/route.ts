@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// 캐싱 방지: 매 요청마다 새로 실행 / Prevent caching: run fresh on every request
+export const dynamic = 'force-dynamic';
+
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
 /**
@@ -34,6 +37,7 @@ async function proxyRequest(
     }
 
     console.log(`[Proxy Alba] ${method} ${url}`);
+    options.cache = 'no-store';
     const response = await fetch(url, options);
     const data = await response.json();
     console.log(`[Proxy Alba] Response status: ${response.status}`);

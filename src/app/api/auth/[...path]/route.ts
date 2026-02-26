@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// 인증 관련 API는 절대 캐싱하면 안됨 / Auth APIs must NEVER be cached
+// 캐싱 시 새로고침마다 로그인 상태가 랜덤으로 변함 / Caching causes random login state on refresh
+export const dynamic = 'force-dynamic';
+
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
 export async function GET(
@@ -26,7 +30,7 @@ export async function GET(
 
   try {
     // redirect: 'manual' → 백엔드의 302 리다이렉트를 따라가지 않고 그대로 브라우저에 전달
-    const response = await fetch(url, { method: 'GET', headers, redirect: 'manual' });
+    const response = await fetch(url, { method: 'GET', headers, redirect: 'manual', cache: 'no-store' });
 
     // 3xx 리다이렉트 → 브라우저에 그대로 전달 (소셜 로그인 OAuth 흐름)
     if (response.status >= 300 && response.status < 400) {
@@ -99,7 +103,7 @@ export async function PUT(
 
   try {
     const body = await request.text();
-    const response = await fetch(url, { method: 'PUT', headers, body });
+    const response = await fetch(url, { method: 'PUT', headers, body, cache: 'no-store' });
     const data = await response.json();
 
     console.log('[Proxy PUT] Backend status:', response.status);
@@ -157,6 +161,7 @@ export async function POST(
       method: 'POST',
       headers,
       body,
+      cache: 'no-store',
       ...(isMultipart ? { duplex: 'half' as any } : {}),
     });
     const data = await response.json();
