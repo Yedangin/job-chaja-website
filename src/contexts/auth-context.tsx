@@ -120,14 +120,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isRefreshingRef.current) return;
     isRefreshingRef.current = true;
 
+    // 429 재시도 시 isLoading을 false로 바꾸지 않기 위한 플래그
+    // Flag to prevent setting isLoading=false during 429 retry (keeps showing loading UI)
+    let shouldKeepLoading = false;
+
     try {
-      // validateStatus: 모든 HTTP 상태 코드를 에러 없이 처리 (429 rate limit 포함)
-      // validateStatus: handle all HTTP status codes without throwing (including 429 rate limit)
-      // 이전: 429도 catch로 빠져서 setUser(null) → F5 연타 시 로그아웃
-      // Before: 429 fell into catch → setUser(null) → rapid F5 caused logout
-      const response = await apiClient.get('/auth/profile', {
+      // 캐시 버스팅: 타임스탬프 쿼리로 브라우저/프록시 캐시 완전 방지
+      // Cache busting: timestamp query prevents browser/proxy from serving stale 401/200 responses
+      const response = await apiClient.get(`/auth/profile?_t=${Date.now()}`, {
         _suppressAuthRedirect: true,
         validateStatus: () => true,
+        headers: { 'Cache-Control': 'no-cache, no-store' },
       } as Record<string, unknown>);
 
       // 200: 인증 성공 → 사용자 정보 설정 / 200: Auth success → set user info
@@ -139,9 +142,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // 기업회원인 경우 인증 상태 조회 / Check verification status for corporate users
         if (roleStr === 'CORPORATE') {
           try {
-            const { data: verifyData } = await apiClient.get('/auth/corporate-verify', {
+            const { data: verifyData } = await apiClient.get(`/auth/corporate-verify?_t=${Date.now()}`, {
               _suppressAuthRedirect: true,
               validateStatus: () => true,
+              headers: { 'Cache-Control': 'no-cache, no-store' },
             } as Record<string, unknown>);
             if (verifyData?.verificationStatus || verifyData?.status) {
               verificationStatus = verifyData.verificationStatus || verifyData.status || 'NONE';
@@ -164,16 +168,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // 401: httpOnly 쿠키가 없거나 만료됨 → 비로그인 상태
         // 401: httpOnly cookie missing or expired → not logged in
         setUser(null);
+      } else if (response.status === 429) {
+        // 429: rate limit — 로딩 상태 유지 + 2초 후 재시도
+        // 429: rate limited — keep loading state + retry after 2 seconds
+        // 이전: 초기 로드에서 429 시 user=null + isLoading=false → 로그인 버튼 표시 (잘못됨)
+        // Before: on initial load 429 → user=null + isLoading=false → showed login button (wrong)
+        shouldKeepLoading = true;
+        setTimeout(() => {
+          refreshAuth();
+        }, 2000);
       }
-      // 429(rate limit), 500(서버 에러) 등: 현재 상태 유지 (로그아웃하지 않음)
-      // 429 (rate limit), 500 (server error), etc.: keep current state (don't logout)
+      // 500(서버 에러) 등: 현재 상태 유지 (로그아웃하지 않음)
+      // 500 (server error), etc.: keep current state (don't logout)
     } catch {
       // 네트워크 에러만 여기 도달 (서버 연결 불가 등)
       // Only network errors reach here (server unreachable, etc.)
-      // 기존 사용자 정보가 없을 때만 null 설정 / Only set null when no existing user
       setUser((prev) => prev);
     } finally {
-      setIsLoading(false);
+      if (!shouldKeepLoading) {
+        setIsLoading(false);
+      }
       isRefreshingRef.current = false;
     }
   }, []);

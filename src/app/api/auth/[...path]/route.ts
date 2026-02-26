@@ -70,6 +70,12 @@ export async function GET(
 
     const nextResponse = NextResponse.json(data, { status: response.status });
 
+    // 브라우저 캐시 완전 방지 — 캐싱 시 이전 401/200 응답이 재사용되어 로그인 상태 랜덤 변동
+    // Prevent browser caching entirely — cached 401/200 responses cause random auth state flickering
+    nextResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    nextResponse.headers.set('Pragma', 'no-cache');
+    nextResponse.headers.set('Expires', '0');
+
     const setCookie = response.headers.get('set-cookie');
     if (setCookie) {
       nextResponse.headers.set('set-cookie', setCookie);

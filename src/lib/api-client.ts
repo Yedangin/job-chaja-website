@@ -22,6 +22,8 @@ export const apiClient = axios.create({
 // httpOnly cookie (withCredentials: true) handles auth completely on its own
 
 // 응답 인터셉터: 에러 처리 통합 / Response interceptor: unified error handling
+// 주의: validateStatus: () => true 사용 시 이 에러 핸들러가 호출되지 않음
+// Note: when validateStatus: () => true is used, this error handler is NOT called
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError<{ message?: string }>) => {
@@ -29,18 +31,18 @@ apiClient.interceptors.response.use(
     const message = error.response?.data?.message || 'An error occurred';
 
     // 401: 인증 실패 처리 / 401: Auth failure handling
+    // window.location.href 리다이렉트 제거: 전체 페이지 네비게이션이 발생하여
+    // auth-context의 refreshAuth 완료 전에 로그인 페이지로 튕기는 현상 유발
+    // Removed window.location.href redirect: caused full page navigation
+    // that redirected to login before auth-context's refreshAuth could complete
     if (error.response?.status === 401) {
       const suppressRedirect = (error.config as Record<string, unknown>)?._suppressAuthRedirect;
 
-      // _suppressAuthRedirect가 설정된 경우 아무 것도 하지 않음 (refreshAuth 등 백그라운드 체크)
-      // When _suppressAuthRedirect is set, do NOTHING (background checks like refreshAuth)
-      // 이전: suppress 여부와 관계없이 항상 localStorage를 삭제하여 다음 요청 인증이 달라짐
-      // Previously: always cleared localStorage regardless of suppress flag, causing next request to differ
       if (!suppressRedirect && typeof window !== 'undefined') {
-        const isLoginPage = window.location.pathname.startsWith('/login');
-        if (!isLoginPage) {
-          window.location.href = '/login';
-        }
+        // window.location.href 대신 아무 것도 하지 않음 — AuthProvider의 상태로 로그인 여부 판단
+        // Do nothing instead of window.location.href — let AuthProvider state determine login status
+        // 페이지별 로그인 필요 여부는 RoleGuard나 미들웨어에서 처리
+        // Page-level login requirements are handled by RoleGuard or middleware
       }
     }
 

@@ -22,12 +22,17 @@ function buildHeaders(request: NextRequest): Record<string, string> {
   return headers;
 }
 
-// 백엔드 응답의 set-cookie를 프록시 응답에 복사 / Copy set-cookie from backend response to proxy response
-function forwardSetCookie(backendResponse: Response, nextResponse: NextResponse): NextResponse {
+// 백엔드 응답의 set-cookie를 프록시 응답에 복사 + 캐시 방지 헤더 설정
+// Copy set-cookie from backend response to proxy response + set no-cache headers
+function forwardHeaders(backendResponse: Response, nextResponse: NextResponse): NextResponse {
   const setCookie = backendResponse.headers.get('set-cookie');
   if (setCookie) {
     nextResponse.headers.set('set-cookie', setCookie);
   }
+  // 브라우저 캐시 방지 / Prevent browser caching
+  nextResponse.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  nextResponse.headers.set('Pragma', 'no-cache');
+  nextResponse.headers.set('Expires', '0');
   return nextResponse;
 }
 
@@ -46,7 +51,7 @@ export async function GET(
     const data = await response.json();
 
     const nextResponse = NextResponse.json(data, { status: response.status });
-    return forwardSetCookie(response, nextResponse);
+    return forwardHeaders(response, nextResponse);
   } catch (error) {
     console.error('[Proxy Profile GET] Error:', error);
     return NextResponse.json({ error: 'Proxy error' }, { status: 500 });
@@ -68,7 +73,7 @@ export async function POST(
     const data = await response.json();
 
     const nextResponse = NextResponse.json(data, { status: response.status });
-    return forwardSetCookie(response, nextResponse);
+    return forwardHeaders(response, nextResponse);
   } catch (error) {
     console.error('[Proxy Profile POST] Error:', error);
     return NextResponse.json({ error: 'Proxy error' }, { status: 500 });
@@ -90,7 +95,7 @@ export async function PUT(
     const data = await response.json();
 
     const nextResponse = NextResponse.json(data, { status: response.status });
-    return forwardSetCookie(response, nextResponse);
+    return forwardHeaders(response, nextResponse);
   } catch (error) {
     console.error('[Proxy Profile PUT] Error:', error);
     return NextResponse.json({ error: 'Proxy error' }, { status: 500 });
@@ -111,7 +116,7 @@ export async function DELETE(
     const data = await response.json();
 
     const nextResponse = NextResponse.json(data, { status: response.status });
-    return forwardSetCookie(response, nextResponse);
+    return forwardHeaders(response, nextResponse);
   } catch (error) {
     console.error('[Proxy Profile DELETE] Error:', error);
     return NextResponse.json({ error: 'Proxy error' }, { status: 500 });
