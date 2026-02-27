@@ -1,3 +1,4 @@
+import { unwrapBackendResponse } from '@/lib/proxy-utils';
 /**
  * Admin API proxy — /api/admin/* -> backend /admin/*
  * 어드민 API 프록시 — 시스템 로그 등
@@ -35,7 +36,8 @@ async function proxyRequest(
 
     options.cache = 'no-store';
     const response = await fetch(url, options);
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
 
     const nextResponse = NextResponse.json(data, { status: response.status });
     const setCookie = response.headers.get('set-cookie');

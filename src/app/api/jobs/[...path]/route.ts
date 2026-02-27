@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { unwrapBackendResponse } from '@/lib/proxy-utils';
 
 // API 프록시는 캐싱 금지 / API proxy must not be cached
 export const dynamic = 'force-dynamic';
@@ -30,7 +31,8 @@ async function proxyRequest(
     }
 
     const response = await fetch(url, { ...options, cache: 'no-store' });
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
 
     const nextResponse = NextResponse.json(data, { status: response.status });
     const setCookie = response.headers.get('set-cookie');

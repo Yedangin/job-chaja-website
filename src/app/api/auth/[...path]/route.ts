@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { unwrapBackendResponse } from '@/lib/proxy-utils';
 
 // 인증 관련 API는 절대 캐싱하면 안됨 / Auth APIs must NEVER be cached
 // 캐싱 시 새로고침마다 로그인 상태가 랜덤으로 변함 / Caching causes random login state on refresh
@@ -66,7 +67,8 @@ export async function GET(
       });
     }
 
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
 
     const nextResponse = NextResponse.json(data, { status: response.status });
 
@@ -110,7 +112,8 @@ export async function PUT(
   try {
     const body = await request.text();
     const response = await fetch(url, { method: 'PUT', headers, body, cache: 'no-store' });
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
 
     console.log('[Proxy PUT] Backend status:', response.status);
 
@@ -170,7 +173,8 @@ export async function POST(
       cache: 'no-store',
       ...(isMultipart ? { duplex: 'half' as any } : {}),
     });
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
 
     console.log('[Proxy POST] Backend status:', response.status);
 

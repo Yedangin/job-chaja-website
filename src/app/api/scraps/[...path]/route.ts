@@ -1,3 +1,4 @@
+import { unwrapBackendResponse } from '@/lib/proxy-utils';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 캐싱 방지: 매 요청마다 새로 실행 / Prevent caching: run fresh on every request
@@ -64,7 +65,8 @@ export async function GET(
       });
     }
 
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
     const nextResponse = NextResponse.json(data, { status: response.status });
     return applyCookies(response, nextResponse);
   } catch (error) {
@@ -122,7 +124,8 @@ export async function POST(
       });
     }
 
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
     const nextResponse = NextResponse.json(data, { status: response.status });
     return applyCookies(response, nextResponse);
   } catch (error) {
@@ -158,7 +161,8 @@ export async function DELETE(
       });
     }
 
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
     const nextResponse = NextResponse.json(data, { status: response.status });
     return applyCookies(response, nextResponse);
   } catch (error) {

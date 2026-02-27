@@ -1,3 +1,4 @@
+import { unwrapBackendResponse } from '@/lib/proxy-utils';
 import { NextRequest, NextResponse } from 'next/server';
 
 // 프로필 API는 캐싱하면 안됨 / Profile APIs must NOT be cached
@@ -48,7 +49,8 @@ export async function GET(
 
   try {
     const response = await fetch(url, { method: 'GET', headers, cache: 'no-store' });
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
 
     const nextResponse = NextResponse.json(data, { status: response.status });
     return forwardHeaders(response, nextResponse);
@@ -70,7 +72,8 @@ export async function POST(
   try {
     const body = await request.text();
     const response = await fetch(url, { method: 'POST', headers, body, cache: 'no-store' });
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
 
     const nextResponse = NextResponse.json(data, { status: response.status });
     return forwardHeaders(response, nextResponse);
@@ -92,7 +95,8 @@ export async function PUT(
   try {
     const body = await request.text();
     const response = await fetch(url, { method: 'PUT', headers, body, cache: 'no-store' });
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
 
     const nextResponse = NextResponse.json(data, { status: response.status });
     return forwardHeaders(response, nextResponse);
@@ -113,7 +117,8 @@ export async function DELETE(
 
   try {
     const response = await fetch(url, { method: 'DELETE', headers, cache: 'no-store' });
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
 
     const nextResponse = NextResponse.json(data, { status: response.status });
     return forwardHeaders(response, nextResponse);

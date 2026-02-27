@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { unwrapBackendResponse } from '@/lib/proxy-utils';
 
 // 캐싱 방지: 매 요청마다 새로 실행 / Prevent caching: run fresh on every request
 export const dynamic = 'force-dynamic';
@@ -53,7 +54,8 @@ export async function GET(
       });
     }
 
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
     const nextResponse = NextResponse.json(data, { status: response.status });
 
     // 쿠키 전달 / Forward cookies
@@ -95,7 +97,8 @@ export async function PATCH(
       return new NextResponse(null, { status: response.status });
     }
 
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
     const nextResponse = NextResponse.json(data, { status: response.status });
 
     const setCookie = response.headers.get('set-cookie');
@@ -129,7 +132,8 @@ export async function POST(
   try {
     const body = await request.text();
     const response = await fetch(url, { method: 'POST', headers, body, cache: 'no-store' });
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
 
     const nextResponse = NextResponse.json(data, { status: response.status });
 
@@ -173,7 +177,8 @@ export async function DELETE(
       return new NextResponse(null, { status: response.status });
     }
 
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
     return NextResponse.json(

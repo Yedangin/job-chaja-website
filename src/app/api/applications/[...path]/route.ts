@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { unwrapBackendResponse } from '@/lib/proxy-utils';
 
 // 캐싱 방지: 매 요청마다 새로 실행 / Prevent caching: run fresh on every request
 export const dynamic = 'force-dynamic';
@@ -41,7 +42,8 @@ async function proxyRequest(
 
     options.cache = 'no-store';
     const response = await fetch(url, options);
-    const data = await response.json();
+    const rawData = await response.json();
+    const data = unwrapBackendResponse(rawData);
 
     const nextResponse = NextResponse.json(data, { status: response.status });
     const setCookie = response.headers.get('set-cookie');
