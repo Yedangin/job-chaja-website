@@ -113,10 +113,26 @@ export default function FulltimeCreatePage() {
     const errs: Record<string, string> = {};
     if (!form.jobCategoryCode) errs.jobCategoryCode = '직종을 선택해주세요';
     if (!form.employmentType) errs.employmentType = '고용 형태를 선택해주세요';
-    if (form.salaryMin < 20000000) errs.salaryMin = '최소 연봉은 2,000만원 이상이어야 합니다';
+
+    // 급여 검증: 알바는 시급 기준(최저시급 10,030원), 그 외는 연봉 기준
+    // Salary validation: ALBA uses hourly wage (min 10,030 KRW), others use yearly
+    if (form.employmentType === 'ALBA') {
+      // 시급 역산: salaryMin → 시급 (convertYearlyToHourly 로직과 동일)
+      const weeklyHours = form.weeklyWorkHours || 20;
+      const paidRest = weeklyHours >= 15 ? weeklyHours / 5 : 0;
+      const monthlyHours = Math.round((weeklyHours + paidRest) * 365 / 7 / 12);
+      const hourlyWage = monthlyHours > 0 ? Math.round(form.salaryMin / 12 / monthlyHours) : 0;
+      if (hourlyWage < 10030) errs.salaryMin = '최저시급(10,030원) 이상이어야 합니다';
+    } else {
+      if (form.salaryMin < 20000000) errs.salaryMin = '최소 연봉은 2,000만원 이상이어야 합니다';
+    }
     if (form.salaryMax < form.salaryMin) errs.salaryMax = '최대 연봉은 최소 연봉보다 커야 합니다';
-    if (!form.experienceLevel) errs.experienceLevel = '경력 수준을 선택해주세요';
-    if (!form.educationLevel) errs.educationLevel = '학력을 선택해주세요';
+
+    // 경력·학력: 알바는 선택 사항 / Experience and education are optional for ALBA
+    if (form.employmentType !== 'ALBA') {
+      if (!form.experienceLevel) errs.experienceLevel = '경력 수준을 선택해주세요';
+      if (!form.educationLevel) errs.educationLevel = '학력을 선택해주세요';
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };

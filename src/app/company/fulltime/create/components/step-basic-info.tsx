@@ -108,6 +108,16 @@ export default function StepBasicInfo({
                 if (wasAlba !== willBeAlba) {
                   updateForm('jobCategoryCode', '');
                 }
+                // 알바 선택 시 시급 기준 + 주 20시간 기본값 설정
+                // Auto-default to hourly + 20h/week when ALBA selected
+                if (willBeAlba) {
+                  updateForm('salaryInputType', 'HOURLY');
+                  updateForm('weeklyWorkHours', 20);
+                } else if (wasAlba && !willBeAlba) {
+                  // 정규직으로 돌아올 때 연봉 기준 + 주 40시간 복원
+                  updateForm('salaryInputType', 'YEARLY');
+                  updateForm('weeklyWorkHours', 40);
+                }
                 updateForm('employmentType', type);
               }}
               className={`p-3 border-2 rounded-lg transition text-sm font-medium ${
@@ -277,27 +287,36 @@ export default function StepBasicInfo({
         </div>
 
         {/* 급여 기준 선택 / Salary input type selection */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            급여 기준 <span className="text-xs text-gray-500">(Salary Type)</span>
-          </label>
-          <div className="flex gap-3">
-            {(Object.keys(SALARY_INPUT_TYPE_LABELS) as SalaryInputType[]).map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => updateForm('salaryInputType', type)}
-                className={`flex-1 p-3 border-2 rounded-lg transition text-sm font-medium ${
-                  form.salaryInputType === type
-                    ? 'border-blue-600 bg-blue-50 text-blue-900'
-                    : 'border-gray-200 hover:border-gray-300 text-gray-700'
-                }`}
-              >
-                {SALARY_INPUT_TYPE_LABELS[type]}
-              </button>
-            ))}
+        {/* 알바: 시급 고정, 정규직/계약직/인턴: 연봉/월급/시급 선택 가능 */}
+        {form.employmentType === 'ALBA' ? (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-sm text-green-800 font-medium">
+              💰 알바는 시급 기준으로 입력합니다
+            </p>
           </div>
-        </div>
+        ) : (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              급여 기준 <span className="text-xs text-gray-500">(Salary Type)</span>
+            </label>
+            <div className="flex gap-3">
+              {(Object.keys(SALARY_INPUT_TYPE_LABELS) as SalaryInputType[]).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => updateForm('salaryInputType', type)}
+                  className={`flex-1 p-3 border-2 rounded-lg transition text-sm font-medium ${
+                    form.salaryInputType === type
+                      ? 'border-blue-600 bg-blue-50 text-blue-900'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  {SALARY_INPUT_TYPE_LABELS[type]}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 연봉 입력 / Yearly salary input */}
         {form.salaryInputType === 'YEARLY' && (
@@ -552,8 +571,8 @@ export default function StepBasicInfo({
         </div>
       </section>
 
-      {/* 해외 인재 채용 의사 / Overseas hire willingness (인턴일 때 숨김) */}
-      {form.employmentType !== 'INTERN' && (
+      {/* 해외 인재 채용 의사 / Overseas hire willingness (인턴·알바일 때 숨김) */}
+      {!['INTERN', 'ALBA'].includes(form.employmentType) && (
         <section className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
           <div className="flex items-center gap-2 mb-3">
             <Globe className="w-5 h-5 text-blue-600" />

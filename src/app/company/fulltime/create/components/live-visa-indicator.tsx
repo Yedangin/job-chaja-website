@@ -20,10 +20,10 @@
 
 'use client';
 
-import { CheckCircle, XCircle, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2, ChevronDown, ChevronUp, AlertTriangle } from 'lucide-react';
 import { useEffect, useState, useRef } from 'react';
-import type { FulltimeJobFormData, FulltimeVisaMatchingResponse } from './fulltime-types';
-import { matchFulltimeVisa } from '../api';
+import type { FulltimeJobFormData, FulltimeVisaMatchingResponse, AlbaHiringVisaAnalysisResponse } from './fulltime-types';
+import { matchFulltimeVisa, analyzeAlbaHiringVisa } from '../api';
 
 interface LiveVisaIndicatorProps {
   form: FulltimeJobFormData;
@@ -165,10 +165,13 @@ const colorClasses: Record<string, { border: string; bg: string; text: string; i
 
 export default function LiveVisaIndicator({ form }: LiveVisaIndicatorProps) {
   const [result, setResult] = useState<FulltimeVisaMatchingResponse | null>(null);
+  const [albaResult, setAlbaResult] = useState<AlbaHiringVisaAnalysisResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [albaLoading, setAlbaLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const albaDebounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isAlba = form.employmentType === 'ALBA';
   const isFulltime = ['REGULAR', 'CONTRACT', 'INTERN'].includes(form.employmentType);
@@ -209,6 +212,44 @@ export default function LiveVisaIndicator({ form }: LiveVisaIndicatorProps) {
     form.educationLevel,
     form.experienceLevel,
     form.overseasHireWilling,
+    form.address?.isDepopulationArea,
+  ]);
+
+  // 알바: 직종 선택 시 debounce 후 백엔드 비자 분석 호출
+  // Alba: call backend visa analysis with debounce when job category changes
+  useEffect(() => {
+    if (!isAlba || !form.jobCategoryCode) {
+      setAlbaResult(null);
+      return;
+    }
+
+    if (albaDebounceTimer.current) clearTimeout(albaDebounceTimer.current);
+
+    albaDebounceTimer.current = setTimeout(async () => {
+      try {
+        setAlbaLoading(true);
+        setError(null);
+        const data = await analyzeAlbaHiringVisa(
+          form.jobCategoryCode,
+          form.weeklyWorkHours || 20,
+          form.address?.isDepopulationArea,
+        );
+        setAlbaResult(data);
+      } catch (err) {
+        setError('알바 비자 분석에 실패했습니다. 잠시 후 다시 시도해주세요.');
+        void err;
+      } finally {
+        setAlbaLoading(false);
+      }
+    }, 500);
+
+    return () => {
+      if (albaDebounceTimer.current) clearTimeout(albaDebounceTimer.current);
+    };
+  }, [
+    isAlba,
+    form.jobCategoryCode,
+    form.weeklyWorkHours,
     form.address?.isDepopulationArea,
   ]);
 
@@ -302,9 +343,186 @@ export default function LiveVisaIndicator({ form }: LiveVisaIndicatorProps) {
     );
   }
 
-  // ── 4. 알바 — 3개 섹션 ──
-  // ALBA — 3 sections
+  // ── 4. 알바 — 실시간 비자 분석 (API 결과) 또는 정적 미리보기 ──
+  // ALBA — live visa analysis (API result) or static preview
   if (isAlba) {
+    // 4a. 알바 로딩 중 / Alba loading
+    if (albaLoading) {
+      return (
+        <Panel borderColor="border-gray-300">
+          <div className="p-4 flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 text-gray-400 animate-spin" />
+            <span className="ml-3 text-sm text-gray-600">알바 비자 분석 중...</span>
+          </div>
+        </Panel>
+      );
+    }
+
+    // 4b. API 결과가 있는 경우 — 동적 렌더링
+    // When API result exists — dynamic rendering
+    if (albaResult) {
+      const { freeEmployment, permitRequired, blocked, appliedRules, summary } = albaResult;
+      const eligibleFree = freeEmployment.filter((v) => v.status === 'eligible');
+      const restrictedFree = freeEmployment.filter((v) => v.status === 'restricted');
+      const eligiblePermit = permitRequired.filter((v) => v.status === 'eligible');
+      const restrictedPermit = permitRequired.filter((v) => v.status === 'restricted');
+      const totalEligibleCount = summary.totalEligible;
+
+      // 동적 섹션 구성 / Build dynamic sections
+      const dynamicSections: {
+        key: string;
+        label: string;
+        desc: string;
+        emoji: string;
+        colorClass: { bg: string; text: string; icon: string; title: string };
+        visas: typeof freeEmployment;
+        statusIcon: 'check' | 'alert' | 'block';
+      }[] = [];
+
+      if (eligibleFree.length > 0) {
+        dynamicSections.push({
+          key: 'alba-eligible-free',
+          label: '즉시채용 가능',
+          desc: '취업활동 제한 없음',
+          emoji: '🟢',
+          colorClass: { bg: 'bg-green-50', text: 'text-green-900', icon: 'text-green-600', title: 'text-green-700' },
+          visas: eligibleFree,
+          statusIcon: 'check',
+        });
+      }
+
+      if (eligiblePermit.length > 0) {
+        dynamicSections.push({
+          key: 'alba-eligible-permit',
+          label: '허가 후 채용 가능',
+          desc: '시간외 활동허가 필요',
+          emoji: '🟡',
+          colorClass: { bg: 'bg-yellow-50', text: 'text-yellow-900', icon: 'text-yellow-600', title: 'text-yellow-700' },
+          visas: eligiblePermit,
+          statusIcon: 'check',
+        });
+      }
+
+      const allRestricted = [...restrictedFree, ...restrictedPermit];
+      if (allRestricted.length > 0) {
+        dynamicSections.push({
+          key: 'alba-restricted',
+          label: '조건부 가능',
+          desc: '근무시간/지역 제한 있음',
+          emoji: '🟠',
+          colorClass: { bg: 'bg-orange-50', text: 'text-orange-900', icon: 'text-orange-600', title: 'text-orange-700' },
+          visas: allRestricted,
+          statusIcon: 'alert',
+        });
+      }
+
+      if (blocked.length > 0) {
+        dynamicSections.push({
+          key: 'alba-blocked',
+          label: '채용 불가',
+          desc: '해당 직종에서 고용 금지',
+          emoji: '🔴',
+          colorClass: { bg: 'bg-red-50', text: 'text-red-900', icon: 'text-red-500', title: 'text-red-700' },
+          visas: blocked,
+          statusIcon: 'block',
+        });
+      }
+
+      return (
+        <Panel borderColor="border-green-500">
+          <div className="p-4 border-b border-green-100 bg-green-50">
+            <div className="flex items-center justify-between mb-1">
+              <h4 className="font-bold text-green-900 text-sm">📊 알바 비자 실시간 분석</h4>
+              <div className="flex items-center gap-1">
+                <span className="text-xl font-bold text-green-600">{totalEligibleCount}</span>
+                <span className="text-xs text-gray-400">/ {freeEmployment.length + permitRequired.length + blocked.length}</span>
+              </div>
+            </div>
+            <p className="text-xs text-green-700">직종·근무시간 기반 자동 분석 결과입니다</p>
+          </div>
+          <div className="p-3 space-y-3 max-h-[520px] overflow-y-auto">
+            {dynamicSections.map((section) => (
+              <div key={section.key}>
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.key)}
+                  className="w-full flex items-center justify-between text-left mb-1.5"
+                >
+                  <div>
+                    <span className={`text-xs font-bold ${section.colorClass.title}`}>
+                      {section.emoji} {section.label}
+                    </span>
+                    <span className="text-xs text-gray-400 ml-1">— {section.desc}</span>
+                  </div>
+                  <span className="flex items-center gap-1">
+                    <span className="text-xs text-gray-400">{section.visas.length}</span>
+                    {collapsed[section.key]
+                      ? <ChevronDown className="w-3 h-3 text-gray-400" />
+                      : <ChevronUp className="w-3 h-3 text-gray-400" />
+                    }
+                  </span>
+                </button>
+                {!collapsed[section.key] && (
+                  <div className="space-y-1">
+                    {section.visas.map((visa) => (
+                      <div key={visa.visaCode} className={`px-2.5 py-1.5 ${section.colorClass.bg} rounded-lg`}>
+                        <div className="flex items-center gap-2">
+                          {section.statusIcon === 'check' && (
+                            <CheckCircle className={`w-3.5 h-3.5 ${section.colorClass.icon} shrink-0`} />
+                          )}
+                          {section.statusIcon === 'alert' && (
+                            <AlertTriangle className={`w-3.5 h-3.5 ${section.colorClass.icon} shrink-0`} />
+                          )}
+                          {section.statusIcon === 'block' && (
+                            <XCircle className={`w-3.5 h-3.5 ${section.colorClass.icon} shrink-0`} />
+                          )}
+                          <span className={`text-xs font-semibold ${section.colorClass.text}`}>
+                            {visa.visaCode}
+                          </span>
+                          <span className={`text-xs ${section.colorClass.icon} opacity-80`}>
+                            {visa.visaName}
+                          </span>
+                          {visa.maxWeeklyHours !== null && (
+                            <span className="text-xs text-gray-400 ml-auto">
+                              max {visa.maxWeeklyHours}h/주
+                            </span>
+                          )}
+                        </div>
+                        {visa.reason && (
+                          <p className="text-xs text-gray-500 mt-0.5 ml-5.5 leading-tight">
+                            {visa.reason.split(' / ')[0]}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {totalEligibleCount === 0 && (
+              <div className="text-center py-6">
+                <XCircle className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-600">현재 조건으로 채용 가능한 비자가 없습니다</p>
+                <p className="text-xs text-gray-500 mt-1">직종이나 근무시간 조건을 조정해보세요</p>
+              </div>
+            )}
+          </div>
+
+          {appliedRules.length > 0 && (
+            <div className="p-3 border-t border-gray-100">
+              <p className="text-xs text-gray-400 mb-1">적용된 규칙:</p>
+              {appliedRules.map((rule, idx) => (
+                <p key={idx} className="text-xs text-gray-500">• {rule.split(' / ')[0]}</p>
+              ))}
+            </div>
+          )}
+        </Panel>
+      );
+    }
+
+    // 4c. API 결과 없음 (직종 미선택) — 정적 미리보기
+    // No API result (no category selected) — static preview
     const totalAlba = ALBA_VISA_SECTIONS.reduce((sum, s) => sum + s.visas.length, 0);
     return (
       <Panel borderColor="border-green-500">
@@ -313,7 +531,7 @@ export default function LiveVisaIndicator({ form }: LiveVisaIndicatorProps) {
             <h4 className="font-bold text-green-900 text-sm">🏪 알바 채용 가능 비자</h4>
             <span className="text-xl font-bold text-green-600">{totalAlba}</span>
           </div>
-          <p className="text-xs text-green-700">비자 종류에 따라 허가 절차가 다릅니다</p>
+          <p className="text-xs text-green-700">직종을 선택하면 실시간 분석을 시작합니다</p>
         </div>
         <div className="p-3 space-y-3 max-h-[520px] overflow-y-auto">
           {ALBA_VISA_SECTIONS.map((section) => (
@@ -357,7 +575,7 @@ export default function LiveVisaIndicator({ form }: LiveVisaIndicatorProps) {
         </div>
         <div className="p-3 border-t border-gray-100">
           <p className="text-xs text-gray-500 text-center">
-            💡 정확한 근무시간 제한은 Step 3에서 비자별로 자동 분석됩니다
+            💡 직종을 선택하면 비자별 고용 가능 여부가 자동 분석됩니다
           </p>
         </div>
       </Panel>
@@ -475,8 +693,9 @@ export default function LiveVisaIndicator({ form }: LiveVisaIndicatorProps) {
           if (!trackData) return null;
 
           const ui = TRACK_UI[trackKey];
-          const eligibleList = trackData.eligible;
-          if (eligibleList.length === 0) return null;
+          const { eligible: eligibleList, conditional: conditionalList, blocked: blockedList } = trackData;
+          const totalInTrack = eligibleList.length + conditionalList.length + blockedList.length;
+          if (totalInTrack === 0) return null;
 
           const c = colorClasses[ui.color];
 
@@ -494,7 +713,11 @@ export default function LiveVisaIndicator({ form }: LiveVisaIndicatorProps) {
                   <span className="text-xs text-gray-400 ml-1">⏱ {ui.time}</span>
                 </div>
                 <span className="flex items-center gap-1">
-                  <span className="text-xs text-gray-400">{eligibleList.length}</span>
+                  <span className="text-xs text-gray-400">
+                    {eligibleList.length > 0 && <span className="text-green-600">{eligibleList.length}</span>}
+                    {conditionalList.length > 0 && <span className="text-yellow-600 ml-0.5">+{conditionalList.length}</span>}
+                    {blockedList.length > 0 && <span className="text-gray-400 ml-0.5">+{blockedList.length}</span>}
+                  </span>
                   {collapsed[trackKey]
                     ? <ChevronDown className="w-3 h-3 text-gray-400" />
                     : <ChevronUp className="w-3 h-3 text-gray-400" />
@@ -503,6 +726,7 @@ export default function LiveVisaIndicator({ form }: LiveVisaIndicatorProps) {
               </button>
               {!collapsed[trackKey] && (
                 <div className="space-y-1">
+                  {/* Eligible visas — green */}
                   {eligibleList.map((visa) => (
                     <div key={visa.visaCode} className={`flex items-center gap-2 px-2.5 py-1.5 ${c.bg} rounded-lg`}>
                       <CheckCircle className={`w-3.5 h-3.5 ${c.icon} shrink-0`} />
@@ -512,6 +736,44 @@ export default function LiveVisaIndicator({ form }: LiveVisaIndicatorProps) {
                       <span className={`text-xs ${c.icon} opacity-80`}>
                         {visa.visaName}
                       </span>
+                    </div>
+                  ))}
+                  {/* Conditional visas — yellow with conditions */}
+                  {conditionalList.map((visa) => (
+                    <div key={visa.visaCode} className="px-2.5 py-1.5 bg-yellow-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-3.5 h-3.5 text-yellow-500 shrink-0" />
+                        <span className="text-xs font-semibold text-yellow-900">
+                          {visa.visaCode}
+                        </span>
+                        <span className="text-xs text-yellow-600 opacity-80">
+                          {visa.visaName}
+                        </span>
+                      </div>
+                      {visa.conditions.length > 0 && (
+                        <p className="text-xs text-yellow-600 mt-0.5 ml-5.5 leading-tight">
+                          {visa.conditions[0]}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                  {/* Blocked visas — gray with block reasons */}
+                  {blockedList.map((visa) => (
+                    <div key={visa.visaCode} className="px-2.5 py-1.5 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <XCircle className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                        <span className="text-xs font-semibold text-gray-500 line-through">
+                          {visa.visaCode}
+                        </span>
+                        <span className="text-xs text-gray-400 opacity-80">
+                          {visa.visaName}
+                        </span>
+                      </div>
+                      {visa.blockReasons.length > 0 && (
+                        <p className="text-xs text-gray-400 mt-0.5 ml-5.5 leading-tight">
+                          {visa.blockReasons[0]}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>

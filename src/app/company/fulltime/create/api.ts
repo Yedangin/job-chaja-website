@@ -6,6 +6,7 @@
 import type {
   FulltimeJobFormData,
   FulltimeVisaMatchingResponse,
+  AlbaHiringVisaAnalysisResponse,
   E7JobCategory,
 } from './components/fulltime-types';
 
@@ -101,6 +102,31 @@ export async function matchFulltimeVisa(
 }
 
 /**
+ * 알바 비자 분석 API 호출 (실시간 필터링용)
+ * Call alba visa analysis API (for real-time filtering)
+ *
+ * POST /api/alba/hiring/visa-analysis → 백엔드 AlbaHiringVisaAnalysisService
+ */
+export async function analyzeAlbaHiringVisa(
+  jobCategoryCode: string,
+  weeklyHours: number,
+  isDepopulationArea?: boolean,
+): Promise<AlbaHiringVisaAnalysisResponse> {
+  const response = await fetch('/api/alba/hiring/visa-analysis', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jobCategoryCode, weeklyHours, isDepopulationArea }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.message || '알바 비자 분석 실패 / Alba visa analysis failed');
+  }
+
+  return response.json();
+}
+
+/**
  * 고용형태 → employmentSubType 매핑
  * Map frontend employment type to backend employmentSubType enum
  */
@@ -109,6 +135,7 @@ function mapEmploymentSubType(type: string): string {
     case 'REGULAR': return 'PERMANENT';
     case 'CONTRACT': return 'CONTRACT';
     case 'INTERN': return 'INTERNSHIP';
+    case 'ALBA': return 'PART_TIME';
     default: return 'PERMANENT';
   }
 }

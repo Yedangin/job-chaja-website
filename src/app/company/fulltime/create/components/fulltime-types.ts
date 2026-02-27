@@ -302,3 +302,38 @@ export function convertYearlyToHourly(yearlySalary: number, weeklyHours: number 
   return Math.round(yearlySalary / 12 / monthlyHours);
 }
 
+// ─── 알바 비자 분석 응답 타입 (백엔드 AlbaHiringVisaAnalysisResponseDto) ───
+// Alba visa analysis response types (matches backend DTO)
+
+export interface AlbaVisaStatus {
+  visaCode: string;
+  visaName: string;
+  visaNameEn: string;
+  status: 'eligible' | 'restricted' | 'blocked';
+  requiresPermit: boolean;
+  maxWeeklyHours: number | null;
+  reason: string | null;
+}
+
+export interface AlbaHiringVisaAnalysisResponse {
+  freeEmployment: AlbaVisaStatus[];
+  permitRequired: AlbaVisaStatus[];
+  blocked: AlbaVisaStatus[];
+  appliedRules: string[];
+  inputSummary: {
+    jobCategoryCode: string;
+    ksicCode: string;
+    weeklyHours: number;
+    isSimpleLabor: boolean;
+    isEntertainment: boolean;
+    isBlockedForH2: boolean;
+    isDepopulationArea: boolean;
+  };
+  summary: {
+    totalEligible: number;
+    totalRestricted: number;
+    totalBlocked: number;
+  };
+  analyzedAt: string;
+}
+
