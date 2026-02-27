@@ -15,7 +15,7 @@ import {
   // 인재채용관 / Talent pool
   Search, Eye, Bookmark, MessageSquare,
   // 결제/정산 / Payment & accounting
-  ShoppingBag, Receipt, Tag, CreditCard, FileCheck,
+  Receipt, Tag, CreditCard, FileCheck,
   // 계정 설정 / Account settings
   Lock, ShieldAlert, Link2, Mail, UserX,
   // 고객지원 / Customer support
@@ -196,13 +196,14 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
     },
 
     // 결제 / 정산 / Payment & accounting
+    // 상품 구매 메뉴 제거: 결제 내역과 중복, 프리미엄은 공고에서 업그레이드
+    // Removed "상품 구매" menu: overlaps with 결제 내역, premium upgrades from job listings
     {
       title: '결제 / 정산',
       items: [
-        { href: '/company/payments', icon: ShoppingBag, label: '상품 구매', exact: true },
         { href: '/company/payments/history', icon: Receipt, label: '결제 내역' },
-        { href: '/company/mypage/coupons', icon: Tag, label: '쿠폰함' },
         { href: '/company/payments/credits', icon: CreditCard, label: '열람권 현황' },
+        { href: '/company/mypage/coupons', icon: Tag, label: '쿠폰함' },
         { href: '/company/payments/tax', icon: FileCheck, label: '세금계산서' },
       ],
     },

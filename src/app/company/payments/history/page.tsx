@@ -15,7 +15,6 @@ import Link from 'next/link';
 import {
   CreditCard,
   Loader2,
-  LogIn,
   Receipt,
   XCircle,
   CheckCircle2,
@@ -721,33 +720,6 @@ function EmptyState({ isFiltered }: { isFiltered: boolean }) {
   );
 }
 
-// ── 미로그인 상태 / Not logged in state ──────────────────────────────────────
-
-function NotLoggedIn() {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center">
-      <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-        <LogIn className="w-8 h-8 text-gray-400" />
-      </div>
-      <h3 className="text-base font-semibold text-gray-700 mb-2">
-        로그인이 필요합니다
-      </h3>
-      <p className="text-sm text-gray-400 mb-6">
-        로그인하여 결제 내역을 확인하세요.
-        <br />
-        Log in to view your payment history.
-      </p>
-      <Link
-        href="/auth/login"
-        className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-blue-700 transition"
-      >
-        <LogIn className="w-4 h-4" />
-        로그인하기
-      </Link>
-    </div>
-  );
-}
-
 // ══════════════════════════════════════════════════════════════════════════════
 // 메인 페이지 컴포넌트 / Main page component
 // ══════════════════════════════════════════════════════════════════════════════
@@ -767,8 +739,6 @@ export default function CompanyPaymentHistoryPage() {
   const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
   // 현재 페이지 / Current page
   const [page, setPage] = useState(1);
-  // 로그인 여부 / Whether user is logged in
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
   // 현재 취소 중인 주문 ID / Currently cancelling order id
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   // 취소 확인 패널 표시 중인 주문 ID / Order id showing inline cancel confirm panel
@@ -782,14 +752,6 @@ export default function CompanyPaymentHistoryPage() {
     tab: OrderStatus | 'all',
     currentPage: number,
   ) => {
-    // 세션 ID 확인 / Check session ID
-    const sessionId = localStorage.getItem('sessionId');
-    if (!sessionId) {
-      setIsLoggedIn(false);
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
@@ -801,14 +763,15 @@ export default function CompanyPaymentHistoryPage() {
       });
       if (tab !== 'all') params.set('status', tab);
 
-      const res = await fetch(`/api/payments/orders?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${sessionId}` },
+      // httpOnly 쿠키 인증 사용 / Use httpOnly cookie auth
+      const res = await fetch(`/api/payments/orders/my?${params.toString()}`, {
+        credentials: 'include',
       });
 
       if (!res.ok) {
         if (res.status === 401) {
-          // 인증 만료 / Auth expired
-          setIsLoggedIn(false);
+          // 인증 만료 → 로그인 페이지로 / Auth expired → redirect to login
+          window.location.href = '/auth/login';
           return;
         }
         const data = await res.json().catch(() => ({}));
@@ -879,15 +842,13 @@ export default function CompanyPaymentHistoryPage() {
    * 결제 취소 실행 / Execute payment cancellation
    */
   const handleCancelConfirm = async (orderId: string) => {
-    const sessionId = localStorage.getItem('sessionId');
-    if (!sessionId) return;
-
     setCancellingId(orderId);
     try {
+      // httpOnly 쿠키 인증 사용 / Use httpOnly cookie auth
       const res = await fetch(`/api/payments/orders/${orderId}/cancel`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
-          Authorization: `Bearer ${sessionId}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({}),
@@ -938,8 +899,8 @@ export default function CompanyPaymentHistoryPage() {
           <h1 className="text-xl font-bold text-gray-900">결제 내역</h1>
           <p className="text-sm text-gray-500 mt-0.5">Payment History</p>
         </div>
-        {/* 로그인 상태 + 로드 완료 시 총 건수 표시 / Show total when logged in & loaded */}
-        {!loading && isLoggedIn && total > 0 && (
+        {/* 로드 완료 시 총 건수 표시 / Show total when loaded */}
+        {!loading && total > 0 && (
           <div className="flex items-center gap-3">
             {/* 세금계산서 바로가기 / Tax invoice shortcut */}
             <Link
@@ -979,11 +940,8 @@ export default function CompanyPaymentHistoryPage() {
         </div>
       )}
 
-      {/* ── 미로그인 / Not logged in ── */}
-      {!loading && !isLoggedIn && <NotLoggedIn />}
-
       {/* ── 에러 / Error ── */}
-      {!loading && isLoggedIn && error && (
+      {!loading && error && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-4 text-sm text-red-700 mb-4 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
@@ -991,7 +949,7 @@ export default function CompanyPaymentHistoryPage() {
       )}
 
       {/* ── 정상 상태 / Normal state ── */}
-      {!loading && isLoggedIn && !error && (
+      {!loading && !error && (
         <>
           {/* 요약 카드 / Summary cards */}
           <SummaryCards orders={allOrders} />
