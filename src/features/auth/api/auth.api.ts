@@ -14,8 +14,11 @@ export const authApi = {
    * 로그인
    */
   login: async (data: LoginRequest & { memberType?: string }): Promise<LoginResponse> => {
-    const response = await apiClient.post<LoginResponse>('/auth/login', data);
-    return response.data;
+    const response = await apiClient.post('/auth/login', data);
+    // 백엔드 SuccessTransformInterceptor가 {"status":"OK","data":{...}} 로 감쌈
+    // Backend SuccessTransformInterceptor wraps response as {"status":"OK","data":{...}}
+    const payload = response.data?.data ?? response.data;
+    return payload as LoginResponse;
   },
 
   /**
