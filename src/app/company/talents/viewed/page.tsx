@@ -26,10 +26,18 @@ import {
 
 // ─── 타입 정의 / Type definitions ─────────────────────────────────────────────
 
-/** 잔여 열람권 잔고 / Viewing credit balance */
+/** 잔여 열람권 잔고 응답 / Viewing credit balance response */
 interface CreditBalance {
-  balance: number;    // 잔여 열람권 / Remaining credits
-  totalUsed: number;  // 총 사용 수 / Total used
+  totalRemaining: number;  // 잔여 열람권 / Remaining credits
+  credits: {
+    id: number;
+    totalCredits: number;
+    usedCredits: number;
+    remainingCredits: number;
+    source: string;
+    expiresAt: string;
+    isExpired: boolean;
+  }[];
 }
 
 // ─── 서브컴포넌트 / Sub-components ────────────────────────────────────────────
@@ -85,6 +93,9 @@ interface CreditMiniCardProps {
 }
 
 function CreditMiniCard({ balance }: CreditMiniCardProps) {
+  // 총 사용 수 계산 / Calculate total used credits
+  const totalUsed = balance.credits.reduce((sum, c) => sum + c.usedCredits, 0);
+
   return (
     <div className="bg-linear-to-r from-indigo-600 to-blue-600 rounded-2xl p-5 text-white shadow-md shadow-indigo-200 mb-6">
       <div className="flex items-center justify-between">
@@ -104,10 +115,10 @@ function CreditMiniCard({ balance }: CreditMiniCardProps) {
         {/* 오른쪽: 잔고 숫자 / Right: balance number */}
         <div className="text-right">
           <p className="text-3xl font-bold tracking-tight">
-            {balance.balance}
+            {balance.totalRemaining}
             <span className="text-lg font-semibold text-indigo-200 ml-1">건</span>
           </p>
-          <p className="text-xs text-indigo-200 mt-0.5">총 {balance.totalUsed}건 사용</p>
+          <p className="text-xs text-indigo-200 mt-0.5">총 {totalUsed}건 사용</p>
         </div>
       </div>
 
@@ -120,7 +131,7 @@ function CreditMiniCard({ balance }: CreditMiniCardProps) {
             <span className="text-xs text-indigo-200">잔여 열람권</span>
           </div>
           <p className="text-lg font-bold">
-            {balance.balance}
+            {balance.totalRemaining}
             <span className="text-xs font-normal ml-0.5">건</span>
           </p>
         </div>
@@ -131,14 +142,14 @@ function CreditMiniCard({ balance }: CreditMiniCardProps) {
             <span className="text-xs text-indigo-200">총 열람</span>
           </div>
           <p className="text-lg font-bold">
-            {balance.totalUsed}
+            {totalUsed}
             <span className="text-xs font-normal ml-0.5">건</span>
           </p>
         </div>
       </div>
 
       {/* 잔고 없을 때 구매 안내 / Low balance CTA */}
-      {balance.balance === 0 && (
+      {balance.totalRemaining === 0 && (
         <div className="mt-3 bg-white/15 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3">
           <p className="text-xs text-indigo-100">
             열람권이 없습니다. 구매 후 이력서를 열람해보세요.
@@ -296,20 +307,12 @@ export default function TalentViewedPage() {
 
   // ── 잔여 열람권 잔고 조회 / Fetch credit balance ──────────────────────────
   const loadBalance = useCallback(async () => {
-    const sessionId = localStorage.getItem('sessionId');
-    if (!sessionId) {
-      // 세션 없음 → 미로그인 / No session → not logged in
-      setIsLoggedIn(false);
-      setLoadingBalance(false);
-      return;
-    }
-
     setLoadingBalance(true);
     setBalanceError(null);
 
     try {
       const res = await fetch('/api/payments/viewing-credits/balance', {
-        headers: { Authorization: `Bearer ${sessionId}` },
+        credentials: 'include',
       });
 
       if (res.status === 401) {
@@ -351,7 +354,7 @@ export default function TalentViewedPage() {
         {/* 총 열람 수 / Total viewed count */}
         {!loadingBalance && isLoggedIn && balance && (
           <span className="text-sm text-gray-400">
-            총 <span className="font-semibold text-gray-700">{balance.totalUsed}</span>건 열람
+            총 <span className="font-semibold text-gray-700">{balance.credits.reduce((sum, c) => sum + c.usedCredits, 0)}</span>건 열람
           </span>
         )}
       </div>

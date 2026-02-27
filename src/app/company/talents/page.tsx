@@ -103,7 +103,7 @@ export default function CompanyTalentsPage() {
         const res = await fetch('/api/payments/viewing-credits/balance', { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
-          setCredits(data.balance ?? data.totalCredits ?? 0);
+          setCredits(data.totalRemaining ?? 0);
         }
       } catch { setCredits(0); }
     };

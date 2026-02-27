@@ -25,10 +25,18 @@ import {
 
 // ─── 타입 정의 / Type definitions ─────────────────────────────────────────────
 
-/** 잔여 열람권 잔고 / Viewing credit balance */
+/** 잔여 열람권 잔고 응답 / Viewing credit balance response */
 interface CreditBalance {
-  balance: number;    // 잔여 열람권 / Remaining credits
-  totalUsed: number;  // 총 사용 수 / Total used
+  totalRemaining: number;  // 잔여 열람권 / Remaining credits
+  credits: {
+    id: number;
+    totalCredits: number;
+    usedCredits: number;
+    remainingCredits: number;
+    source: string;
+    expiresAt: string;
+    isExpired: boolean;
+  }[];
 }
 
 // ─── 서브컴포넌트 / Sub-components ────────────────────────────────────────────
@@ -84,6 +92,9 @@ interface CreditMiniCardProps {
 }
 
 function CreditMiniCard({ balance }: CreditMiniCardProps) {
+  // 총 사용 수 계산 / Calculate total used credits
+  const totalUsed = balance.credits.reduce((sum, c) => sum + c.usedCredits, 0);
+
   return (
     <div className="bg-linear-to-r from-blue-600 to-blue-700 rounded-2xl p-5 text-white shadow-md shadow-blue-200 mb-6">
       <div className="flex items-center justify-between">
@@ -103,15 +114,15 @@ function CreditMiniCard({ balance }: CreditMiniCardProps) {
         {/* 오른쪽: 잔고 숫자 / Right: balance number */}
         <div className="text-right">
           <p className="text-3xl font-bold tracking-tight">
-            {balance.balance}
+            {balance.totalRemaining}
             <span className="text-lg font-semibold text-blue-200 ml-1">건</span>
           </p>
-          <p className="text-xs text-blue-200 mt-0.5">총 {balance.totalUsed}건 사용</p>
+          <p className="text-xs text-blue-200 mt-0.5">총 {totalUsed}건 사용</p>
         </div>
       </div>
 
       {/* 잔고 없을 때 안내 / Low balance notice */}
-      {balance.balance === 0 && (
+      {balance.totalRemaining === 0 && (
         <div className="mt-4 bg-white/15 rounded-xl px-4 py-2.5 flex items-center justify-between gap-3">
           <p className="text-xs text-blue-100">
             열람권이 없습니다. 구매 후 인재 이력서를 열람하세요.
@@ -275,20 +286,12 @@ export default function TalentBookmarksPage() {
 
   // ── 잔여 열람권 잔고 조회 / Fetch credit balance ──────────────────────────
   const loadBalance = useCallback(async () => {
-    const sessionId = localStorage.getItem('sessionId');
-    if (!sessionId) {
-      // 세션 없음 → 미로그인 / No session → not logged in
-      setIsLoggedIn(false);
-      setLoadingBalance(false);
-      return;
-    }
-
     setLoadingBalance(true);
     setBalanceError(null);
 
     try {
       const res = await fetch('/api/payments/viewing-credits/balance', {
-        headers: { Authorization: `Bearer ${sessionId}` },
+        credentials: 'include',
       });
 
       if (res.status === 401) {

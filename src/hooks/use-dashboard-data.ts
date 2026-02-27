@@ -58,7 +58,7 @@ export function useDashboardData(): UseDashboardDataResult {
     const promises = await Promise.allSettled([
       // 1. 열람권 잔여 / Viewing credit balance
       apiClient.get('/payments/viewing-credits/balance').then(res => {
-        result.viewingCredits = res.data?.balance ?? res.data?.remaining ?? 0;
+        result.viewingCredits = res.data?.totalRemaining ?? 0;
       }),
 
       // 2. 내 공고 목록 / My job listings (GET /jobs/my/list)
