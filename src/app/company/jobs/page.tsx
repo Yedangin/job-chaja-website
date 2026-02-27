@@ -20,6 +20,9 @@ interface JobPosting {
   allowedVisas?: string[];
   applicantCount?: number;
   closingDate?: string;
+  expiresAt?: string;       // 공고 노출 만료일 / Posting expiry date
+  premiumStartAt?: string;  // 프리미엄 시작일 / Premium start date
+  premiumEndAt?: string;    // 프리미엄 종료일 / Premium end date
   createdAt: string;
   updatedAt?: string;
 }
@@ -89,6 +92,13 @@ export default function CompanyJobsPage() {
     if (diff < 0) return '만료';
     if (diff === 0) return 'D-Day';
     return `D-${diff}`;
+  };
+
+  // 날짜 포맷 / Format date (MM.DD)
+  const formatDate = (dateStr?: string): string => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return `${d.getMonth() + 1}.${d.getDate()}`;
   };
 
   // 공고 마감 / Close job
@@ -197,10 +207,13 @@ export default function CompanyJobsPage() {
         <div className="space-y-3">
           {displayJobs.map((job) => {
             const dday = getDday(job.closingDate);
-            const isExpired = dday === '만료';
+            const expiryDday = getDday(job.expiresAt);
+            const premiumDday = getDday(job.premiumEndAt);
+            const isExpired = dday === '만료' || expiryDday === '만료';
             const isUrgent = dday && !isExpired && parseInt(dday.replace('D-', '')) <= 3;
             const isPremium = job.tierType === 'PREMIUM';
             const isDraft = job.status === 'DRAFT';
+            const premiumExpired = premiumDday === '만료';
 
             return (
               <div key={job.id} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-sm transition relative">
@@ -254,15 +267,51 @@ export default function CompanyJobsPage() {
                         <span className="flex items-center gap-1">
                           <Users className="w-3 h-3" /> 지원자 {job.applicantCount || 0}명
                         </span>
-                        {dday && (
-                          <span className={`flex items-center gap-1 ${isExpired ? 'text-red-500' : isUrgent ? 'text-orange-500 font-medium' : ''}`}>
-                            <Clock className="w-3 h-3" />
-                            {isExpired ? '노출 종료' : isUrgent ? `${dday} 곧 만료` : `마감 ${dday}`}
-                          </span>
-                        )}
                         <span>{job.boardType === 'PART_TIME' ? '아르바이트' : '정규직'}</span>
                         {!isPremium && job.status === 'ACTIVE' && (
                           <span className="text-blue-600 font-medium">일반</span>
+                        )}
+                      </div>
+
+                      {/* 기간 정보 바 / Duration info bar */}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {/* 공고 노출기간 / Posting exposure period */}
+                        {job.expiresAt && (
+                          <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md ${
+                            expiryDday === '만료' ? 'bg-red-50 text-red-600' :
+                            expiryDday && parseInt(expiryDday.replace('D-', '')) <= 3 ? 'bg-orange-50 text-orange-600 font-medium' :
+                            'bg-gray-50 text-gray-600'
+                          }`}>
+                            <Clock className="w-3 h-3" />
+                            공고 {expiryDday === '만료' ? '만료' : expiryDday === 'D-Day' ? '오늘 마감' : `${expiryDday}`}
+                            <span className="text-gray-400">~{formatDate(job.expiresAt)}</span>
+                          </span>
+                        )}
+                        {/* 접수 마감일 / Application deadline */}
+                        {job.closingDate && dday && (
+                          <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md ${
+                            dday === '만료' ? 'bg-red-50 text-red-600' :
+                            isUrgent ? 'bg-orange-50 text-orange-600 font-medium' :
+                            'bg-gray-50 text-gray-600'
+                          }`}>
+                            <Clock className="w-3 h-3" />
+                            접수 {dday === '만료' ? '마감' : dday === 'D-Day' ? '오늘 마감' : dday}
+                            <span className="text-gray-400">~{formatDate(job.closingDate)}</span>
+                          </span>
+                        )}
+                        {/* 프리미엄 상위노출 기간 / Premium exposure period */}
+                        {isPremium && job.premiumEndAt && !premiumExpired && (
+                          <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-amber-50 text-amber-700 font-medium">
+                            <Crown className="w-3 h-3" />
+                            상위노출 {premiumDday === 'D-Day' ? '오늘 종료' : premiumDday}
+                            <span className="text-amber-400">~{formatDate(job.premiumEndAt)}</span>
+                          </span>
+                        )}
+                        {isPremium && premiumExpired && (
+                          <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-gray-100 text-gray-500">
+                            <Crown className="w-3 h-3" />
+                            상위노출 종료
+                          </span>
                         )}
                       </div>
                     </div>
