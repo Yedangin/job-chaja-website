@@ -4,6 +4,7 @@ import { ArrowRight, MapPin, Crown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { fetchWithRetry } from '@/lib/fetch-utils';
 
 interface JobPosting {
   id: string;
@@ -136,7 +137,7 @@ export default function PremiumJobs() {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
 
   useEffect(() => {
-    fetch('/api/jobs/listing?tierType=PREMIUM&limit=6')
+    fetchWithRetry('/api/jobs/listing?tierType=PREMIUM&limit=6')
       .then((res) => res.json())
       .then((data) => { if (data.items) setJobs(data.items); })
       .catch(() => {});

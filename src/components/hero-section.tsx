@@ -6,6 +6,7 @@ import {
   ArrowRight, ChevronLeft, ChevronRight, MapPin,
 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
+import { fetchWithRetry } from '@/lib/fetch-utils';
 
 /* ─── Types ─────────────────────────────────────────────────── */
 interface SlimJob {
@@ -131,7 +132,7 @@ export default function HeroSection() {
   useEffect(() => {
     const params = new URLSearchParams({ limit: '9' });
     if (sliderTab) params.set('boardType', sliderTab);
-    fetch(`/api/jobs/listing?${params}`)
+    fetchWithRetry(`/api/jobs/listing?${params}`)
       .then((r) => r.json())
       .then((d) => { if (d.items?.length) { setSliderJobs(d.items); setSliderIdx(0); } })
       .catch(() => {});

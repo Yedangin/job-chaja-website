@@ -4,6 +4,7 @@ import { ArrowRight, MapPin, Building2, Clock, Zap } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { fetchWithRetry } from '@/lib/fetch-utils';
 
 interface JobPosting {
   id: string;
@@ -118,7 +119,7 @@ export default function RealtimeJobs() {
   useEffect(() => {
     const params = new URLSearchParams({ limit: '8' });
     if (boardFilter) params.set('boardType', boardFilter);
-    fetch(`/api/jobs/listing?${params}`)
+    fetchWithRetry(`/api/jobs/listing?${params}`)
       .then((res) => res.json())
       .then((data) => { if (data.items) setJobs(data.items); })
       .catch(() => {});
