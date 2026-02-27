@@ -21,11 +21,32 @@ export const apiClient = axios.create({
 // httpOnly 쿠키(withCredentials: true)만으로 인증이 완전히 동작함
 // httpOnly cookie (withCredentials: true) handles auth completely on its own
 
-// 응답 인터셉터: 에러 처리 통합 / Response interceptor: unified error handling
-// 주의: validateStatus: () => true 사용 시 이 에러 핸들러가 호출되지 않음
-// Note: when validateStatus: () => true is used, this error handler is NOT called
+// 응답 인터셉터: SuccessTransformInterceptor 자동 unwrap + 에러 처리 통합
+// Response interceptor: auto-unwrap SuccessTransformInterceptor + unified error handling
+// 백엔드 SuccessTransformInterceptor가 모든 성공 응답을 {"status":"OK","data":{...}} 로 감싸므로
+// 프론트에서 response.data를 읽으면 실제 데이터가 아닌 래핑 객체가 됨 → 자동 언래핑 필수
+// Backend SuccessTransformInterceptor wraps ALL success responses as {"status":"OK","data":{...}}
+// Without auto-unwrap, response.data returns the wrapper object instead of actual data
+// 주의: validateStatus: () => true 사용 시 에러 핸들러가 호출되지 않으므로
+// 200이 아닌 응답도 success 핸들러에서 처리됨 → unwrap 조건을 status:"OK"로 한정
+// Note: when validateStatus: () => true is used, error handler is NOT called,
+// so non-200 responses also go through success handler → limit unwrap to status:"OK"
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // 백엔드 SuccessTransformInterceptor 자동 언래핑 / Auto-unwrap backend wrapper
+    // {"status":"OK","data":{actual_payload}} → response.data = {actual_payload}
+    // 에러 응답 (401, 429 등)은 status:"OK"가 아니므로 언래핑하지 않음
+    // Error responses (401, 429, etc.) don't have status:"OK" so they're NOT unwrapped
+    if (
+      response.data &&
+      typeof response.data === 'object' &&
+      response.data.status === 'OK' &&
+      'data' in response.data
+    ) {
+      response.data = response.data.data;
+    }
+    return response;
+  },
   (error: AxiosError<{ message?: string }>) => {
     // 에러 메시지 추출 / Extract error message
     const message = error.response?.data?.message || 'An error occurred';
