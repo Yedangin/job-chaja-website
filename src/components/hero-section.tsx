@@ -20,7 +20,7 @@ interface SlimJob {
 
 /* ─── Quick actions ──────────────────────────────────────────── */
 const quickActions = [
-  { icon: ShieldCheck, label: '비자 진단',   href: '/visa-check',      tile: 'bg-sky-500/15 hover:bg-sky-500/35 border-sky-500/30 hover:border-sky-400/60 hover:shadow-sky-500/25',    iconWrap: 'bg-sky-500/30',    iconCls: 'text-sky-300' },
+  { icon: ShieldCheck, label: '비자 진단',   href: '/diagnosis',      tile: 'bg-sky-500/15 hover:bg-sky-500/35 border-sky-500/30 hover:border-sky-400/60 hover:shadow-sky-500/25',    iconWrap: 'bg-sky-500/30',    iconCls: 'text-sky-300' },
   { icon: BookOpen,    label: '취업 가이드', href: '/company/guide',   tile: 'bg-emerald-500/15 hover:bg-emerald-500/35 border-emerald-500/30 hover:border-emerald-400/60 hover:shadow-emerald-500/25', iconWrap: 'bg-emerald-500/30', iconCls: 'text-emerald-300' },
   { icon: CalendarDays,label: '채용 박람회', href: '/events',          tile: 'bg-violet-500/15 hover:bg-violet-500/35 border-violet-500/30 hover:border-violet-400/60 hover:shadow-violet-500/25', iconWrap: 'bg-violet-500/30',  iconCls: 'text-violet-300' },
   { icon: FileText,    label: '이력서 작성', href: '/resume',          tile: 'bg-amber-500/15 hover:bg-amber-500/35 border-amber-500/30 hover:border-amber-400/60 hover:shadow-amber-500/25',    iconWrap: 'bg-amber-500/30',   iconCls: 'text-amber-300' },
@@ -187,7 +187,7 @@ export default function HeroSection() {
               <Link href="/alba" className="inline-flex items-center justify-center gap-1.5 bg-sky-500 hover:bg-sky-400 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg shadow-sky-900/50">
                 공고 둘러보기 <ArrowRight size={13} />
               </Link>
-              <Link href="/visa-check" className="inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/15 text-white font-semibold px-4 py-2 rounded-xl text-xs transition border border-white/20">
+              <Link href="/diagnosis" className="inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/15 text-white font-semibold px-4 py-2 rounded-xl text-xs transition border border-white/20">
                 비자 진단받기
               </Link>
             </div>

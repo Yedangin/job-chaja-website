@@ -6,7 +6,7 @@ const shortcuts = [
     icon: ShieldCheck,
     label: '비자 진단',
     sub: '취업 가능 비자 확인',
-    href: '/visa-check',
+    href: '/diagnosis',
     iconCls: 'text-sky-600',
     bgCls: 'bg-sky-50 border-sky-200',
   },

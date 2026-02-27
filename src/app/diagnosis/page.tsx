@@ -391,18 +391,6 @@ export default function DiagnosisPage() {
         </div>
       </div>
 
-      <style jsx global>{`
-        @keyframes fly {
-          0% {
-            transform: translateX(0) translateY(0) scale(1);
-            opacity: 1;
-          }
-          100% {
-            transform: translateX(200px) translateY(-100px) scale(0.5);
-            opacity: 0;
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -345,6 +345,25 @@ export default function DiagnosisDetailPage() {
           <Button
             size="lg"
             className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-400 hover:from-orange-600 hover:to-orange-500"
+            onClick={() => {
+              const sessionId = localStorage.getItem('sessionId');
+              if (sessionId) {
+                // 로그인 사용자 → 첫 번째 nextStep에 따라 라우팅
+                const action = pathway.nextSteps[0]?.actionType;
+                if (action === 'find_job' || action === 'find_alba') {
+                  router.push('/worker/alba');
+                } else if (action === 'connect_school' || action === 'take_topik' || action === 'eps_test') {
+                  router.push('/worker/guide');
+                } else if (action === 'apply_visa') {
+                  router.push('/worker/visa');
+                } else {
+                  router.push('/worker/alba');
+                }
+              } else {
+                // 비로그인 → 회원가입 유도
+                router.push('/register');
+              }
+            }}
           >
             이 여정 시작하기
           </Button>
