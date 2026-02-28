@@ -196,7 +196,7 @@ export default function CompanyJobDetailPage() {
             <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${status.color}`}>{status.label}</span>
             {job.tierType === 'PREMIUM' && (
               <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 flex items-center gap-1">
-                <Crown className="w-3 h-3" /> 프리미엄
+                <Crown className="w-3 h-3" /> {job.premiumSource === 'ADMIN_GRANT' ? '프리미엄 (관리자 적용)' : job.premiumSource === 'PROMOTION' ? '프리미엄 (이벤트)' : '프리미엄'}
               </span>
             )}
             {dday && <span className="text-xs font-medium text-red-500">{dday}</span>}

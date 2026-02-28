@@ -123,7 +123,7 @@ export default function AlbaCreatePage() {
     if (submitting) return;
     setSubmitting(true);
     try {
-      await createAlbaJob(form);
+      await createAlbaJob(form, matchResult);
       setCompleted(true);
     } catch {
       alert('공고 등록에 실패했습니다. 다시 시도해주세요.');

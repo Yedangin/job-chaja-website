@@ -17,6 +17,7 @@ interface JobPosting {
   status: string;          // ACTIVE, CLOSED, DRAFT, SUSPENDED
   boardType: string;       // FULL_TIME, PART_TIME
   tierType?: string;       // STANDARD, PREMIUM
+  premiumSource?: string | null; // PAID, ADMIN_GRANT, PROMOTION
   allowedVisas?: string[];
   applicantCount?: number;
   closingDate?: string;
@@ -26,6 +27,13 @@ interface JobPosting {
   createdAt: string;
   updatedAt?: string;
 }
+
+// 프리미엄 소스별 배지 표시 / Premium source badge labels
+const PREMIUM_BADGE: Record<string, string> = {
+  PAID: '프리미엄 (결제)',
+  ADMIN_GRANT: '프리미엄 (관리자 적용)',
+  PROMOTION: '프리미엄 (이벤트)',
+};
 
 type TabKey = 'active' | 'closed' | 'draft';
 type SortKey = 'latest' | 'deadline' | 'applicants';
@@ -235,7 +243,7 @@ export default function CompanyJobsPage() {
                         <h3 className="font-bold text-gray-900 text-sm truncate">{job.title || '(제목 없음)'}</h3>
                         {isPremium && (
                           <span className="inline-flex items-center gap-0.5 bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full font-medium">
-                            <Star className="w-3 h-3" /> 프리미엄
+                            <Star className="w-3 h-3" /> {PREMIUM_BADGE[job.premiumSource || ''] || '프리미엄'}
                           </span>
                         )}
                         {isDraft && (

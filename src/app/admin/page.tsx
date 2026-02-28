@@ -52,6 +52,10 @@ import {
   AlertCircle,
   MapPin,
   Calendar,
+  Star,
+  History,
+  Crown,
+  MinusCircle,
 } from 'lucide-react';
 
 interface AdminStats {
@@ -896,9 +900,38 @@ interface AdminJobItem {
   closingDate: string | null;
   suspendedAt: string | null;
   suspendReason: string | null;
+  premiumStartAt: string | null;
+  premiumEndAt: string | null;
+  premiumSource: string | null;
+  isFeatured: boolean;
   createdAt: string;
   company: { companyName: string; brandName: string | null } | null;
 }
+
+// 프리미엄 부여 사유 드롭다운 / Premium grant reason options
+const PREMIUM_GRANT_REASONS = [
+  { value: 'PARTNER_PROMO', label: '파트너사 프로모션' },
+  { value: 'NEW_SIGNUP', label: '신규가입 혜택' },
+  { value: 'EVENT', label: '이벤트' },
+  { value: 'CS_COMP', label: 'CS 보상' },
+  { value: 'OTHER', label: '기타' },
+];
+
+// 프리미엄 해제 사유 드롭다운 / Premium revoke reason options
+const PREMIUM_REVOKE_REASONS = [
+  { value: 'VIOLATION', label: '규정 위반' },
+  { value: 'WRONG_GRANT', label: '잘못된 부여 수정' },
+  { value: 'PROMO_END', label: '프로모션 종료' },
+  { value: 'CORP_REQUEST', label: '기업 요청' },
+  { value: 'OTHER', label: '기타' },
+];
+
+// 프리미엄 소스 표시 / Premium source display
+const PREMIUM_SOURCE_LABELS: Record<string, { label: string; style: string }> = {
+  PAID: { label: '결제', style: 'bg-emerald-100 text-emerald-700' },
+  ADMIN_GRANT: { label: '수동', style: 'bg-purple-100 text-purple-700' },
+  PROMOTION: { label: '이벤트', style: 'bg-orange-100 text-orange-700' },
+};
 
 const JOB_STATUS_CONFIG: Record<string, { label: string; style: string }> = {
   DRAFT: { label: '임시저장', style: 'bg-gray-100 text-gray-600' },
@@ -915,6 +948,21 @@ function AdminJobsContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
   const [suspendModal, setSuspendModal] = useState<{ jobId: string; title: string } | null>(null);
   const [suspendReason, setSuspendReason] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+
+  // 프리미엄 부여 모달 상태 / Premium grant modal state
+  const [grantModal, setGrantModal] = useState<{ jobId: string; title: string; company: string } | null>(null);
+  const [grantStep, setGrantStep] = useState<1 | 2>(1);
+  const [grantForm, setGrantForm] = useState({ days: 30, reason: 'EVENT', memo: '', grantFeatured: false });
+
+  // 프리미엄 해제 모달 상태 / Premium revoke modal state
+  const [revokeModal, setRevokeModal] = useState<{ jobId: string; title: string; company: string; premiumSource: string | null; premiumEndAt: string | null } | null>(null);
+  const [revokeStep, setRevokeStep] = useState<1 | 2>(1);
+  const [revokeForm, setRevokeForm] = useState({ reason: 'VIOLATION', memo: '', forceNoRefund: false });
+
+  // 프리미엄 이력 패널 상태 / Premium history panel state
+  const [historyPanel, setHistoryPanel] = useState<string | null>(null);
+  const [historyData, setHistoryData] = useState<any>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const loadJobs = async () => {
     setLoading(true);
@@ -961,6 +1009,58 @@ function AdminJobsContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
       if (res.ok) loadJobs();
     } catch { }
     finally { setActionLoading(false); }
+  };
+
+  // 프리미엄 부여 (이중확인) / Grant premium (double confirmation)
+  const handleGrantPremium = async () => {
+    if (!grantModal) return;
+    setActionLoading(true);
+    try {
+      const res = await fetchWithAuth(`/api/payment/admin/grant-premium/${grantModal.jobId}`, {
+        method: 'POST',
+        body: JSON.stringify(grantForm),
+      });
+      if (res.ok) {
+        setGrantModal(null);
+        setGrantStep(1);
+        setGrantForm({ days: 30, reason: 'EVENT', memo: '', grantFeatured: false });
+        loadJobs();
+      }
+    } catch { }
+    finally { setActionLoading(false); }
+  };
+
+  // 프리미엄 해제 (이중확인) / Revoke premium (double confirmation)
+  const handleRevokePremium = async () => {
+    if (!revokeModal) return;
+    setActionLoading(true);
+    try {
+      const res = await fetchWithAuth(`/api/payment/admin/revoke-premium/${revokeModal.jobId}`, {
+        method: 'POST',
+        body: JSON.stringify(revokeForm),
+      });
+      if (res.ok) {
+        setRevokeModal(null);
+        setRevokeStep(1);
+        setRevokeForm({ reason: 'VIOLATION', memo: '', forceNoRefund: false });
+        loadJobs();
+      }
+    } catch { }
+    finally { setActionLoading(false); }
+  };
+
+  // 프리미엄 이력 조회 / Load premium history
+  const loadPremiumHistory = async (jobId: string) => {
+    setHistoryPanel(jobId);
+    setHistoryLoading(true);
+    try {
+      const res = await fetchWithAuth(`/api/payment/admin/premium-history/${jobId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setHistoryData(data);
+      }
+    } catch { }
+    finally { setHistoryLoading(false); }
   };
 
   return (
@@ -1013,7 +1113,7 @@ function AdminJobsContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                   <th className="px-4 py-3">제목</th>
                   <th className="px-4 py-3">기업</th>
                   <th className="px-4 py-3">유형</th>
-                  <th className="px-4 py-3">티어</th>
+                  <th className="px-4 py-3">프리미엄</th>
                   <th className="px-4 py-3">상태</th>
                   <th className="px-4 py-3">조회</th>
                   <th className="px-4 py-3">지원</th>
@@ -1036,10 +1136,23 @@ function AdminJobsContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                         {job.boardType === 'PART_TIME' ? '알바' : '정규직'}
                       </span>
                     </td>
+                    {/* 프리미엄 상태 열 / Premium status column */}
                     <td className="px-4 py-3">
-                      <span className={`px-2 py-0.5 text-[11px] font-bold rounded ${job.tierType === 'PREMIUM' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}>
-                        {job.tierType}
-                      </span>
+                      {job.tierType === 'PREMIUM' && job.premiumSource ? (
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1">
+                            <Crown size={12} className="text-amber-500" />
+                            <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${PREMIUM_SOURCE_LABELS[job.premiumSource]?.style || 'bg-gray-100 text-gray-600'}`}>
+                              {PREMIUM_SOURCE_LABELS[job.premiumSource]?.label || job.premiumSource}
+                            </span>
+                          </div>
+                          {job.premiumEndAt && (
+                            <p className="text-[10px] text-gray-400">~{new Date(job.premiumEndAt).toLocaleDateString('ko-KR')}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-gray-400">-</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 text-[11px] font-bold rounded ${JOB_STATUS_CONFIG[job.status]?.style || 'bg-gray-100 text-gray-500'}`}>
@@ -1050,28 +1163,56 @@ function AdminJobsContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                     <td className="px-4 py-3 text-xs text-gray-500">{job.applyCount}</td>
                     <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{new Date(job.createdAt).toLocaleDateString('ko-KR')}</td>
                     <td className="px-4 py-3">
-                      {job.status === 'ACTIVE' && (
-                        <button
-                          onClick={() => setSuspendModal({ jobId: job.id, title: job.title })}
-                          className="px-2 py-1 text-[11px] font-bold text-red-600 bg-red-50 rounded hover:bg-red-100 flex items-center gap-1"
-                        >
-                          <Pause size={12} /> 중지
-                        </button>
-                      )}
-                      {job.status === 'SUSPENDED' && (
-                        <div className="space-y-1">
+                      <div className="flex flex-wrap gap-1">
+                        {/* 프리미엄 부여/해제 버튼 / Premium grant/revoke buttons */}
+                        {job.status === 'ACTIVE' && job.tierType !== 'PREMIUM' && (
                           <button
-                            onClick={() => handleUnsuspend(job.id)}
-                            disabled={actionLoading}
-                            className="px-2 py-1 text-[11px] font-bold text-green-600 bg-green-50 rounded hover:bg-green-100 flex items-center gap-1"
+                            onClick={() => { setGrantModal({ jobId: job.id, title: job.title, company: job.company?.companyName || '-' }); setGrantStep(1); }}
+                            className="px-2 py-1 text-[11px] font-bold text-amber-600 bg-amber-50 rounded hover:bg-amber-100 flex items-center gap-1"
                           >
-                            <RotateCcw size={12} /> 해제
+                            <Star size={12} /> 부여
                           </button>
-                          {job.suspendReason && (
-                            <p className="text-[10px] text-red-500 max-w-[120px] truncate" title={job.suspendReason}>사유: {job.suspendReason}</p>
-                          )}
-                        </div>
-                      )}
+                        )}
+                        {job.tierType === 'PREMIUM' && (
+                          <>
+                            <button
+                              onClick={() => { setRevokeModal({ jobId: job.id, title: job.title, company: job.company?.companyName || '-', premiumSource: job.premiumSource, premiumEndAt: job.premiumEndAt }); setRevokeStep(1); }}
+                              className="px-2 py-1 text-[11px] font-bold text-rose-600 bg-rose-50 rounded hover:bg-rose-100 flex items-center gap-1"
+                            >
+                              <MinusCircle size={12} /> 해제
+                            </button>
+                            <button
+                              onClick={() => loadPremiumHistory(job.id)}
+                              className="px-2 py-1 text-[11px] font-bold text-gray-500 bg-gray-50 rounded hover:bg-gray-100 flex items-center gap-1"
+                            >
+                              <History size={12} /> 이력
+                            </button>
+                          </>
+                        )}
+                        {/* 기존 중지/해제 버튼 / Existing suspend/unsuspend buttons */}
+                        {job.status === 'ACTIVE' && (
+                          <button
+                            onClick={() => setSuspendModal({ jobId: job.id, title: job.title })}
+                            className="px-2 py-1 text-[11px] font-bold text-red-600 bg-red-50 rounded hover:bg-red-100 flex items-center gap-1"
+                          >
+                            <Pause size={12} /> 중지
+                          </button>
+                        )}
+                        {job.status === 'SUSPENDED' && (
+                          <div className="space-y-1">
+                            <button
+                              onClick={() => handleUnsuspend(job.id)}
+                              disabled={actionLoading}
+                              className="px-2 py-1 text-[11px] font-bold text-green-600 bg-green-50 rounded hover:bg-green-100 flex items-center gap-1"
+                            >
+                              <RotateCcw size={12} /> 해제
+                            </button>
+                            {job.suspendReason && (
+                              <p className="text-[10px] text-red-500 max-w-[120px] truncate" title={job.suspendReason}>사유: {job.suspendReason}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1098,7 +1239,7 @@ function AdminJobsContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
         )}
       </div>
 
-      {/* Suspend Modal */}
+      {/* Suspend Modal / 공고 중지 모달 */}
       {suspendModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
@@ -1131,6 +1272,275 @@ function AdminJobsContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                 게시 중지
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Premium Grant Modal (이중확인) / Premium grant modal (double confirmation) */}
+      {grantModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                <Crown size={20} className="text-amber-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">프리미엄 수동 부여</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{grantModal.title} — {grantModal.company}</p>
+              </div>
+            </div>
+
+            {grantStep === 1 ? (
+              /* Step 1: 정보 입력 / Step 1: Input */
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-gray-600 mb-1 block">부여 기간 (일)</label>
+                  <input type="number" min={1} max={365} value={grantForm.days}
+                    onChange={(e) => setGrantForm(p => ({ ...p, days: Number(e.target.value) || 1 }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-600 mb-1 block">사유</label>
+                  <select value={grantForm.reason} onChange={(e) => setGrantForm(p => ({ ...p, reason: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    {PREMIUM_GRANT_REASONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-600 mb-1 block">메모 (선택)</label>
+                  <textarea value={grantForm.memo} onChange={(e) => setGrantForm(p => ({ ...p, memo: e.target.value }))}
+                    rows={2} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+                    placeholder="내부 참고용 메모..."
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                  <input type="checkbox" checked={grantForm.grantFeatured} onChange={(e) => setGrantForm(p => ({ ...p, grantFeatured: e.target.checked }))}
+                    className="rounded border-gray-300 text-amber-500 focus:ring-amber-500" />
+                  상위노출(Featured) 동시 부여
+                </label>
+                <div className="flex gap-3 justify-end pt-2">
+                  <button onClick={() => { setGrantModal(null); setGrantStep(1); }} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">취소</button>
+                  <button onClick={() => setGrantStep(2)} className="px-5 py-2 bg-amber-500 text-white text-sm font-bold rounded-lg hover:bg-amber-600 flex items-center gap-2">
+                    다음 <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Step 2: 최종 확인 / Step 2: Final confirmation */
+              <div className="space-y-4">
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-2">
+                  <p className="text-sm"><span className="font-bold text-gray-600">공고:</span> {grantModal.title}</p>
+                  <p className="text-sm"><span className="font-bold text-gray-600">기업:</span> {grantModal.company}</p>
+                  <p className="text-sm"><span className="font-bold text-gray-600">기간:</span> {grantForm.days}일</p>
+                  <p className="text-sm"><span className="font-bold text-gray-600">사유:</span> {PREMIUM_GRANT_REASONS.find(r => r.value === grantForm.reason)?.label}</p>
+                  {grantForm.memo && <p className="text-sm"><span className="font-bold text-gray-600">메모:</span> {grantForm.memo}</p>}
+                  {grantForm.grantFeatured && <p className="text-sm text-amber-700 font-bold">+ 상위노출 동시 부여</p>}
+                </div>
+                <div className="flex items-center gap-2 text-xs text-orange-600 bg-orange-50 p-3 rounded-lg">
+                  <AlertTriangle size={14} />
+                  <span>이 작업은 로그에 기록됩니다. 부여 후 이력 조회에서 확인할 수 있습니다.</span>
+                </div>
+                <div className="flex gap-3 justify-end pt-2">
+                  <button onClick={() => setGrantStep(1)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">이전으로</button>
+                  <button onClick={handleGrantPremium} disabled={actionLoading}
+                    className="px-5 py-2 bg-amber-500 text-white text-sm font-bold rounded-lg hover:bg-amber-600 disabled:opacity-50 flex items-center gap-2">
+                    {actionLoading ? <Loader2 size={14} className="animate-spin" /> : <Crown size={14} />}
+                    확인 및 부여
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Premium Revoke Modal (이중확인) / Premium revoke modal (double confirmation) */}
+      {revokeModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center">
+                <MinusCircle size={20} className="text-rose-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">프리미엄 해제</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{revokeModal.title} — {revokeModal.company}</p>
+              </div>
+            </div>
+
+            {revokeStep === 1 ? (
+              /* Step 1: 해제 정보 / Step 1: Revocation info */
+              <div className="space-y-4">
+                {/* 현재 프리미엄 상태 / Current premium status */}
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm space-y-1">
+                  <p><span className="font-bold text-gray-600">소스:</span>{' '}
+                    <span className={`px-1.5 py-0.5 text-[10px] font-bold rounded ${PREMIUM_SOURCE_LABELS[revokeModal.premiumSource || '']?.style || 'bg-gray-100'}`}>
+                      {PREMIUM_SOURCE_LABELS[revokeModal.premiumSource || '']?.label || revokeModal.premiumSource || '-'}
+                    </span>
+                  </p>
+                  {revokeModal.premiumEndAt && (
+                    <p><span className="font-bold text-gray-600">종료일:</span> {new Date(revokeModal.premiumEndAt).toLocaleDateString('ko-KR')}
+                      {' '}(잔여 {Math.max(0, Math.ceil((new Date(revokeModal.premiumEndAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))}일)
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-gray-600 mb-1 block">해제 사유</label>
+                  <select value={revokeForm.reason} onChange={(e) => setRevokeForm(p => ({ ...p, reason: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+                    {PREMIUM_REVOKE_REASONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-600 mb-1 block">메모 (선택)</label>
+                  <textarea value={revokeForm.memo} onChange={(e) => setRevokeForm(p => ({ ...p, memo: e.target.value }))}
+                    rows={2} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 resize-none"
+                    placeholder="내부 참고용 메모..."
+                  />
+                </div>
+
+                {/* 결제 공고인 경우 환불 분기 UI / Refund branching for paid premium */}
+                {revokeModal.premiumSource === 'PAID' && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
+                    <p className="text-xs font-bold text-blue-700">이 공고는 결제로 프리미엄이 적용되었습니다</p>
+                    <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                      <input type="checkbox" checked={revokeForm.forceNoRefund}
+                        onChange={(e) => setRevokeForm(p => ({ ...p, forceNoRefund: e.target.checked }))}
+                        className="rounded border-gray-300 text-rose-500 focus:ring-rose-500" />
+                      환불 없이 해제 (위반 사유)
+                    </label>
+                    {!revokeForm.forceNoRefund && (
+                      <p className="text-[11px] text-blue-600">체크하지 않으면 잔여 기간에 대해 일할계산 환불 처리됩니다.</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex gap-3 justify-end pt-2">
+                  <button onClick={() => { setRevokeModal(null); setRevokeStep(1); }} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">취소</button>
+                  <button onClick={() => setRevokeStep(2)} className="px-5 py-2 bg-rose-500 text-white text-sm font-bold rounded-lg hover:bg-rose-600 flex items-center gap-2">
+                    다음 <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* Step 2: 최종 확인 / Step 2: Final confirmation */
+              <div className="space-y-4">
+                <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 space-y-2">
+                  <p className="text-sm"><span className="font-bold text-gray-600">공고:</span> {revokeModal.title}</p>
+                  <p className="text-sm"><span className="font-bold text-gray-600">기업:</span> {revokeModal.company}</p>
+                  <p className="text-sm"><span className="font-bold text-gray-600">사유:</span> {PREMIUM_REVOKE_REASONS.find(r => r.value === revokeForm.reason)?.label}</p>
+                  {revokeForm.memo && <p className="text-sm"><span className="font-bold text-gray-600">메모:</span> {revokeForm.memo}</p>}
+                  {revokeModal.premiumSource === 'PAID' && (
+                    <p className="text-sm font-bold text-rose-700">
+                      {revokeForm.forceNoRefund ? '환불 없이 해제 (위반)' : '잔여 기간 일할계산 환불 처리'}
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-xs text-orange-600 bg-orange-50 p-3 rounded-lg">
+                  <AlertTriangle size={14} />
+                  <span>이 작업은 로그에 기록됩니다. 해제 후 복구하려면 다시 부여해야 합니다.</span>
+                </div>
+                <div className="flex gap-3 justify-end pt-2">
+                  <button onClick={() => setRevokeStep(1)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">이전으로</button>
+                  <button onClick={handleRevokePremium} disabled={actionLoading}
+                    className="px-5 py-2 bg-rose-500 text-white text-sm font-bold rounded-lg hover:bg-rose-600 disabled:opacity-50 flex items-center gap-2">
+                    {actionLoading ? <Loader2 size={14} className="animate-spin" /> : <MinusCircle size={14} />}
+                    확인 및 해제
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Premium History Panel / 프리미엄 이력 패널 */}
+      {historyPanel && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl shadow-2xl max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                  <History size={20} className="text-gray-600" />
+                </div>
+                <h3 className="font-bold text-gray-900">프리미엄 이력</h3>
+              </div>
+              <button onClick={() => { setHistoryPanel(null); setHistoryData(null); }} className="p-2 hover:bg-gray-100 rounded-lg">
+                <X size={16} />
+              </button>
+            </div>
+
+            {historyLoading ? (
+              <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-gray-300" /></div>
+            ) : historyData ? (
+              <div className="space-y-6">
+                {/* 현재 상태 / Current status */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">현재 상태</h4>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <p><span className="text-gray-500">공고:</span> {historyData.currentStatus?.title}</p>
+                    <p><span className="text-gray-500">티어:</span> {historyData.currentStatus?.tierType}</p>
+                    <p><span className="text-gray-500">소스:</span> {historyData.currentStatus?.premiumSource || '-'}</p>
+                    <p><span className="text-gray-500">종료일:</span> {historyData.currentStatus?.premiumEndAt ? new Date(historyData.currentStatus.premiumEndAt).toLocaleDateString('ko-KR') : '-'}</p>
+                  </div>
+                </div>
+
+                {/* 관리자 조치 이력 / Admin action history */}
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">관리자 조치 이력</h4>
+                  {historyData.adminActions?.length > 0 ? (
+                    <div className="space-y-2">
+                      {historyData.adminActions.map((action: any) => (
+                        <div key={action.id} className="border border-gray-200 rounded-lg p-3 text-sm">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded ${action.actionType.includes('GRANT') ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}`}>
+                              {action.actionType}
+                            </span>
+                            <span className="text-[11px] text-gray-400">{new Date(action.createdAt).toLocaleString('ko-KR')}</span>
+                          </div>
+                          <p className="text-xs text-gray-600">사유: {action.reason}</p>
+                          {action.metadata && (
+                            <div className="mt-1 text-[11px] text-gray-400">
+                              {action.metadata.days && <span>기간: {action.metadata.days}일 | </span>}
+                              {action.metadata.memo && <span>메모: {action.metadata.memo}</span>}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 text-center py-4">관리자 조치 이력이 없습니다.</p>
+                  )}
+                </div>
+
+                {/* 결제 이력 / Payment history */}
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">결제 이력</h4>
+                  {historyData.paymentHistory?.length > 0 ? (
+                    <div className="space-y-2">
+                      {historyData.paymentHistory.map((order: any) => (
+                        <div key={order.orderId} className="border border-gray-200 rounded-lg p-3 text-sm flex items-center justify-between">
+                          <div>
+                            <p className="font-medium">{order.productName}</p>
+                            <p className="text-[11px] text-gray-400">{order.orderNo}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-emerald-600">{order.paidAmount?.toLocaleString()}원</p>
+                            <p className="text-[11px] text-gray-400">{order.paidAt ? new Date(order.paidAt).toLocaleDateString('ko-KR') : '-'}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 text-center py-4">결제 이력이 없습니다.</p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 text-center py-8">이력을 불러올 수 없습니다.</p>
+            )}
           </div>
         </div>
       )}
