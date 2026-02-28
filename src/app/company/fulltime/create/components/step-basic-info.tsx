@@ -26,9 +26,8 @@ import {
   convertYearlyToHourly,
 } from './fulltime-types';
 import { fetchE7Categories } from '../api';
-// 알바 직종 목록 임포트 (알바 선택 시 E-7 직종 대신 표시)
-// Import alba job categories (shown instead of E-7 categories when ALBA is selected)
-import { CATEGORY_GROUPS as ALBA_CATEGORY_GROUPS } from '../../../alba/create/components/alba-types';
+import { fetchAlbaCategories } from '../../../alba/create/api';
+import { apiCategoriesToGroups, type JobCategory } from '../../../alba/create/components/alba-types';
 
 interface StepBasicInfoProps {
   form: FulltimeJobFormData;
@@ -45,7 +44,9 @@ export default function StepBasicInfo({
   updateForm,
 }: StepBasicInfoProps) {
   const [categoryGroups, setCategoryGroups] = useState<Record<string, E7JobCategory[]>>({});
+  const [albaCategoryGroups, setAlbaCategoryGroups] = useState<Record<string, JobCategory[]>>({});
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [albaCategoriesLoading, setAlbaCategoriesLoading] = useState(true);
 
   // 백엔드에서 E-7 직종 목록 로드 / Load E-7 categories from backend
   useEffect(() => {
@@ -62,6 +63,15 @@ export default function StepBasicInfo({
         // 로드 실패 시 빈 목록으로 처리 — 사용자에게 select에서 안내
       })
       .finally(() => setCategoriesLoading(false));
+
+    // 백엔드에서 알바 직종 목록 로드 / Load alba categories from backend
+    fetchAlbaCategories()
+      .then((res) => {
+        const groups = apiCategoriesToGroups(res.categories);
+        setAlbaCategoryGroups(groups);
+      })
+      .catch(() => {})
+      .finally(() => setAlbaCategoriesLoading(false));
   }, []);
 
   const educationLabels: Record<EducationLevel, string> = {
@@ -213,25 +223,33 @@ export default function StepBasicInfo({
         </div>
 
         {form.employmentType === 'ALBA' ? (
-          /* 알바 직종 선택 / Alba job categories (hardcoded, no backend call needed) */
-          <select
-            value={form.jobCategoryCode}
-            onChange={(e) => updateForm('jobCategoryCode', e.target.value)}
-            className={`w-full h-11 px-3 rounded-lg border text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition ${
-              errors.jobCategoryCode ? 'border-red-400' : 'border-gray-300'
-            }`}
-          >
-            <option value="">-- 알바 직종을 선택하세요 --</option>
-            {Object.entries(ALBA_CATEGORY_GROUPS).map(([group, cats]) => (
-              <optgroup key={group} label={group}>
-                {cats.map((cat) => (
-                  <option key={cat.code} value={cat.code}>
-                    {cat.name} ({cat.nameEn})
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
+          albaCategoriesLoading ? (
+            /* 알바 직종 로딩 중 / Loading alba categories */
+            <div className="flex items-center gap-2 h-11 px-3 rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-400">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>알바 직종 목록 로드 중...</span>
+            </div>
+          ) : (
+            /* 알바 직종 선택 / Alba job categories (backend API-driven) */
+            <select
+              value={form.jobCategoryCode}
+              onChange={(e) => updateForm('jobCategoryCode', e.target.value)}
+              className={`w-full h-11 px-3 rounded-lg border text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition ${
+                errors.jobCategoryCode ? 'border-red-400' : 'border-gray-300'
+              }`}
+            >
+              <option value="">-- 알바 직종을 선택하세요 --</option>
+              {Object.entries(albaCategoryGroups).map(([group, cats]) => (
+                <optgroup key={group} label={group}>
+                  {cats.map((cat) => (
+                    <option key={cat.code} value={cat.code}>
+                      {cat.name} ({cat.nameEn})
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          )
         ) : categoriesLoading ? (
           /* E-7 직종 로딩 중 / Loading E-7 categories */
           <div className="flex items-center gap-2 h-11 px-3 rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-400">

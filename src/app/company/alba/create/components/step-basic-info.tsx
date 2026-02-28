@@ -1,16 +1,19 @@
 'use client';
 
-import { Briefcase, DollarSign, Users, Clock, Calendar, AlertCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Briefcase, DollarSign, Users, Clock, Calendar, AlertCircle, Loader2 } from 'lucide-react';
 import ScheduleBuilder from './schedule-builder';
 import {
   type AlbaJobFormData,
-  CATEGORY_GROUPS,
+  type JobCategory,
+  apiCategoriesToGroups,
   MINIMUM_WAGE,
 } from './alba-types';
+import { fetchAlbaCategories } from '../api';
 
 /**
- * Step 1: 기본정보 (E 스타일 + B 직종드롭다운)
- * Step 1: Basic Info (E style + B category dropdown)
+ * Step 1: 기본정보 (백엔드 API 기반 직종 로드)
+ * Step 1: Basic Info (backend API-driven category loading)
  */
 
 interface Props {
@@ -25,33 +28,78 @@ export default function StepBasicInfo({ form, errors, updateForm }: Props) {
     ? Math.round(((form.hourlyWage - MINIMUM_WAGE) / MINIMUM_WAGE) * 100)
     : 0;
 
+  // 백엔드에서 알바 직종 목록 로드 / Load alba categories from backend
+  const [categoryGroups, setCategoryGroups] = useState<Record<string, JobCategory[]>>({});
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState(false);
+
+  const loadCategories = () => {
+    setCategoriesLoading(true);
+    setCategoriesError(false);
+    fetchAlbaCategories()
+      .then((res) => {
+        const groups = apiCategoriesToGroups(res.categories);
+        setCategoryGroups(groups);
+      })
+      .catch(() => {
+        setCategoriesError(true);
+      })
+      .finally(() => setCategoriesLoading(false));
+  };
+
+  useEffect(() => {
+    loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="space-y-8">
-      {/* 직종 선택 / Job category (B style dropdown) */}
+      {/* 직종 선택 / Job category (backend API-driven) */}
       <section className="bg-white rounded-xl border border-gray-200 p-5">
         <div className="flex items-center gap-2 mb-4">
           <Briefcase className="w-5 h-5 text-blue-600" />
           <h3 className="text-base font-semibold text-gray-900">직종 선택</h3>
           <span className="text-xs text-gray-400">Job Category</span>
         </div>
-        <select
-          value={form.jobCategoryCode}
-          onChange={e => updateForm('jobCategoryCode', e.target.value)}
-          className={`w-full h-11 px-3 rounded-lg border text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition ${
-            errors.jobCategoryCode ? 'border-red-400' : 'border-gray-300'
-          }`}
-        >
-          <option value="">-- 직종을 선택하세요 --</option>
-          {Object.entries(CATEGORY_GROUPS).map(([group, cats]) => (
-            <optgroup key={group} label={group}>
-              {cats.map(cat => (
-                <option key={cat.code} value={cat.code}>
-                  {cat.name} ({cat.nameEn})
-                </option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
+        {categoriesLoading ? (
+          <div className="flex items-center gap-2 h-11 px-3 rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-400">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>직종 목록 로드 중...</span>
+          </div>
+        ) : categoriesError || Object.keys(categoryGroups).length === 0 ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+            <p className="text-sm text-red-600 flex items-center gap-1.5 mb-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              직종 목록을 불러올 수 없습니다
+            </p>
+            <button
+              type="button"
+              onClick={loadCategories}
+              className="text-xs text-blue-600 hover:text-blue-800 underline"
+            >
+              다시 시도
+            </button>
+          </div>
+        ) : (
+          <select
+            value={form.jobCategoryCode}
+            onChange={e => updateForm('jobCategoryCode', e.target.value)}
+            className={`w-full h-11 px-3 rounded-lg border text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition ${
+              errors.jobCategoryCode ? 'border-red-400' : 'border-gray-300'
+            }`}
+          >
+            <option value="">-- 직종을 선택하세요 --</option>
+            {Object.entries(categoryGroups).map(([group, cats]) => (
+              <optgroup key={group} label={group}>
+                {cats.map(cat => (
+                  <option key={cat.code} value={cat.code}>
+                    {cat.name} ({cat.nameEn})
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        )}
         {errors.jobCategoryCode && (
           <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
             <AlertCircle className="w-3 h-3" />{errors.jobCategoryCode}

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="24" fill="#002C5F"/>
+  <ellipse cx="100" cy="90" rx="48" ry="36" fill="none" stroke="white" stroke-width="5"/>
+  <path d="M72 68 L72 112 M72 90 L128 90 M128 68 L128 112" stroke="white" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+  <text x="100" y="152" text-anchor="middle" fill="white" font-size="15" font-family="Arial,Helvetica,sans-serif" font-weight="600" letter-spacing="1">HYUNDAI</text>
+</svg>

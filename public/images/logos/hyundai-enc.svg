@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="24" fill="#002C5F"/>
+  <ellipse cx="100" cy="96" rx="52" ry="40" fill="none" stroke="white" stroke-width="5"/>
+  <path d="M72 72 L72 120 M72 96 L128 96 M128 72 L128 120" stroke="white" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <text x="100" y="158" text-anchor="middle" fill="white" font-size="16" font-family="Arial,Helvetica,sans-serif" font-weight="600" letter-spacing="1">건설</text>
+</svg>

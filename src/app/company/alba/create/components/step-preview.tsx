@@ -21,10 +21,12 @@ import {
 import type {
   AlbaJobFormData,
   AlbaVisaMatchingResponse,
+  AlbaCategoriesResponse,
   VisaEvalResult,
   VisaMatchStatus,
 } from './alba-types';
-import { CATEGORY_GROUPS, BENEFIT_OPTIONS } from './alba-types';
+import { BENEFIT_OPTIONS } from './alba-types';
+import { fetchAlbaCategories } from '../api';
 
 /**
  * Step 3: 미리보기 (A 스타일 프리뷰 + 비자 매칭 결과)
@@ -35,15 +37,24 @@ interface Props {
   form: AlbaJobFormData;
   matchResult: AlbaVisaMatchingResponse | null;
   isMatchLoading: boolean;
+  matchError?: string | null;
   onRequestMatch: () => void;
   onGoToStep: (step: 1 | 2) => void;
 }
 
+/** 카테고리 캐시 / Category cache (loaded from backend) */
+let _cachedCategories: AlbaCategoriesResponse | null = null;
+
+// 백엔드에서 카테고리 로드 (한번만 실행) / Load categories from backend (once)
+fetchAlbaCategories()
+  .then((res) => { _cachedCategories = res; })
+  .catch(() => { /* 실패 시 code만 표시 / Show code on failure */ });
+
 /** 카테고리 코드 → 이름 변환 / Category code to name */
 function getCategoryName(code: string): string {
-  for (const cats of Object.values(CATEGORY_GROUPS)) {
-    const found = cats.find(c => c.code === code);
-    if (found) return found.name;
+  if (_cachedCategories) {
+    const found = _cachedCategories.categories.find(c => c.code === code);
+    if (found) return found.nameKo;
   }
   return code;
 }
@@ -270,7 +281,7 @@ function VisaCard({ visa }: { visa: VisaEvalResult }) {
   );
 }
 
-export default function StepPreview({ form, matchResult, isMatchLoading, onRequestMatch, onGoToStep }: Props) {
+export default function StepPreview({ form, matchResult, isMatchLoading, matchError, onRequestMatch, onGoToStep }: Props) {
   const [showBlocked, setShowBlocked] = useState(false);
 
   /* 자동 비자 매칭 요청 / Auto-trigger visa matching */
@@ -451,8 +462,24 @@ export default function StepPreview({ form, matchResult, isMatchLoading, onReque
           </div>
         )}
 
+        {/* 매칭 에러 상태 / Matching error state */}
+        {matchError && !isMatchLoading && (
+          <div className="bg-red-50 rounded-xl border border-red-200 p-6 text-center">
+            <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-3" />
+            <p className="text-sm text-red-600 font-medium mb-1">비자 매칭 분석 실패</p>
+            <p className="text-xs text-red-500 mb-3">{matchError}</p>
+            <button
+              type="button"
+              onClick={onRequestMatch}
+              className="px-4 py-2 text-sm text-white bg-red-500 hover:bg-red-600 rounded-lg font-medium transition"
+            >
+              다시 시도
+            </button>
+          </div>
+        )}
+
         {/* 매칭 전 상태 / Before matching */}
-        {!matchResult && !isMatchLoading && (
+        {!matchResult && !isMatchLoading && !matchError && (
           <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
             <Zap className="w-8 h-8 text-gray-300 mx-auto mb-3" />
             <p className="text-sm text-gray-500">공고 조건을 입력하면 자동으로 비자 매칭이 실행됩니다</p>

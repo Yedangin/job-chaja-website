@@ -46,6 +46,7 @@ export default function AlbaCreatePage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [matchResult, setMatchResult] = useState<AlbaVisaMatchingResponse | null>(null);
   const [isMatchLoading, setIsMatchLoading] = useState(false);
+  const [matchError, setMatchError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [completed, setCompleted] = useState(false);
 
@@ -101,11 +102,17 @@ export default function AlbaCreatePage() {
   const handleRequestMatch = useCallback(async () => {
     if (isMatchLoading) return;
     setIsMatchLoading(true);
+    setMatchError(null);
     try {
       const result = await matchAlbaVisa(form);
       setMatchResult(result);
-    } catch {
+    } catch (err) {
       setMatchResult(null);
+      setMatchError(
+        err instanceof Error
+          ? err.message
+          : '비자 매칭 분석에 실패했습니다. 다시 시도해주세요.',
+      );
     } finally {
       setIsMatchLoading(false);
     }
@@ -201,6 +208,7 @@ export default function AlbaCreatePage() {
             form={form}
             matchResult={matchResult}
             isMatchLoading={isMatchLoading}
+            matchError={matchError}
             onRequestMatch={handleRequestMatch}
             onGoToStep={setStep}
           />

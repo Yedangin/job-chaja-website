@@ -1,330 +1,433 @@
 'use client';
 
-import Link from 'next/link';
-import {
-  ShieldCheck, BookOpen, CalendarDays, FileText,
-  ArrowRight, ChevronLeft, ChevronRight, MapPin,
-} from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
-import { fetchWithRetry } from '@/lib/fetch-utils';
+import Link from 'next/link';
+import { ArrowRight, ChevronLeft, ChevronRight, Briefcase, FileText, Scale } from 'lucide-react';
 
-/* ─── Types ─────────────────────────────────────────────────── */
-interface SlimJob {
-  id: string;
+/**
+ * 메인 히어로 — 3분할 (비자진단 | 가이드슬라이더+아이콘3 | 교육·생활리스트)
+ * Main hero — 3-split (Visa diagnosis | Guide slider+3 icons | Education+Life list)
+ *
+ * 슬라이더: API에서 게시글을 불러와 동적 표시, 6초 자동 회전, 좌우 화살표
+ * Slider: Fetches posts from API dynamically, 6s auto-rotate, left/right arrows
+ */
+
+/* ─── 커버 비자 전체 (CDEF순) / All covered visas (C→D→E→F→H order) ─── */
+/* D-1(문화연수), D-7(주재), D-8(기업투자), D-9(무역경영)는 미지원 / Not supported */
+const coveredVisas = [
+  { code: 'C-4', label: '단기취업' },
+  { code: 'D-2', label: '유학' },
+  { code: 'D-4', label: '일반연수' },
+  { code: 'D-10', label: '구직' },
+  { code: 'E-1', label: '교수' },
+  { code: 'E-2', label: '회화지도' },
+  { code: 'E-3', label: '연구' },
+  { code: 'E-4', label: '기술지도' },
+  { code: 'E-5', label: '전문직업' },
+  { code: 'E-6', label: '예술흥행' },
+  { code: 'E-7', label: '특정활동' },
+  { code: 'E-8', label: '계절근로' },
+  { code: 'E-9', label: '비전문취업' },
+  { code: 'E-10', label: '선원취업' },
+  { code: 'F-1', label: '방문동거' },
+  { code: 'F-2', label: '거주' },
+  { code: 'F-3', label: '동반' },
+  { code: 'F-4', label: '재외동포' },
+  { code: 'F-5', label: '영주' },
+  { code: 'F-6', label: '결혼이민' },
+  { code: 'H-1', label: '관광취업' },
+  { code: 'H-2', label: '방문취업' },
+];
+
+/* ─── 슬라이드 타입 / Slide type ─────────────────────── */
+interface SlideData {
+  bg: string;
+  tag: string;
+  tagStyle: string;
   title: string;
-  boardType: string;
-  displayAddress: string;
-  closingDate: string | null;
-  company: { companyName: string; brandName: string | null; logoImageUrl: string | null } | null;
+  desc: string;
+  cta: string;
+  href: string;
 }
 
-/* ─── Quick actions ──────────────────────────────────────────── */
-const quickActions = [
-  { icon: ShieldCheck, label: '비자 진단',   href: '/visa-check',      tile: 'bg-sky-500/15 hover:bg-sky-500/35 border-sky-500/30 hover:border-sky-400/60 hover:shadow-sky-500/25',    iconWrap: 'bg-sky-500/30',    iconCls: 'text-sky-300' },
-  { icon: BookOpen,    label: '취업 가이드', href: '/company/guide',   tile: 'bg-emerald-500/15 hover:bg-emerald-500/35 border-emerald-500/30 hover:border-emerald-400/60 hover:shadow-emerald-500/25', iconWrap: 'bg-emerald-500/30', iconCls: 'text-emerald-300' },
-  { icon: CalendarDays,label: '채용 박람회', href: '/events',          tile: 'bg-violet-500/15 hover:bg-violet-500/35 border-violet-500/30 hover:border-violet-400/60 hover:shadow-violet-500/25', iconWrap: 'bg-violet-500/30',  iconCls: 'text-violet-300' },
-  { icon: FileText,    label: '이력서 작성', href: '/resume',          tile: 'bg-amber-500/15 hover:bg-amber-500/35 border-amber-500/30 hover:border-amber-400/60 hover:shadow-amber-500/25',    iconWrap: 'bg-amber-500/30',   iconCls: 'text-amber-300' },
+/* ─── 카테고리별 슬라이드 스타일 매핑 / Category → slide style mapping ─── */
+type InfoCategory = 'VISA_INFO' | 'EDUCATION' | 'LIVING_TIPS' | 'POLICY_LAW' | 'ANNOUNCEMENTS';
+
+const CATEGORY_STYLES: Record<InfoCategory, { bg: string; tag: string; tagStyle: string; cta: string }> = {
+  VISA_INFO: {
+    bg: 'bg-gradient-to-br from-[#0052CC] to-[#0066FF]',
+    tag: '비자', tagStyle: 'bg-white/20 text-white',
+    cta: '자세히 보기',
+  },
+  EDUCATION: {
+    bg: 'bg-gradient-to-br from-[#B45309] to-[#F59E0B]',
+    tag: '교육', tagStyle: 'bg-white/20 text-white',
+    cta: '교육 안내 보기',
+  },
+  LIVING_TIPS: {
+    bg: 'bg-gradient-to-br from-[#0D4F3C] to-[#03B26C]',
+    tag: '생활 필수', tagStyle: 'bg-white/20 text-white',
+    cta: '가이드 보기',
+  },
+  POLICY_LAW: {
+    bg: 'bg-gradient-to-br from-[#991B1B] to-[#DC2626]',
+    tag: '근로자 권리', tagStyle: 'bg-white/20 text-white',
+    cta: '상세 확인',
+  },
+  ANNOUNCEMENTS: {
+    bg: 'bg-gradient-to-br from-[#3730A3] to-[#6366F1]',
+    tag: '공지', tagStyle: 'bg-white/20 text-white',
+    cta: '공지 확인',
+  },
+};
+
+/* 동일 카테고리 게시글 구분을 위한 추가 배경색 / Alternate bg for same-category posts */
+const ALT_BGS: Record<InfoCategory, string[]> = {
+  VISA_INFO: ['bg-gradient-to-br from-[#0052CC] to-[#0066FF]', 'bg-gradient-to-br from-[#0E4429] to-[#1B7A4A]'],
+  EDUCATION: ['bg-gradient-to-br from-[#B45309] to-[#F59E0B]'],
+  LIVING_TIPS: ['bg-gradient-to-br from-[#0D4F3C] to-[#03B26C]', 'bg-gradient-to-br from-[#5B21B6] to-[#7C3AED]', 'bg-gradient-to-br from-[#1A1A2E] to-[#16213E]'],
+  POLICY_LAW: ['bg-gradient-to-br from-[#991B1B] to-[#DC2626]', 'bg-gradient-to-br from-[#3730A3] to-[#6366F1]'],
+  ANNOUNCEMENTS: ['bg-gradient-to-br from-[#3730A3] to-[#6366F1]'],
+};
+
+/* ─── 하드코딩 폴백 슬라이드 / Hardcoded fallback slides ─── */
+const FALLBACK_SLIDES: SlideData[] = [
+  { bg: 'bg-gradient-to-br from-[#0052CC] to-[#0066FF]', tag: '입국 필수', tagStyle: 'bg-white/20 text-white', title: '외국인 등록증 발급', desc: '입국 후 90일 이내 · 출입국관리사무소', cta: '발급 방법 보기', href: '/worker/guide/1' },
+  { bg: 'bg-gradient-to-br from-[#0D4F3C] to-[#03B26C]', tag: '생활 필수', tagStyle: 'bg-white/20 text-white', title: '한국 은행 계좌 개설', desc: '여권 + 외국인등록증으로 즉시 개설', cta: '개설 가이드', href: '/worker/guide/2' },
+  { bg: 'bg-gradient-to-br from-[#5B21B6] to-[#7C3AED]', tag: '통신', tagStyle: 'bg-white/20 text-white', title: '핸드폰 개통 가이드', desc: '선불 SIM · 후불 요금제 비교 안내', cta: '개통 방법 보기', href: '/worker/guide/3' },
+  { bg: 'bg-gradient-to-br from-[#1A1A2E] to-[#16213E]', tag: '의료', tagStyle: 'bg-[#38BDF8]/30 text-[#38BDF8]', title: '건강보험 가입 안내', desc: '직장가입 vs 지역가입 · 병원 이용법', cta: '보험 안내 보기', href: '/worker/guide/4' },
+  { bg: 'bg-gradient-to-br from-[#B45309] to-[#F59E0B]', tag: '교육', tagStyle: 'bg-white/20 text-white', title: '한국어 무료 교육', desc: '세종학당 · 다문화센터 · 고용센터', cta: '교육 신청 안내', href: '/worker/guide/5' },
+  { bg: 'bg-gradient-to-br from-[#0E4429] to-[#1B7A4A]', tag: '비자', tagStyle: 'bg-white/20 text-white', title: '비자 연장·변경 절차', desc: '만료 4개월 전 신청 · 필요 서류 안내', cta: '절차 확인하기', href: '/worker/guide/6' },
+  { bg: 'bg-gradient-to-br from-[#991B1B] to-[#DC2626]', tag: '근로자 권리', tagStyle: 'bg-white/20 text-white', title: '근로계약서 체크리스트', desc: '서명 전 반드시 확인할 7가지 항목', cta: '체크리스트 보기', href: '/worker/guide/7' },
+  { bg: 'bg-gradient-to-br from-[#3730A3] to-[#6366F1]', tag: '급여', tagStyle: 'bg-white/20 text-white', title: '최저임금 & 급여 계산', desc: '2025년 시급 9,860원 · 주휴수당 포함', cta: '급여 계산 안내', href: '/worker/guide/8' },
 ];
 
-/* ─── Review carousel ────────────────────────────────────────── */
-const reviews = [
-  { text: '비자 E-9으로 취업이 어려웠는데, 잡차자 덕분에 원하는 공장에 취업했어요!', author: 'Kang M. (베트남)', initial: 'K', color: 'bg-green-500' },
-  { text: '한국어를 잘 못해도 비자별로 공고를 쉽게 찾을 수 있어서 정말 편해요.',     author: 'Pham T. (베트남)', initial: 'P', color: 'bg-blue-500'  },
-  { text: '프리미엄 공고에 지원해서 바로 면접 연락이 왔어요. 정말 추천합니다!',       author: 'Singh R. (인도)',  initial: 'S', color: 'bg-purple-500'},
-];
+/* ─── API 게시글 → 슬라이드 변환 / Convert API post to slide ─── */
+interface ApiPost { id: number; title: string; category: InfoCategory; createdAt: string; }
 
-/* ─── Stats ──────────────────────────────────────────────────── */
-const stats = [
-  { value: '1,200+', label: '등록 공고' },
-  { value: '500+',   label: '파트너 기업' },
-  { value: '30+',    label: '비자 유형' },
-];
-
-/* ─── Example slider jobs (fallback) ────────────────────────── */
-const EXAMPLE_JOBS: SlimJob[] = [
-  { id: '0', title: '반도체 생산라인 오퍼레이터 (기숙사 제공)',  company: { companyName: '삼성전자 평택',   brandName: null, logoImageUrl: null }, displayAddress: '경기 평택시', boardType: 'PART_TIME', closingDate: new Date(Date.now() + 5  * 86400000).toISOString() },
-  { id: '0', title: '건설 현장 안전관리자 (경험자 우대)',        company: { companyName: '현대건설',        brandName: null, logoImageUrl: null }, displayAddress: '서울 강남구', boardType: 'FULL_TIME', closingDate: new Date(Date.now() + 3  * 86400000).toISOString() },
-  { id: '0', title: '물류 창고 포장/분류 직원 (통근버스 제공)',  company: { companyName: 'CJ대한통운 인천', brandName: null, logoImageUrl: null }, displayAddress: '인천 남동구', boardType: 'PART_TIME', closingDate: null },
-  { id: '0', title: '호텔 주방 스태프 (식사 제공, 주 5일)',      company: { companyName: '신라 호텔 서울',  brandName: null, logoImageUrl: null }, displayAddress: '서울 중구',   boardType: 'PART_TIME', closingDate: new Date(Date.now() + 12 * 86400000).toISOString() },
-  { id: '0', title: '용접사 — 경험자 우대 (주 5일)',             company: { companyName: '현대자동차 아산', brandName: null, logoImageUrl: null }, displayAddress: '충남 아산시', boardType: 'FULL_TIME', closingDate: null },
-  { id: '0', title: '배송 기사 (지입차 / 4대 보험)',             company: { companyName: '쿠팡로지스틱스',  brandName: null, logoImageUrl: null }, displayAddress: '서울 및 경기', boardType: 'FULL_TIME', closingDate: new Date(Date.now() + 8  * 86400000).toISOString() },
-];
-
-/* ─── Helpers ────────────────────────────────────────────────── */
-const AVATAR_COLORS = ['bg-sky-500', 'bg-emerald-500', 'bg-violet-500', 'bg-amber-500', 'bg-rose-500', 'bg-indigo-500'];
-function avatarColor(name: string) { return AVATAR_COLORS[(name.charCodeAt(0) || 0) % AVATAR_COLORS.length]; }
-
-function getDDay(d: string | null): { label: string; badge: string } {
-  if (!d) return { label: '', badge: '' };
-  const diff = Math.ceil((new Date(d).getTime() - Date.now()) / 86400000);
-  if (diff < 0)  return { label: '마감',    badge: 'bg-slate-500/60 text-slate-300' };
-  if (diff === 0) return { label: 'D-Day',  badge: 'bg-red-500 text-white' };
-  if (diff <= 3)  return { label: `D-${diff}`, badge: 'bg-red-500 text-white' };
-  if (diff <= 7)  return { label: `D-${diff}`, badge: 'bg-orange-400 text-white' };
-  return { label: `D-${diff}`, badge: 'bg-white/20 text-white/80' };
+function postsToSlides(posts: ApiPost[]): SlideData[] {
+  const catCounter: Record<string, number> = {};
+  return posts.map((post) => {
+    const style = CATEGORY_STYLES[post.category] || CATEGORY_STYLES.ANNOUNCEMENTS;
+    const alts = ALT_BGS[post.category] || [style.bg];
+    const idx = catCounter[post.category] || 0;
+    catCounter[post.category] = idx + 1;
+    const bg = alts[idx % alts.length];
+    return {
+      bg,
+      tag: style.tag,
+      tagStyle: style.tagStyle,
+      title: post.title,
+      desc: '',
+      cta: style.cta,
+      href: `/worker/guide/${post.id}`,
+    };
+  });
 }
 
-/* ─── Slider job card ────────────────────────────────────────── */
-function SliderCard({ job }: { job: SlimJob }) {
-  const name = job.company?.brandName || job.company?.companyName || '';
-  const { label: dday, badge } = getDDay(job.closingDate);
-  const href = job.id !== '0' ? `/jobs/${job.id}` : '#';
+/* ─── 서비스 아이콘 3개 / 3 service icons ────────────── */
+const serviceIcons = [
+  { icon: Briefcase, label: '채용공고', href: '#job-listings', color: 'text-[#0066FF]', bg: 'bg-[#0066FF]/8' },
+  { icon: FileText, label: '이력서', href: '/worker/resume', color: 'text-[#7C3AED]', bg: 'bg-[#7C3AED]/8' },
+  { icon: Scale, label: '생활 가이드', href: '/worker/guide', color: 'text-[#DC2626]', bg: 'bg-[#DC2626]/8' },
+];
 
-  return (
-    <Link
-      href={href}
-      className="group flex flex-col gap-2.5 bg-white/[0.07] hover:bg-white/[0.13] border border-white/10 hover:border-white/25 rounded-xl p-3.5 h-full transition-all duration-150 cursor-pointer"
-    >
-      {/* Top: avatar + D-day */}
-      <div className="flex items-start justify-between gap-2">
-        <div className={`w-10 h-10 rounded-xl ${avatarColor(name)} flex items-center justify-center text-white font-bold text-base shrink-0 shadow-sm`}>
-          {name.charAt(0)}
-        </div>
-        {dday && (
-          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${badge}`}>{dday}</span>
-        )}
-      </div>
+/* ─── 교육·생활 데이터 / Education + Life guide data ──── */
+type NoticeTag = '모집중' | '접수예정' | '마감임박' | '상시';
+type TabKey = '전체' | '교육' | '시험' | '훈련' | '행사' | '생활';
 
-      {/* Title + company */}
-      <div className="flex-1 min-w-0">
-        <p className="text-white text-[13px] font-semibold leading-snug line-clamp-2 group-hover:text-sky-300 transition-colors">
-          {job.title}
-        </p>
-        <p className="text-slate-400 text-[11px] mt-1 truncate">{name}</p>
-        <p className="text-slate-500 text-[10px] mt-0.5 flex items-center gap-0.5 truncate">
-          <MapPin size={9} className="shrink-0" />{job.displayAddress}
-        </p>
-      </div>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between">
-        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full border ${
-          job.boardType === 'FULL_TIME'
-            ? 'text-emerald-400 border-emerald-500/40 bg-emerald-500/10'
-            : 'text-orange-400 border-orange-500/40 bg-orange-500/10'
-        }`}>
-          {job.boardType === 'FULL_TIME' ? '정규직' : '알바'}
-        </span>
-        <span className="text-[10px] text-sky-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity">보기 →</span>
-      </div>
-    </Link>
-  );
+interface EduNotice {
+  tag: NoticeTag;
+  category: TabKey;
+  title: string;
+  date: string;
+  href: string;
 }
 
-/* ─── Main component ─────────────────────────────────────────── */
+const eduNotices: EduNotice[] = [
+  { tag: '접수예정', category: '시험', title: '제89회 TOPIK 시험 접수 안내', date: '04.12 ~ 04.13', href: '#' },
+  { tag: '모집중', category: '훈련', title: '외국인 근로자 직업훈련 프로그램', date: '03.10 ~ 06.30', href: '#' },
+  { tag: '마감임박', category: '행사', title: '외국인 채용 박람회 참가자 모집', date: '03.15', href: '#' },
+  { tag: '상시', category: '교육', title: '세종학당 한국어 온라인 강좌', date: '상시', href: '/worker/guide/5' },
+  { tag: '모집중', category: '교육', title: '외국인 주민 생활 정착 교육', date: '03.05 ~ 03.20', href: '#' },
+  { tag: '접수예정', category: '훈련', title: '제조업 안전교육 특별과정', date: '04.01 ~ 04.15', href: '#' },
+  { tag: '모집중', category: '행사', title: '다문화 취업 설명회', date: '03.22', href: '#' },
+  { tag: '상시', category: '생활', title: '외국인 등록증 발급 가이드', date: '상시', href: '/worker/guide/1' },
+  { tag: '상시', category: '생활', title: '은행 계좌 개설 방법', date: '상시', href: '/worker/guide/2' },
+  { tag: '상시', category: '생활', title: '건강보험 가입 안내', date: '상시', href: '/worker/guide/4' },
+];
+
+const eduTabs: TabKey[] = ['전체', '교육', '시험', '훈련', '행사', '생활'];
+
+const eduTagStyle: Record<NoticeTag, string> = {
+  '모집중': 'text-[#0066FF] bg-[#0066FF]/8',
+  '접수예정': 'text-[#6B7684] bg-[#6B7684]/8',
+  '마감임박': 'text-[#DC2626] bg-[#DC2626]/8',
+  '상시': 'text-[#03B26C] bg-[#03B26C]/8',
+};
+
+/* ─── 메인 컴포넌트 / Main component ─────────────────── */
 export default function HeroSection() {
-  /* Review */
-  const [reviewIdx, setReviewIdx] = useState(0);
-  const [reviewPaused, setReviewPaused] = useState(false);
+  const [slides, setSlides] = useState<SlideData[]>(FALLBACK_SLIDES);
+  const [slide, setSlide] = useState(0);
+  const [hovered, setHovered] = useState(false);
+  const [eduTab, setEduTab] = useState<TabKey>('전체');
 
+  /* API에서 게시글 불러와 슬라이더에 반영 / Fetch posts from API for slider */
   useEffect(() => {
-    if (reviewPaused) return;
-    const t = setInterval(() => setReviewIdx((p) => (p + 1) % reviews.length), 4000);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/info-board?limit=8');
+        if (!res.ok) return;
+        const json = await res.json();
+        const payload = json.data || json;
+        const items = payload.items as ApiPost[] | undefined;
+        if (!cancelled && items && items.length > 0) {
+          setSlides(postsToSlides(items));
+        }
+      } catch {
+        // API 실패 시 폴백 유지 / Keep fallback on failure
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const next = useCallback(() => {
+    setSlide((prev) => (prev + 1) % slides.length);
+  }, [slides.length]);
+
+  const prev = useCallback(() => {
+    setSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  }, [slides.length]);
+
+  /* 6초 자동 회전 / 6-second auto-rotate */
+  useEffect(() => {
+    if (hovered) return;
+    const t = setInterval(next, 6000);
     return () => clearInterval(t);
-  }, [reviewPaused]);
+  }, [next, hovered]);
 
-  /* Slider */
-  const [sliderJobs, setSliderJobs] = useState<SlimJob[]>([]);
-  const [sliderIdx, setSliderIdx] = useState(0);
-  const [sliderPaused, setSliderPaused] = useState(false);
-  const [sliderTab, setSliderTab] = useState('');
+  /* 스무스 스크롤 핸들러 / Smooth scroll handler */
+  const handleScrollLink = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith('#')) {
+      e.preventDefault();
+      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
-  useEffect(() => {
-    const params = new URLSearchParams({ limit: '9' });
-    if (sliderTab) params.set('boardType', sliderTab);
-    fetchWithRetry(`/api/jobs/listing?${params}`)
-      .then((r) => r.json())
-      .then((d) => { if (d.items?.length) { setSliderJobs(d.items); setSliderIdx(0); } })
-      .catch(() => {});
-  }, [sliderTab]);
-
-  const allJobs = sliderJobs.length >= 3 ? sliderJobs : EXAMPLE_JOBS;
-  const n = allJobs.length;
-
-  const advance = useCallback(() => setSliderIdx((p) => (p + 1) % n), [n]);
-  const retreat = useCallback(() => setSliderIdx((p) => (p - 1 + n) % n), [n]);
-
-  useEffect(() => {
-    if (sliderPaused) return;
-    const t = setInterval(advance, 2000);
-    return () => clearInterval(t);
-  }, [sliderPaused, advance]);
-
-  /* 3 visible cards (looping with modulo) */
-  const visible = [0, 1, 2].map((i) => allJobs[(sliderIdx + i) % n]);
-
-  const review = reviews[reviewIdx];
-  const tabs = [{ l: '전체', v: '' }, { l: '알바', v: 'PART_TIME' }, { l: '정규직', v: 'FULL_TIME' }];
+  const s = slides[slide] || FALLBACK_SLIDES[0];
+  const filteredEdu = eduTab === '전체' ? eduNotices : eduNotices.filter((n) => n.category === eduTab);
 
   return (
-    <div className="bg-slate-900 rounded-2xl shadow-xl overflow-hidden">
-      <div className="flex flex-col lg:flex-row">
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px_340px] gap-5 py-6">
 
-        {/* ══ LEFT: brand + stats + CTAs ══ */}
-        <div className="lg:w-64 shrink-0 p-7 lg:p-8 relative flex flex-col justify-center">
-          <div className="absolute top-0 left-0 w-48 h-48 bg-sky-600/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-9 h-9 bg-sky-500 rounded-lg flex items-center justify-center text-white font-bold shadow-lg">✈</div>
-              <span className="text-white text-lg font-bold tracking-tight">잡차자</span>
-            </div>
-            <h1 className="text-2xl font-bold text-white leading-tight mb-2">
-              외국인 근로자를 위한<br />
-              <span className="text-sky-400">대한민국 취업 플랫폼</span>
-            </h1>
-            <p className="text-slate-400 text-xs leading-relaxed mb-6">
-              비자 유형별 맞춤 공고<br />프리미엄 파트너 기업 · 취업 가이드
-            </p>
-            <div className="flex items-center gap-4 mb-6">
-              {stats.map((s, i) => (
-                <div key={s.label} className={i > 0 ? 'pl-4 border-l border-white/10' : ''}>
-                  <p className="text-base font-bold text-white leading-none">{s.value}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{s.label}</p>
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-col gap-2">
-              <Link href="/alba" className="inline-flex items-center justify-center gap-1.5 bg-sky-500 hover:bg-sky-400 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg shadow-sky-900/50">
-                공고 둘러보기 <ArrowRight size={13} />
-              </Link>
-              <Link href="/visa-check" className="inline-flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/15 text-white font-semibold px-4 py-2 rounded-xl text-xs transition border border-white/20">
-                비자 진단받기
-              </Link>
-            </div>
-          </div>
+      {/* ═══ 1열: 비자 진단 (주력) / Col 1: Visa diagnosis (primary) ═══ */}
+      <div className="flex flex-col justify-center min-w-0">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0066FF]/8 mb-5 w-fit">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#0066FF]" />
+          <span className="text-[12px] font-semibold text-[#0066FF]">외국인 취업·생활 통합 플랫폼</span>
         </div>
 
-        {/* ── DIVIDER ── */}
-        <div className="hidden lg:block w-px bg-white/10 my-6" />
+        <h1 className="text-[28px] lg:text-[36px] font-bold text-[#191F28] leading-[1.2] tracking-[-0.02em] mb-3">
+          한국 취업·생활,<br />비자부터 시작하세요
+        </h1>
 
-        {/* ══ MIDDLE: sliding job cards ══ */}
-        <div className="flex-1 min-w-0 flex flex-col p-4 lg:p-6 border-t lg:border-t-0 border-white/10">
-          {/* Tab row */}
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-white/50 text-[11px] font-semibold uppercase tracking-widest">채용 공고</p>
-            <div className="flex gap-1">
-              {tabs.map((t) => (
-                <button
-                  key={t.v}
-                  onClick={() => { setSliderTab(t.v); setSliderIdx(0); }}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
-                    sliderTab === t.v ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/70'
-                  }`}
-                >
-                  {t.l}
-                </button>
-              ))}
-            </div>
-          </div>
+        <p className="text-[15px] text-[#6B7684] leading-[1.6] mb-6 max-w-md">
+          어떤 비자를 받을 수 있는지, 내 비자로 어디서 일할 수 있는지<br />
+          지금 바로 확인하세요.
+        </p>
 
-          {/* Slider area */}
-          <div
-            className="relative flex-1"
-            onMouseEnter={() => setSliderPaused(true)}
-            onMouseLeave={() => setSliderPaused(false)}
+        {/* 두 서비스 버튼: 비자 플래너 + 비자 매니저 / Two service buttons: Visa Planner + Visa Manager */}
+        {/* 두 서비스 버튼: 비자 플래너 + 비자 매니저 / Two service buttons: Visa Planner + Visa Manager */}
+        <div className="flex gap-2.5 mb-6 max-w-[340px]">
+          {/* 비자 플래너 — 비자 미보유자용 / Visa Planner — for those without a visa */}
+          <Link
+            href="/diagnosis"
+            className="group flex-1 flex flex-col gap-1 bg-[#0066FF] hover:bg-[#0052CC] text-white px-3.5 py-2.5 rounded-xl transition-all duration-200 shadow-[0_4px_12px_rgba(0,102,255,0.25)] hover:shadow-[0_6px_16px_rgba(0,102,255,0.3)] hover:-translate-y-0.5"
           >
-            {/* Cards */}
-            <div className="flex gap-3 h-full">
-              {visible.map((job, i) => (
-                <div key={`${sliderIdx}-${i}`} className="flex-1 min-w-0 animate-in fade-in duration-300">
-                  <SliderCard job={job} />
-                </div>
-              ))}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[13px] font-bold">비자 플래너</span>
+              <ArrowRight size={12} className="opacity-70 group-hover:translate-x-0.5 transition-transform" />
             </div>
+            <span className="text-[10px] text-white/80">비자가 아직 없다면</span>
+          </Link>
 
-            {/* Prev arrow */}
-            <button
-              onClick={retreat}
-              className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-white/15 hover:bg-white/30 backdrop-blur-sm text-white flex items-center justify-center transition border border-white/20 shadow-md"
-            >
-              <ChevronLeft size={14} />
-            </button>
-
-            {/* Next arrow */}
-            <button
-              onClick={advance}
-              className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-white/15 hover:bg-white/30 backdrop-blur-sm text-white flex items-center justify-center transition border border-white/20 shadow-md"
-            >
-              <ChevronRight size={14} />
-            </button>
-          </div>
-
-          {/* Dot indicators */}
-          <div className="flex items-center justify-center gap-1.5 mt-3">
-            {allJobs.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setSliderIdx(i)}
-                className={`rounded-full transition-all duration-300 ${
-                  i === sliderIdx ? 'bg-white w-4 h-1.5' : 'bg-white/25 hover:bg-white/50 w-1.5 h-1.5'
-                }`}
-              />
-            ))}
-          </div>
+          {/* 비자 매니저 — 비자 보유자용 / Visa Manager — for those with a visa */}
+          <Link
+            href="/visa-manager"
+            className="group flex-1 flex flex-col gap-1 bg-[#191F28] hover:bg-[#333D4B] text-white px-3.5 py-2.5 rounded-xl transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.12)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.18)] hover:-translate-y-0.5"
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="text-[13px] font-bold">비자 매니저</span>
+              <ArrowRight size={12} className="opacity-70 group-hover:translate-x-0.5 transition-transform" />
+            </div>
+            <span className="text-[10px] text-white/70">이미 비자가 있다면</span>
+          </Link>
         </div>
 
-        {/* ── DIVIDER ── */}
-        <div className="hidden lg:block w-px bg-white/10 my-6" />
-
-        {/* ══ RIGHT: quick tiles + review ══ */}
-        <div className="lg:w-[270px] shrink-0 flex flex-col gap-4 p-6 lg:p-7 bg-white/2 border-t lg:border-t-0 border-white/10">
-          {/* 4 shortcut tiles */}
-          <div>
-            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-2.5">빠른 메뉴</p>
-            <div className="grid grid-cols-4 gap-1.5">
-              {quickActions.map((item) => (
+        {/* 커버 비자 자동 스크롤 — 클릭 시 비자 안내 페이지 / Covered visas auto-scroll — click for visa guide */}
+        <div className="overflow-hidden max-w-[88.2%]" style={{ height: '58px' }}>
+          <span className="text-[10px] text-[#B0B8C1] mb-1.5 block">잡차자가 분석하는 비자</span>
+          <div className="flex animate-marquee">
+            {/* 복사본 1 / Copy 1 */}
+            <div className="flex gap-1.5 shrink-0 pr-1.5">
+              {coveredVisas.map((v) => (
                 <Link
-                  key={item.label}
-                  href={item.href}
-                  className={`group flex flex-col items-center justify-center gap-1.5 py-3 px-1 rounded-xl border transition-all duration-200 cursor-pointer hover:scale-[1.08] hover:shadow-lg ${item.tile}`}
+                  key={`a-${v.code}`}
+                  href="/worker/visa-guide"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#F2F4F6] hover:bg-[#0066FF] text-[11px] font-medium text-[#333D4B] hover:text-white transition-all duration-150 shrink-0"
                 >
-                  <div className={`w-8 h-8 rounded-xl ${item.iconWrap} flex items-center justify-center transition-transform duration-200 group-hover:scale-110`}>
-                    <item.icon size={15} className={item.iconCls} />
-                  </div>
-                  <p className="text-white/75 group-hover:text-white text-[9px] font-semibold leading-tight text-center transition-colors">{item.label}</p>
+                  <span className="font-bold">{v.code}</span>
+                  <span className="opacity-50">{v.label}</span>
+                </Link>
+              ))}
+            </div>
+            {/* 복사본 2 / Copy 2 */}
+            <div className="flex gap-1.5 shrink-0 pr-1.5">
+              {coveredVisas.map((v) => (
+                <Link
+                  key={`b-${v.code}`}
+                  href="/worker/visa-guide"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#F2F4F6] hover:bg-[#0066FF] text-[11px] font-medium text-[#333D4B] hover:text-white transition-all duration-150 shrink-0"
+                >
+                  <span className="font-bold">{v.code}</span>
+                  <span className="opacity-50">{v.label}</span>
                 </Link>
               ))}
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="h-px bg-white/10" />
+      {/* ═══ 2열: 가이드 슬라이더 + 아이콘 3개 / Col 2: Guide slider + 3 icons ═══ */}
+      <div className="flex flex-col gap-3">
+        {/* 가이드 슬라이더 — API 연동 / Guide slider — API connected */}
+        <div
+          className="relative overflow-hidden rounded-2xl flex-1 group/slider cursor-pointer"
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          onClick={() => { window.location.href = s.href; }}
+        >
+          <div className={`${s.bg} h-full p-5 flex flex-col justify-between text-white transition-colors duration-500`}>
+            {/* 배경 장식 — pointer-events-none / Background decorations */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/3 rounded-full translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
-          {/* Review carousel */}
-          <div>
-            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-2.5">취업 후기</p>
-            <div
-              className={`p-3.5 rounded-xl border transition-all duration-200 flex items-start gap-3 cursor-default ${
-                reviewPaused ? 'bg-white/15 border-white/30' : 'bg-white/10 border-white/10'
-              }`}
-              onMouseEnter={() => setReviewPaused(true)}
-              onMouseLeave={() => setReviewPaused(false)}
+            {/* 좌우 화살표 / Left-right arrow buttons */}
+            <button
+              onClick={(e) => { e.stopPropagation(); prev(); }}
+              className="absolute left-1.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center text-white opacity-0 group-hover/slider:opacity-100 transition-opacity duration-200"
+              aria-label="이전 슬라이드 / Previous slide"
             >
-              <div className={`w-8 h-8 rounded-full ${review.color} flex items-center justify-center font-bold text-white text-xs shrink-0`}>
-                {review.initial}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p key={`t-${reviewIdx}`} className="text-white text-[11px] italic leading-relaxed line-clamp-3 animate-in fade-in duration-500">
-                  &ldquo;{review.text}&rdquo;
-                </p>
-                <span key={`a-${reviewIdx}`} className="text-slate-400 text-[10px] mt-1 block animate-in fade-in duration-500">
-                  – {review.author}
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); next(); }}
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-black/20 hover:bg-black/40 flex items-center justify-center text-white opacity-0 group-hover/slider:opacity-100 transition-opacity duration-200"
+              aria-label="다음 슬라이드 / Next slide"
+            >
+              <ChevronRight size={16} />
+            </button>
+
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-3">
+                <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md ${s.tagStyle}`}>
+                  {s.tag}
                 </span>
-                <div className="flex items-center gap-1.5 mt-2">
-                  {reviews.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setReviewIdx(i)}
-                      className={`rounded-full transition-all duration-300 ${i === reviewIdx ? 'bg-white w-4 h-1.5' : 'bg-white/30 hover:bg-white/50 w-1.5 h-1.5'}`}
-                    />
-                  ))}
-                  {reviewPaused && <span className="text-[9px] text-white/35 ml-1">일시정지</span>}
-                </div>
+                <span className="text-[10px] text-white/40">{slide + 1}/{slides.length}</span>
+              </div>
+              <h3 className="text-[18px] font-bold leading-tight mb-1.5">{s.title}</h3>
+              {s.desc && <p className="text-[12px] opacity-60 leading-relaxed">{s.desc}</p>}
+            </div>
+
+            <div className="relative z-10 flex items-center justify-between mt-4">
+              {/* CTA 버튼 — window.location.href로 강제 이동 */}
+              {/* CTA button — window.location.href for forced navigation */}
+              <button
+                onClick={(e) => { e.stopPropagation(); window.location.href = s.href; }}
+                className="inline-flex items-center gap-1 bg-white/15 hover:bg-white/25 px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all cursor-pointer"
+              >
+                {s.cta} <ArrowRight size={12} />
+              </button>
+              <div className="flex items-center gap-1">
+                {slides.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={(e) => { e.stopPropagation(); setSlide(i); }}
+                    className={`rounded-full transition-all duration-300 ${
+                      i === slide ? 'w-3.5 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/30 hover:bg-white/50'
+                    }`}
+                    aria-label={`슬라이드 ${i + 1}`}
+                  />
+                ))}
               </div>
             </div>
           </div>
         </div>
 
+        {/* 서비스 아이콘 3개 1줄 / 3 service icons in 1 row */}
+        <div className="grid grid-cols-3 gap-1">
+          {serviceIcons.map((svc) => (
+            <Link
+              key={svc.label}
+              href={svc.href}
+              onClick={(e) => handleScrollLink(e, svc.href)}
+              className="group flex flex-col items-center gap-1.5 py-3 rounded-xl bg-[#F9FAFB] hover:bg-[#F2F4F6] transition-colors"
+            >
+              <div className={`w-8 h-8 rounded-lg ${svc.bg} flex items-center justify-center`}>
+                <svc.icon size={14} className={svc.color} />
+              </div>
+              <span className="text-[10px] font-medium text-[#6B7684] group-hover:text-[#191F28] transition-colors">
+                {svc.label}
+              </span>
+            </Link>
+          ))}
+        </div>
       </div>
+
+      {/* ═══ 3열: 교육·생활 리스트 / Col 3: Education + Life list ═══ */}
+      <div className="bg-white rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.06)] border border-[#F2F4F6] flex flex-col overflow-hidden">
+        <div className="flex items-center gap-0.5 px-3 pt-3 pb-2 border-b border-[#F2F4F6]">
+          {eduTabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setEduTab(tab)}
+              className={`px-2 py-1 rounded-md text-[11px] font-semibold transition-all ${
+                eduTab === tab
+                  ? 'bg-[#191F28] text-white'
+                  : 'text-[#B0B8C1] hover:text-[#6B7684]'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+          <Link href="/worker/guide" className="ml-auto text-[10px] text-[#B0B8C1] hover:text-[#0066FF] transition-colors flex items-center gap-0.5 shrink-0">
+            전체보기 <ArrowRight size={9} />
+          </Link>
+        </div>
+
+        {/* 테이블형 리스트 — 태그·제목·날짜 열 정렬 / Table-style list — tag, title, date columns aligned */}
+        <div className="flex-1 divide-y divide-[#F2F4F6] overflow-y-auto">
+          {filteredEdu.slice(0, 7).map((n, i) => (
+            <Link
+              key={`${n.title}-${i}`}
+              href={n.href}
+              onClick={(e) => handleScrollLink(e, n.href)}
+              className="group grid grid-cols-[52px_1fr_auto] items-center px-3 py-2.5 hover:bg-[#F9FAFB] transition-colors"
+            >
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded text-center whitespace-nowrap ${eduTagStyle[n.tag]}`}>
+                {n.tag}
+              </span>
+              <span className="text-[12px] text-[#333D4B] group-hover:text-[#0066FF] transition-colors font-medium truncate min-w-0 pl-2">
+                {n.title}
+              </span>
+              <span className="text-[10px] text-[#B0B8C1] pl-2 shrink-0 whitespace-nowrap">{n.date}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+
     </div>
   );
 }

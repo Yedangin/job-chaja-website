@@ -113,54 +113,62 @@ export interface AlbaJobFormData {
   contactEmail: string;
 }
 
-/** 직종 카테고리 / Job category */
+/** 직종 카테고리 (기본) / Job category (basic) */
 export interface JobCategory {
   code: string;
   name: string;
   nameEn: string;
 }
 
-/** 직종 카테고리 그룹 / Job category groups */
-export const CATEGORY_GROUPS: Record<string, JobCategory[]> = {
-  '외식/음료': [
-    { code: 'REST_SERVING', name: '홀서빙', nameEn: 'Restaurant Serving' },
-    { code: 'REST_KITCHEN', name: '주방보조', nameEn: 'Kitchen Assistant' },
-    { code: 'CAFE_BARISTA', name: '카페/바리스타', nameEn: 'Cafe/Barista' },
-  ],
-  '판매/매장': [
-    { code: 'CONVENIENCE', name: '편의점', nameEn: 'Convenience Store' },
-    { code: 'MART_SALES', name: '마트/판매', nameEn: 'Mart/Sales' },
-  ],
-  '물류/배달': [
-    { code: 'DELIVERY', name: '배달/배송', nameEn: 'Delivery' },
-    { code: 'WAREHOUSE', name: '물류/창고', nameEn: 'Warehouse' },
-  ],
-  '제조/생산': [
-    { code: 'FACTORY', name: '공장/제조', nameEn: 'Factory/Manufacturing' },
-  ],
-  '건설': [
-    { code: 'CONSTRUCTION', name: '건설/현장', nameEn: 'Construction' },
-  ],
-  '서비스': [
-    { code: 'CLEANING', name: '청소/미화', nameEn: 'Cleaning' },
-    { code: 'GAS_STATION', name: '주유소', nameEn: 'Gas Station' },
-    { code: 'PARKING', name: '주차관리', nameEn: 'Parking Management' },
-  ],
-  '사무/IT': [
-    { code: 'OFFICE_ASSIST', name: '사무보조', nameEn: 'Office Assistant' },
-    { code: 'TRANSLATION', name: '번역/통역', nameEn: 'Translation' },
-    { code: 'IT_ASSIST', name: 'IT보조', nameEn: 'IT Assistant' },
-  ],
-  '교육': [
-    { code: 'TUTORING', name: '과외/학원', nameEn: 'Tutoring' },
-  ],
-  '농축산어업': [
-    { code: 'FARMING', name: '농업/축산', nameEn: 'Farming' },
-  ],
-  '숙박': [
-    { code: 'HOTEL_SERVICE', name: '호텔/숙박', nameEn: 'Hotel Service' },
-  ],
-};
+/**
+ * 백엔드 알바 직종 API 응답 타입 / Backend alba category API response types
+ * GET /api/alba/categories
+ */
+export interface AlbaJobCategoryItem {
+  code: string;
+  nameKo: string;
+  nameEn: string;
+  group: string;
+  groupName: string;
+  icon: string;
+  ksicCode: string;
+  isSimpleLabor: boolean;
+  isEntertainment: boolean;
+}
+
+export interface AlbaCategoryGroup {
+  group: string;
+  groupName: string;
+  count: number;
+}
+
+export interface AlbaCategoriesResponse {
+  categories: AlbaJobCategoryItem[];
+  groups: AlbaCategoryGroup[];
+  totalCount: number;
+  simpleLaborCount: number;
+  basedOn: string;
+}
+
+/**
+ * API → CATEGORY_GROUPS 변환 / Convert API response to grouped format
+ * 백엔드 응답을 드롭다운 optgroup 형식으로 변환
+ * Converts backend response to dropdown optgroup format
+ */
+export function apiCategoriesToGroups(
+  categories: AlbaJobCategoryItem[],
+): Record<string, JobCategory[]> {
+  const groups: Record<string, JobCategory[]> = {};
+  for (const cat of categories) {
+    if (!groups[cat.groupName]) groups[cat.groupName] = [];
+    groups[cat.groupName].push({
+      code: cat.code,
+      name: cat.nameKo,
+      nameEn: cat.nameEn,
+    });
+  }
+  return groups;
+}
 
 /** 최저시급 (2025년 기준) / Minimum wage 2025 */
 export const MINIMUM_WAGE = 10_030;

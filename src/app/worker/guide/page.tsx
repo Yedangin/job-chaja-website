@@ -36,12 +36,14 @@ interface InfoPost {
 }
 
 const MOCK_POSTS: InfoPost[] = [
-  { id: 1, title: 'E-9 비자 갱신 방법 안내', category: 'VISA_INFO', createdAt: '2025-01-15T00:00:00Z' },
-  { id: 2, title: '한국어 교육 지원 프로그램', category: 'EDUCATION', createdAt: '2025-01-10T00:00:00Z' },
-  { id: 3, title: '외국인 근로자 건강보험 가이드', category: 'LIVING_TIPS', createdAt: '2025-01-08T00:00:00Z' },
-  { id: 4, title: '최저임금 2025년 변경 안내', category: 'POLICY_LAW', createdAt: '2025-01-05T00:00:00Z' },
-  { id: 5, title: '설 연휴 공지사항', category: 'ANNOUNCEMENTS', createdAt: '2024-12-30T00:00:00Z' },
-  { id: 6, title: '외국인 등록증 갱신 절차', category: 'VISA_INFO', createdAt: '2024-12-28T00:00:00Z' },
+  { id: 1, title: '외국인 등록증(ARC) 발급 완벽 가이드', category: 'VISA_INFO', createdAt: '2025-02-01T00:00:00Z' },
+  { id: 2, title: '한국 은행 계좌 개설 방법 (외국인)', category: 'LIVING_TIPS', createdAt: '2025-01-28T00:00:00Z' },
+  { id: 3, title: '외국인 핸드폰 개통 가이드 (선불/후불)', category: 'LIVING_TIPS', createdAt: '2025-01-25T00:00:00Z' },
+  { id: 4, title: '외국인 건강보험 가입 안내', category: 'LIVING_TIPS', createdAt: '2025-01-20T00:00:00Z' },
+  { id: 5, title: '한국어 무료 교육 프로그램 총정리', category: 'EDUCATION', createdAt: '2025-01-18T00:00:00Z' },
+  { id: 6, title: '비자 연장·변경 절차 안내', category: 'VISA_INFO', createdAt: '2025-01-15T00:00:00Z' },
+  { id: 7, title: '근로계약서 체크리스트 — 서명 전 필독', category: 'POLICY_LAW', createdAt: '2025-01-10T00:00:00Z' },
+  { id: 8, title: '최저임금 & 급여 계산 가이드 (2025)', category: 'POLICY_LAW', createdAt: '2025-01-05T00:00:00Z' },
 ];
 
 const ITEMS_PER_PAGE = 6;
@@ -72,10 +74,12 @@ export default function WorkerGuidePage() {
 
         const res = await fetch(`/api/info-board?${params.toString()}`);
         if (res.ok) {
-          const data = await res.json();
+          const json = await res.json();
+          // SuccessTransformInterceptor 래퍼 처리 / Handle wrapper
+          const payload = json.data || json;
           if (!cancelled) {
-            setPosts(data.items || []);
-            setTotal(data.total || 0);
+            setPosts(payload.items || []);
+            setTotal(payload.total || 0);
           }
           return;
         }

@@ -3,9 +3,36 @@
  * Alba API client (backend integration)
  */
 
-import type { AlbaJobFormData, AlbaVisaMatchingResponse } from './components/alba-types';
+import type {
+  AlbaJobFormData,
+  AlbaVisaMatchingResponse,
+  AlbaCategoriesResponse,
+} from './components/alba-types';
 
 const API_BASE = '/api';
+
+/**
+ * 알바 직종 목록 조회 (백엔드 API) / Fetch alba job categories from backend
+ * GET /api/alba/categories
+ *
+ * 정규직 fetchE7Categories()와 동일 패턴
+ * Same pattern as fulltime fetchE7Categories()
+ */
+export async function fetchAlbaCategories(): Promise<AlbaCategoriesResponse> {
+  const res = await fetch(`${API_BASE}/alba/categories`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    throw new Error(
+      `알바 직종 목록 조회 실패 (${res.status}) / Alba categories fetch failed`,
+    );
+  }
+
+  return res.json();
+}
 
 /**
  * 비자 매칭 요청 / Request visa matching

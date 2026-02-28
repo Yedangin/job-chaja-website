@@ -34,6 +34,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Pretendard — 한글 최적화 가변 폰트 / Korean-optimized variable font */}
+        <link
+          rel="stylesheet"
+          as="style"
+          crossOrigin="anonymous"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
+        />
         {/* PortOne Script */}
         <Script
           src="https://cdn.iamport.kr/v1/iamport.js"

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, MapPin, Crown, Star, Clock, Shield, Gift } from 'lucide-react';
+import { ArrowRight, MapPin, Star, Briefcase, Crown } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -25,238 +25,158 @@ interface JobPosting {
 }
 
 /* ── 유틸 / Utilities ── */
-function formatSalary(job: JobPosting): string {
-  if (job.albaAttributes) return `시급 ${job.albaAttributes.hourlyWage.toLocaleString()}원`;
-  if (job.fulltimeAttributes) {
-    const lo = job.fulltimeAttributes.salaryMin;
-    const hi = job.fulltimeAttributes.salaryMax;
-    const fmt = (v: number | null) => (v ? Math.round(v / 10000).toLocaleString() : '');
-    if (lo && hi) return `연봉 ${fmt(lo)}~${fmt(hi)}만원`;
-    if (lo) return `연봉 ${fmt(lo)}만원~`;
-    return '연봉 협의';
+function fmtSalary(j: JobPosting): string {
+  if (j.albaAttributes) return `시급 ${j.albaAttributes.hourlyWage.toLocaleString()}원`;
+  if (j.fulltimeAttributes) {
+    const lo = j.fulltimeAttributes.salaryMin;
+    const hi = j.fulltimeAttributes.salaryMax;
+    const f = (v: number | null) => (v ? Math.round(v / 10000).toLocaleString() : '');
+    if (lo && hi) return `${f(lo)}~${f(hi)}만원`;
+    if (lo) return `${f(lo)}만원~`;
+    return '협의';
   }
-  return '급여 협의';
+  return '협의';
 }
 
-function getDDayLabel(d: string | null): { label: string; cls: string } {
-  if (!d) return { label: '상시채용', cls: 'text-slate-400' };
+function dday(d: string | null): { t: string; cls: string } {
+  if (!d) return { t: '상시', cls: 'bg-white/15 text-white/70' };
   const diff = Math.ceil((new Date(d).getTime() - Date.now()) / 86400000);
-  if (diff < 0) return { label: '마감', cls: 'text-slate-300' };
-  if (diff === 0) return { label: 'D-Day', cls: 'text-red-500 font-bold' };
-  if (diff <= 3) return { label: `D-${diff}`, cls: 'text-red-500 font-semibold' };
-  if (diff <= 7) return { label: `D-${diff}`, cls: 'text-amber-500 font-medium' };
-  return { label: `D-${diff}`, cls: 'text-slate-400' };
+  if (diff < 0) return { t: '마감', cls: 'bg-white/10 text-white/40' };
+  if (diff === 0) return { t: 'D-Day', cls: 'bg-red-500/80 text-white font-bold' };
+  if (diff <= 3) return { t: `D-${diff}`, cls: 'bg-red-500/70 text-white' };
+  if (diff <= 7) return { t: `D-${diff}`, cls: 'bg-amber-500/60 text-white' };
+  return { t: `D-${diff}`, cls: 'bg-white/15 text-white/70' };
 }
 
-const AVATAR_COLORS = ['bg-sky-600', 'bg-emerald-600', 'bg-violet-600', 'bg-rose-600', 'bg-indigo-600', 'bg-teal-600'];
-function avatarColor(name: string) {
-  return AVATAR_COLORS[(name.charCodeAt(0) || 0) % AVATAR_COLORS.length];
+/* 업종별 배경 이미지 / Industry background images */
+const INDUSTRY_IMAGES = [
+  '/images/premium/factory.jpg',
+  '/images/premium/construction.jpg',
+  '/images/premium/hotel.jpg',
+  '/images/premium/warehouse.jpg',
+  '/images/premium/automotive.jpg',
+];
+
+/* 파란색 미세 바리에이션 (1~3번 유지, 4~5 조정) / Blue micro-variations */
+interface CardTheme { r: number; g: number; b: number; dark: string; mid: string }
+const CARD_THEMES: CardTheme[] = [
+  { r: 15, g: 23, b: 42, dark: '#0f172a', mid: '#162033' },
+  { r: 12, g: 35, b: 60, dark: '#0c233c', mid: '#132d4a' },
+  { r: 18, g: 30, b: 52, dark: '#121e34', mid: '#1a2840' },
+  { r: 22, g: 22, b: 48, dark: '#161630', mid: '#1e1e3e' },
+  { r: 10, g: 40, b: 58, dark: '#0a283a', mid: '#103348' },
+];
+
+/* 로고: 컨테이너 없이 이미지 직접 표시 — 계단현상 원천 차단 / Logo: no container, direct render */
+const INITIAL_BG = ['bg-slate-700', 'bg-sky-800', 'bg-indigo-800', 'bg-emerald-800', 'bg-violet-800'];
+function Logo({ job, size }: { job: JobPosting; size: number }) {
+  const n = job.company?.brandName || job.company?.companyName || '';
+  if (job.company?.logoImageUrl) {
+    return (
+      <Image
+        src={job.company.logoImageUrl}
+        alt={n}
+        width={size}
+        height={size}
+        className="shrink-0 drop-shadow-[0_6px_18px_rgba(0,0,0,0.35)]"
+      />
+    );
+  }
+  const bg = INITIAL_BG[(n.charCodeAt(0) || 0) % INITIAL_BG.length];
+  return (
+    <div
+      className={`rounded-xl ${bg} flex items-center justify-center text-white font-bold shrink-0 drop-shadow-[0_6px_18px_rgba(0,0,0,0.35)]`}
+      style={{ width: size, height: size, fontSize: size * 0.38 }}
+    >
+      {n.charAt(0)}
+    </div>
+  );
 }
 
-/* ── 카드 높이 상수 / Card height constants ── */
-const CARD_BASE_H = 290; // 기본 상태 높이 / default card height (px)
+/* ── 프리미엄 카드 / Premium card ── */
+const CELL_H = 290;
 
-/* ── 프리미엄 카드 컴포넌트 / Premium card component ── */
-function PremiumJobCard({ job, faded }: { job: JobPosting; faded: boolean }) {
-  const companyName = job.company?.brandName || job.company?.companyName || '';
-  const { label: ddayLabel, cls: ddayCls } = getDDayLabel(job.closingDate);
-  const salary = formatSalary(job);
-  const visas = job.allowedVisas.split(',').map((v) => v.trim()).slice(0, 3);
-  const extraVisaCount = job.allowedVisas.split(',').length - 3;
-  const isClosed = ddayLabel === '마감';
-  const [hovered, setHovered] = useState(false);
+function PremiumCard({ job, imageIndex }: { job: JobPosting; imageIndex: number }) {
+  const [h, setH] = useState(false);
+  const n = job.company?.brandName || job.company?.companyName || '';
+  const dd = dday(job.closingDate);
+  const visas = job.allowedVisas.split(',').map(v => v.trim());
+  const bgImage = INDUSTRY_IMAGES[imageIndex % INDUSTRY_IMAGES.length];
+  const theme = CARD_THEMES[imageIndex % CARD_THEMES.length];
+  const tint = (a: number) => `rgba(${theme.r},${theme.g},${theme.b},${a})`;
 
   return (
-    <div className="relative" style={{ height: CARD_BASE_H }}>
-      {/* 카드 본체 - absolute로 그리드 셀 밖으로 확장 가능 */}
-      {/* Card body - absolute positioning allows expansion beyond grid cell */}
+    <div className="relative" style={{ height: CELL_H }}>
       <div
-        className={`
-          group absolute inset-x-0 top-0
-          bg-white rounded-xl
-          border border-gray-200
-          overflow-hidden
-          transition-all duration-300 ease-out
-          ${hovered ? 'z-20 shadow-2xl border-sky-400' : 'z-0 shadow-sm'}
-          ${faded ? 'opacity-40' : ''}
-        `}
-        style={{ borderTop: '3px solid #0ea5e9' }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        className={`absolute inset-x-0 top-0 rounded-xl overflow-hidden transition-all duration-300 cursor-pointer ${
+          h ? 'z-20 shadow-[0_12px_40px_rgba(0,0,0,0.2)]' : 'z-0 shadow-[0_2px_8px_rgba(0,0,0,0.06)]'
+        }`}
+        style={{ border: h ? '1px solid rgba(14,165,233,0.3)' : '1px solid #e2e8f0' }}
+        onMouseEnter={() => setH(true)}
+        onMouseLeave={() => setH(false)}
       >
-        {/* 다크 그래디언트 오버레이 - 호버 시 등장 (사람인 플래티넘 스타일) */}
-        {/* Dark gradient overlay - appears on hover (Saramin platinum style) */}
+        {/* 상단 이미지 영역 / Top image area */}
+        <div className="h-[100px] relative overflow-hidden">
+          <Image
+            src={bgImage}
+            alt=""
+            fill
+            className={`object-cover transition-all duration-500 ${h ? 'scale-110 blur-[2px]' : 'scale-100'}`}
+            sizes="250px"
+          />
+          <div
+            className={`absolute inset-0 transition-opacity duration-300 ${h ? 'opacity-80' : 'opacity-30'}`}
+            style={{ background: `linear-gradient(to bottom, ${tint(0.4)}, ${tint(0.85)})` }}
+          />
+          <div className="absolute top-2.5 right-2.5 z-10">
+            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full backdrop-blur-sm ${dd.cls}`}>{dd.t}</span>
+          </div>
+          <div className="absolute top-2.5 left-2.5 z-10">
+            <Star size={14} className="text-white/50 cursor-pointer hover:text-yellow-400 transition-colors" onClick={e => e.stopPropagation()} />
+          </div>
+        </div>
+
+        {/* 하단 다크 오버레이 (호버) / Info dark overlay on hover */}
         <div
-          className={`absolute inset-0 bg-linear-to-b from-slate-900 via-[#0c2d4a] to-slate-900 transition-opacity duration-300 pointer-events-none rounded-xl ${
-            hovered ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`absolute inset-x-0 top-[100px] bottom-0 transition-opacity duration-300 pointer-events-none ${h ? 'opacity-100' : 'opacity-0'}`}
+          style={{ background: `linear-gradient(to bottom, ${theme.dark}, ${theme.mid})` }}
         />
 
-        {/* ─── 기본 콘텐츠 영역 (항상 표시) / Base content (always visible) ─── */}
-        <div className="relative z-10 p-4">
+        {/* 콘텐츠 / Content */}
+        <div className="relative z-10 -mt-6 flex flex-col items-center text-center px-3.5">
+          <Logo job={job} size={48} />
 
-          {/* 1행: PREMIUM 뱃지 + D-day + 스크랩 */}
-          {/* Row 1: PREMIUM badge + D-day + bookmark */}
-          <div className="flex items-center justify-between mb-3">
-            <span className={`text-[11px] font-bold px-2 py-0.5 rounded tracking-wide transition-colors duration-300 ${
-              hovered
-                ? 'text-sky-300 bg-sky-400/15 border border-sky-400/30'
-                : 'text-sky-600 bg-sky-50 border border-sky-100'
-            }`}>
-              PREMIUM
-            </span>
-            <div className="flex items-center gap-2">
-              <span className={`text-[11px] font-semibold transition-colors duration-300 ${
-                hovered ? 'text-white/80' : ddayCls
-              }`}>
-                {ddayLabel}
-              </span>
-              <button className="group/star">
-                <Star
-                  size={15}
-                  className={`transition-colors duration-200 ${
-                    hovered
-                      ? 'text-white/40 hover:text-yellow-400'
-                      : 'text-gray-300 hover:text-yellow-400'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-
-          {/* 2행: 기업 로고 + 이름 + 지역 */}
-          {/* Row 2: Company logo + name + location */}
-          <div className="flex items-center gap-3 mb-3">
-            {job.company?.logoImageUrl ? (
-              <div className={`w-11 h-11 rounded-lg overflow-hidden shrink-0 bg-white transition-all duration-300 ${
-                hovered ? 'ring-2 ring-white/30' : 'border border-gray-100'
-              }`}>
-                <Image src={job.company.logoImageUrl} alt={companyName} width={44} height={44} className="object-cover w-full h-full" />
-              </div>
-            ) : (
-              <div className={`w-11 h-11 rounded-lg ${avatarColor(companyName)} flex items-center justify-center text-white font-bold text-base shrink-0 transition-all duration-300 ${
-                hovered ? 'ring-2 ring-white/30' : 'ring-1 ring-black/5'
-              }`}>
-                {companyName.charAt(0)}
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className={`text-sm font-semibold truncate transition-colors duration-300 ${
-                hovered ? 'text-white' : 'text-slate-800'
-              }`}>
-                {companyName}
-              </p>
-              <p className={`text-xs flex items-center gap-1 mt-0.5 transition-colors duration-300 ${
-                hovered ? 'text-white/50' : 'text-slate-400'
-              }`}>
-                <MapPin size={11} className="shrink-0" />
-                <span className="truncate">{job.displayAddress}</span>
-              </p>
-            </div>
-          </div>
-
-          {/* 3행: 공고 제목 */}
-          {/* Row 3: Job title */}
-          <h3 className={`text-[14px] font-bold leading-snug mb-3 line-clamp-2 transition-colors duration-300 ${
-            isClosed
-              ? 'line-through text-slate-300'
-              : hovered ? 'text-white' : 'text-slate-900'
-          }`}>
+          <p className={`text-[12px] font-semibold truncate w-full mt-2 transition-colors duration-300 ${h ? 'text-white' : 'text-slate-800'}`}>
+            {n}
+          </p>
+          <p className={`text-[10px] flex items-center gap-0.5 mt-0.5 mb-3 transition-colors duration-300 ${h ? 'text-white/35' : 'text-slate-400'}`}>
+            <MapPin size={9} />{job.displayAddress}
+          </p>
+          <h3 className={`text-[12px] font-bold leading-snug line-clamp-2 mb-2.5 transition-colors duration-300 ${h ? 'text-white' : 'text-slate-900'}`}>
             {job.title}
           </h3>
-
-          {/* 4행: 비자 뱃지 + 고용형태 */}
-          {/* Row 4: Visa badges + employment type */}
-          <div className="flex flex-wrap gap-1 mb-3">
-            {visas.map((visa) => (
-              <span
-                key={visa}
-                className={`text-[10px] font-medium px-1.5 py-0.5 rounded transition-colors duration-300 ${
-                  hovered
-                    ? 'text-sky-200 bg-sky-400/15 border border-sky-400/25'
-                    : 'text-sky-700 bg-sky-50 border border-sky-100'
-                }`}
-              >
-                {visa}
-              </span>
-            ))}
-            {extraVisaCount > 0 && (
-              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded transition-colors duration-300 ${
-                hovered ? 'text-white/50' : 'text-slate-400'
-              }`}>
-                +{extraVisaCount}
-              </span>
-            )}
-            <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border transition-colors duration-300 ${
-              job.boardType === 'FULL_TIME'
-                ? hovered
-                  ? 'text-emerald-300 bg-emerald-400/15 border-emerald-400/25'
-                  : 'text-emerald-700 bg-emerald-50 border-emerald-100'
-                : hovered
-                  ? 'text-orange-300 bg-orange-400/15 border-orange-400/25'
-                  : 'text-orange-700 bg-orange-50 border-orange-100'
-            }`}>
-              {job.boardType === 'FULL_TIME' ? '정규직' : '알바'}
-            </span>
-          </div>
-
-          {/* 5행: 급여 */}
-          {/* Row 5: Salary */}
-          <p className={`text-[15px] font-bold transition-colors duration-300 ${
-            hovered ? 'text-sky-300' : 'text-sky-600'
-          }`}>
-            {salary}
+          <p className={`text-[14px] font-bold mb-1.5 transition-colors duration-300 ${h ? 'text-sky-300' : 'text-sky-600'}`}>
+            {fmtSalary(job)}
+          </p>
+          <p className={`text-[10px] mb-4 transition-colors duration-300 ${h ? 'text-white/40' : 'text-slate-400'}`}>
+            {job.boardType === 'FULL_TIME' ? '정규직' : '알바'}
           </p>
         </div>
 
-        {/* ─── 확장 영역 (호버 시 overlay로 아래 카드 위에 표시) ─── */}
-        {/* ─── Expansion area (overlays cards below on hover) ─── */}
-        <div
-          className="relative z-10 transition-all duration-300 ease-out overflow-hidden"
-          style={{
-            maxHeight: hovered ? 180 : 0,
-            opacity: hovered ? 1 : 0,
-          }}
-        >
-          <div className="px-4 pb-4">
-            <div className="border-t border-white/15 pt-3 space-y-2.5">
-
-              {/* 추가 정보: 근무조건 / Additional info: work conditions */}
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-2 text-white/60 text-xs">
-                  <Clock size={12} className="shrink-0 text-sky-400/70" />
-                  <span>{job.boardType === 'FULL_TIME' ? '주 5일 · 09:00~18:00' : '근무시간 협의'}</span>
-                </div>
-                <div className="flex items-center gap-2 text-white/60 text-xs">
-                  <Shield size={12} className="shrink-0 text-sky-400/70" />
-                  <span>비자 {job.allowedVisas.split(',').length}종 지원 가능</span>
-                </div>
-                <div className="flex items-center gap-2 text-white/60 text-xs">
-                  <Gift size={12} className="shrink-0 text-sky-400/70" />
-                  <span>{job.boardType === 'FULL_TIME' ? '4대보험 · 연차' : '교통비 · 식대 지원'}</span>
-                </div>
+        {/* 확장 영역 / Expansion */}
+        <div className="relative z-10 overflow-hidden transition-all duration-300 ease-out" style={{ maxHeight: h ? 130 : 0, opacity: h ? 1 : 0 }}>
+          <div className="px-3.5 pb-3.5">
+            <div className="border-t border-white/10 pt-2.5 space-y-2">
+              {/* 비자 칩 / Visa type chips */}
+              <div className="flex flex-wrap gap-1">
+                {visas.map(v => (
+                  <span key={v} className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-white/70 font-medium">{v}</span>
+                ))}
               </div>
-
-              {/* 액션 버튼 / Action buttons */}
-              <div className="flex gap-2 pt-2">
-                <button
-                  className="flex-1 text-xs text-white/60 border border-white/15 rounded-lg py-2.5 hover:bg-white/10 hover:text-white/80 transition-colors"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  ☆ 스크랩
-                </button>
-                <Link
-                  href={job.id !== '0' ? `/jobs/${job.id}` : '#'}
-                  onClick={(e) => e.stopPropagation()}
-                  className={`flex-1 text-xs text-center rounded-lg py-2.5 font-semibold transition-colors ${
-                    isClosed
-                      ? 'bg-white/10 text-white/30 pointer-events-none'
-                      : 'bg-sky-500 hover:bg-sky-400 text-white'
-                  }`}
-                >
-                  {isClosed ? '마감됨' : '지원하기 →'}
-                </Link>
+              <div className="flex items-center gap-1.5 text-white/50 text-[10px]">
+                <Briefcase size={10} /> {job.boardType === 'FULL_TIME' ? '정규직 · 4대보험' : '파트타임 · 시급제'}
               </div>
+              <Link href={job.id !== '0' ? `/jobs/${job.id}` : '#'} className="block text-[10px] text-center bg-sky-500 hover:bg-sky-400 text-white rounded-md py-1.5 font-semibold transition-colors" onClick={e => e.stopPropagation()}>상세보기</Link>
             </div>
           </div>
         </div>
@@ -265,54 +185,58 @@ function PremiumJobCard({ job, faded }: { job: JobPosting; faded: boolean }) {
   );
 }
 
-/* ── 메인 섹션 / Main section ── */
-export default function PremiumJobs() {
+/* ── 예시 데이터 — SVG 로고 / Example data with SVG logos ── */
+const EXAMPLES: JobPosting[] = [
+  { id: '0', title: '반도체 생산라인 오퍼레이터 (기숙사 제공)', company: { companyName: '삼성전자', brandName: null, logoImageUrl: '/images/logos/samsung.svg' }, displayAddress: '경기 평택시', allowedVisas: 'E-9,H-2,F-4', boardType: 'PART_TIME', tierType: 'PREMIUM', closingDate: new Date(Date.now() + 14 * 86400000).toISOString(), albaAttributes: { hourlyWage: 14000 }, fulltimeAttributes: null },
+  { id: '0', title: '건설 현장 안전관리자 (경험자 우대)', company: { companyName: '현대건설', brandName: null, logoImageUrl: '/images/logos/hyundai-enc.svg' }, displayAddress: '서울 강남구', allowedVisas: 'E-7,F-2,F-5,F-6', boardType: 'FULL_TIME', tierType: 'PREMIUM', closingDate: new Date(Date.now() + 3 * 86400000).toISOString(), albaAttributes: null, fulltimeAttributes: { salaryMin: 30000000, salaryMax: 40000000 } },
+  { id: '0', title: '호텔 주방 스태프 (식사 제공)', company: { companyName: '신라호텔', brandName: null, logoImageUrl: '/images/logos/shilla.svg' }, displayAddress: '서울 중구', allowedVisas: 'E-9,H-2,F-4', boardType: 'PART_TIME', tierType: 'PREMIUM', closingDate: new Date(Date.now() + 30 * 86400000).toISOString(), albaAttributes: { hourlyWage: 12000 }, fulltimeAttributes: null },
+  { id: '0', title: '물류센터 포장/분류 직원', company: { companyName: 'CJ대한통운', brandName: null, logoImageUrl: '/images/logos/cj-logistics.svg' }, displayAddress: '인천 남동구', allowedVisas: 'E-9,H-2', boardType: 'PART_TIME', tierType: 'PREMIUM', closingDate: null, albaAttributes: { hourlyWage: 13000 }, fulltimeAttributes: null },
+  { id: '0', title: '자동차 부품 품질검사원', company: { companyName: '현대모비스', brandName: null, logoImageUrl: '/images/logos/mobis.svg' }, displayAddress: '울산 북구', allowedVisas: 'E-9,H-2,F-2', boardType: 'FULL_TIME', tierType: 'PREMIUM', closingDate: new Date(Date.now() + 7 * 86400000).toISOString(), albaAttributes: null, fulltimeAttributes: { salaryMin: 28000000, salaryMax: 35000000 } },
+];
+
+/* ── 메인 / Main ── */
+interface PremiumJobsProps {
+  boardFilter?: string; // '' = 전체, 'PART_TIME' = 알바, 'FULL_TIME' = 정규직
+}
+
+export default function PremiumJobs({ boardFilter = '' }: PremiumJobsProps) {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
 
   useEffect(() => {
-    fetchWithRetry('/api/jobs/listing?tierType=PREMIUM&limit=8')
+    fetchWithRetry('/api/jobs/listing?tierType=PREMIUM&limit=10')
       .then((res) => res.json())
-      .then((data) => { if (data.items) setJobs(data.items); })
+      .then((data) => { if (data.items?.length) setJobs(data.items); })
       .catch(() => {});
   }, []);
 
+  /* API 데이터 있으면 표시, 없으면 예시 / Show real data if available, fallback to examples */
   const showExample = jobs.length === 0;
-  const exampleJobs: JobPosting[] = [
-    { id: '0', title: '반도체 생산라인 오퍼레이터 (기숙사 제공)', company: { companyName: '삼성전자 평택', brandName: null, logoImageUrl: null }, displayAddress: '경기 평택시', allowedVisas: 'E-9,H-2,F-4', boardType: 'PART_TIME', tierType: 'PREMIUM', closingDate: new Date(Date.now() + 14 * 86400000).toISOString(), albaAttributes: { hourlyWage: 14000 }, fulltimeAttributes: null },
-    { id: '0', title: '건설 현장 안전관리자 (경험자 우대)', company: { companyName: '현대건설', brandName: null, logoImageUrl: null }, displayAddress: '서울 강남구', allowedVisas: 'E-7,F-2,F-5,F-6', boardType: 'FULL_TIME', tierType: 'PREMIUM', closingDate: new Date(Date.now() + 3 * 86400000).toISOString(), albaAttributes: null, fulltimeAttributes: { salaryMin: 30000000, salaryMax: 40000000 } },
-    { id: '0', title: '호텔 주방 스태프 (식사 제공, 주 5일)', company: { companyName: '신라호텔', brandName: null, logoImageUrl: null }, displayAddress: '서울 중구', allowedVisas: 'E-9,H-2,F-4', boardType: 'PART_TIME', tierType: 'PREMIUM', closingDate: new Date(Date.now() + 30 * 86400000).toISOString(), albaAttributes: { hourlyWage: 12000 }, fulltimeAttributes: null },
-    { id: '0', title: '물류센터 포장/분류 직원 (통근버스)', company: { companyName: 'CJ대한통운', brandName: null, logoImageUrl: null }, displayAddress: '인천 남동구', allowedVisas: 'E-9,H-2', boardType: 'PART_TIME', tierType: 'PREMIUM', closingDate: null, albaAttributes: { hourlyWage: 13000 }, fulltimeAttributes: null },
-  ];
-
-  const displayJobs = showExample ? exampleJobs : jobs;
+  let all = showExample ? EXAMPLES : jobs;
+  if (boardFilter) all = all.filter((j) => j.boardType === boardFilter);
+  const display = all.slice(0, 5);
 
   return (
     <section>
-      {/* 섹션 헤더 / Section header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center shrink-0">
-            <Crown size={16} className="text-white" />
+          <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center shrink-0">
+            <Crown size={14} className="text-white" />
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">프리미엄 공고</h2>
-            <p className="text-xs text-slate-400 mt-0.5">주목할 만한 채용 정보</p>
-          </div>
+          <h2 className="text-[17px] font-bold text-slate-900">프리미엄 채용</h2>
         </div>
-        <Link href="/alba" className="text-sm text-slate-400 hover:text-sky-600 transition-colors flex items-center gap-1 font-medium">
-          전체보기 <ArrowRight size={14} />
+        <Link href="/alba" className="text-[13px] text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1">
+          전체보기 <ArrowRight size={13} />
         </Link>
       </div>
 
-      {/* 4열 카드 그리드 / 4-column card grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {displayJobs.map((job, idx) => (
-          <PremiumJobCard key={job.id + idx} job={job} faded={showExample} />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        {display.map((job, i) => (
+          <PremiumCard key={i} job={job} imageIndex={i} />
         ))}
       </div>
 
       {showExample && (
-        <p className="text-center text-xs text-slate-400 mt-4">위 공고는 예시입니다. 실제 프리미엄 공고 등록 시 표시됩니다.</p>
+        <p className="text-center text-[11px] text-slate-400 mt-4">위 공고는 예시입니다. 실제 프리미엄 공고가 등록되면 표시됩니다.</p>
       )}
     </section>
   );
