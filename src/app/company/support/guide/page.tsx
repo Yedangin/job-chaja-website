@@ -181,7 +181,7 @@ const GUIDE_CATEGORIES: GuideCategory[] = [
         title: '열람권 구매',
         titleEn: 'Purchase Credits',
         description:
-          '마이페이지 → 결제/열람권 메뉴에서 구매합니다. 1건(3,000원)~100건(150,000원) 패키지 중 선택 가능합니다.',
+          '마이페이지 → 결제/열람권 메뉴에서 구매합니다. 1건(1,000원)~100건(50,000원) 패키지 중 선택 가능합니다.',
       },
       {
         title: '열람권 사용',

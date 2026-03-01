@@ -1,7 +1,7 @@
 export const termsAndConditionsData = {
   header: {
     title: "Terms & Conditions",
-    lastUpdated: "February 28, 2026",
+    lastUpdated: "March 2, 2026",
     description:
       "Please read these Terms of Service carefully before using Jobchaja platform.",
     disclaimer:
@@ -37,22 +37,68 @@ export const termsAndConditionsData = {
         {
           subtitle: "Premium Services (Paid)",
           table: [
-            { label: "Premium posting (7 days):", value: "₩19,000 (launch price)" },
-            { label: "Premium posting (14 days):", value: "₩29,000 (launch price)" },
-            { label: "Premium posting (30 days):", value: "₩50,000 (launch price)" },
-            { label: "Premium posting (60 days):", value: "₩79,000 (launch price)" },
+            { label: "Premium posting (7 days):", value: "\u20A919,000 (launch) / \u20A949,000 (regular)" },
+            { label: "Premium posting (14 days):", value: "\u20A929,000 (launch) / \u20A979,000 (regular)" },
+            { label: "Premium posting (30 days):", value: "\u20A950,000 (launch) / \u20A9130,000 (regular)" },
+            { label: "Premium posting (60 days):", value: "\u20A979,000 (launch) / \u20A9199,000 (regular)" },
             { label: "Detailed visa diagnosis:", value: "$10 USD" },
+          ],
+          note: "Launch prices are limited-time offers. Regular prices will apply when the launch period ends (announced separately).",
+        },
+        {
+          subtitle: "Viewing Credits (Full-time Company Only)",
+          note: "Viewing credits are available only for full-time recruitment companies. Part-time (alba) job postings do not require viewing credits.",
+          table: [
+            { label: "1 credit:", value: "\u20A91,000" },
+            { label: "5 credits:", value: "\u20A94,500 (10% off)" },
+            { label: "10 credits:", value: "\u20A98,000 (20% off)" },
+            { label: "30 credits:", value: "\u20A921,000 (30% off)" },
+            { label: "50 credits:", value: "\u20A930,000 (40% off)" },
+            { label: "100 credits:", value: "\u20A950,000 (50% off)" },
+          ],
+        },
+        {
+          subtitle: "Pricing & Tax",
+          bullets: [
+            "All listed prices include 10% VAT (Value Added Tax)",
+            "Example: ₩19,000 listed price = ₩17,273 supply price + ₩1,727 VAT",
+            "Individual buyers: Card sales slip or cash receipt issued automatically by PG provider",
+            "Corporate buyers: Tax invoice available upon request (provide business registration number)",
+          ],
+        },
+        {
+          subtitle: "Free Re-diagnosis Coupon",
+          bullets: [
+            "One free re-diagnosis coupon is automatically issued upon purchasing the detailed visa diagnosis",
+            "Coupon is valid for 6 months from the date of issuance",
+            "Expired coupons are automatically voided with no compensation",
+            "Coupons are non-transferable and cannot be exchanged for cash",
           ],
         },
         {
           subtitle: "Refund Policy",
           bullets: [
             "Premium posting (before activation): Full refund",
-            "Premium posting (after activation): Pro-rata refund for remaining days",
-            "Visa diagnosis (before result): Full refund",
-            "Visa diagnosis (after result): No refund",
+            "Premium posting (after activation): Pro-rata refund for remaining days. No refund if more than 50% of the period has elapsed",
+            "Visa diagnosis (before result viewed): Full refund within 7 days of purchase (Electronic Commerce Act §17)",
+            "Visa diagnosis (after result viewed): No refund (digital content; consent to waive cooling-off period required at checkout)",
+            "Viewing credits (unused): Refund available within 7 days of purchase",
+            "Viewing credits (partially used): Pro-rata refund for unused credits within 7 days of purchase",
+            "Viewing credits (7+ days after purchase): No refund",
             "No refund for violations of Terms of Service",
             "Admin-granted premium: Not eligible for refund",
+            "Refund processing: Within 3 business days to original payment method (Electronic Commerce Act §18)",
+            "PortOne refund failure: Up to 3 retries; if still failing, admin manual processing within 5 business days",
+          ],
+        },
+        {
+          subtitle: "International Payments",
+          bullets: [
+            "Visa Planner Premium is priced in USD ($10) for international users",
+            "International card payments (Visa, Mastercard, JCB, AMEX) are processed through KG Inicis via PortOne",
+            "VAT is zero-rated for international transactions (VAT Act §24, export of services)",
+            "Exchange rate is determined at the time of payment by your card issuer",
+            "Refunds for international payments follow the same policy above, converted at the refund-time exchange rate",
           ],
         },
       ],
@@ -79,6 +125,7 @@ export const termsAndConditionsData = {
             "Comply with employment laws (Equal Employment Act, Foreign Workers Act, etc.)",
             "Respond to applicants in a timely manner",
             "Don't impersonate other companies",
+            "For E-9/H-2 visa workers, recruitment must go through the Employment Permit System (government employment centers only)",
           ],
         },
       ],
@@ -96,6 +143,7 @@ export const termsAndConditionsData = {
         "Spam or unsolicited messages",
         "Attempting to manipulate visa matching results",
         "Abusing premium services or requesting fraudulent refunds",
+        "Posting part-time jobs with hourly wages below the legal minimum wage",
       ],
     },
     {
@@ -124,6 +172,19 @@ export const termsAndConditionsData = {
     },
     {
       id: 6,
+      title: "Visa Matching & Disclaimer",
+      type: "bullet-list",
+      content: [
+        "Visa matching results are reference information only \u2014 not legally binding",
+        "Actual visa issuance/change depends on the Immigration Office's individual review",
+        "E-9 (Non-professional) and H-2 (Working Visit) visa holders can ONLY be recruited through government employment centers per the Foreign Workers Employment Act. Jobchaja does NOT facilitate direct hiring for E-9/H-2 workers; visa information for these types is provided in the Visa Planner tool for reference only",
+        "We are not a government authority \u2014 always verify visa decisions with the Immigration Office or a qualified professional",
+        "Visa rules may change due to law amendments; updates are applied within a reasonable timeframe",
+        "The platform operates as a Job Information Service Provider under the Employment Security Act",
+      ],
+    },
+    {
+      id: 7,
       title: "Platform Rules",
       type: "bullet-list",
       content: [
@@ -132,11 +193,72 @@ export const termsAndConditionsData = {
         "We may update these terms with 7 days notice (30 days for unfavorable changes)",
         "Prices may change with 7 days notice; existing purchases are not affected",
         "We're not responsible for job outcomes after hiring",
-        "Visa matching results are for reference only — actual visa issuance depends on government authorities",
+        "Company verification is based on submitted documents; post-approval changes are not monitored in real-time",
+        "Part-time job postings require hourly wages at or above the current minimum wage",
+      ],
+    },
+    {
+      id: 8,
+      title: "Marketing & Notifications",
+      type: "bullet-list",
+      content: [
+        "Essential service notifications (payments, approvals, security) are sent without separate consent",
+        "Marketing messages require your opt-in consent, separate from terms acceptance",
+        "Nighttime ads (9 PM \u2013 8 AM) require additional separate consent",
+        "You can opt out of marketing at any time through settings or unsubscribe links",
+        "All marketing messages are labeled as (Advertisement) per Korean law",
+        "Notification frequency is limited per channel to prevent excessive messaging (email: max 10/day, KakaoTalk: max 5/day)",
+        "KakaoTalk notifications are sent only between 8 AM and 9 PM KST",
+      ],
+    },
+    {
+      id: 9,
+      title: "Dispute Resolution & Governing Law",
+      type: "subsection-list",
+      subsections: [
+        {
+          subtitle: "Governing Law",
+          bullets: [
+            "These Terms are governed by the laws of the Republic of Korea",
+            "The Electronic Commerce Consumer Protection Act, Consumer Dispute Resolution Standards, and related regulations apply",
+          ],
+        },
+        {
+          subtitle: "Dispute Resolution",
+          bullets: [
+            "Disputes shall first be resolved through mutual consultation in good faith",
+            "If unresolved, either party may file with the Korea Consumer Agency, Seoul e-Commerce Center, or relevant consumer dispute resolution body",
+            "Final jurisdiction lies with the competent court under Korean Civil Procedure Act",
+          ],
+        },
+        {
+          subtitle: "Limitation of Liability",
+          bullets: [
+            "We are not liable for damages caused by events beyond our control (force majeure, third-party service outages)",
+            "We are not liable for hiring outcomes, actual visa decisions by the Immigration Office, or employer\u2013employee disputes arising after platform matching",
+            "Our liability for paid services is limited to the fees paid by the user for the relevant service",
+          ],
+        },
+        {
+          subtitle: "Refund Processing",
+          bullets: [
+            "Approved refunds are processed within 3 business days (Electronic Commerce Act \u00A718)",
+            "Refunds are returned to the original payment method",
+            "For viewing credits with partial use, refund is calculated on unused credits only",
+          ],
+        },
       ],
     },
   ],
   footer: {
+    operatorInfo: {
+      businessName: "Livsoft Inc. (주식회사 리브소프트) | Jobchaja (잡차자)",
+      representative: "Park Chanho (박찬호)",
+      address: "Republic of Korea",
+      bizRegNumber: "485-86-03274",
+      ecommerceRegNumber: "To be registered (통신판매업 신고번호)",
+      jobInfoRegNumber: "To be registered (직업정보제공사업 신고번호)",
+    },
     platformLinks: ["How it Works", "Pricing", "Policies"],
     supportLinks: [
       "Help Center",

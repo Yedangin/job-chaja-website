@@ -16,7 +16,7 @@ export default function TermsAndConditionsPage() {
         {/* 헤더 / Header */}
         <header className="mb-10 text-center">
           <h1 className="text-3xl font-bold text-gray-900">잡차자 서비스 이용약관</h1>
-          <p className="text-sm text-gray-500 mt-2">시행일: 2026년 2월 25일</p>
+          <p className="text-sm text-gray-500 mt-2">시행일: 2026년 3월 2일</p>
         </header>
 
         <div className="space-y-8 text-sm text-gray-700 leading-relaxed">
@@ -156,8 +156,9 @@ export default function TermsAndConditionsPage() {
                 <h3 className="font-semibold text-gray-800 mb-1">① 프리미엄 채용공고</h3>
                 <ul className="list-disc list-inside space-y-1">
                   <li>결제 후 서비스 적용 전(공고 미게시 상태): 전액 환불 가능</li>
-                  <li>서비스 적용 후(공고 게시 시작 후): 환불 불가</li>
-                  <li>단, 서비스 하자 또는 회사 귀책사유가 있는 경우 전액 환불</li>
+                  <li>서비스 적용 후: 잔여 기간에 대해 일할 계산한 금액을 환불합니다</li>
+                  <li>단, 사용 기간이 전체 기간의 50%를 초과한 경우 환불이 제한됩니다</li>
+                  <li>서비스 하자 또는 회사 귀책사유가 있는 경우: 전액 환불</li>
                 </ul>
               </div>
               <div>
@@ -259,9 +260,9 @@ export default function TermsAndConditionsPage() {
                 ['상호', '주식회사 리브소프트'],
                 ['서비스명', '잡차자 (JobChaja)'],
                 ['사업자등록번호', '485-86-03274'],
-                ['대표자', '[대표자명]'],
-                ['주소', '[사업장 주소]'],
-                ['고객센터', '[전화번호]'],
+                ['대표자', '박찬호'],
+                ['주소', '대한민국'],
+                ['고객센터', '010-3885-0675'],
                 ['이메일', 'pch0675@naver.com'],
                 ['운영시간', '평일 09:00 ~ 18:00 (주말·공휴일 휴무)'],
               ].map(([label, value]) => (
@@ -274,7 +275,7 @@ export default function TermsAndConditionsPage() {
           </section>
 
           <p className="text-center text-xs text-gray-400 pb-4">
-            본 약관은 2026년 2월 25일부터 시행됩니다.
+            본 약관은 2026년 3월 2일부터 시행됩니다.
           </p>
         </div>
       </div>

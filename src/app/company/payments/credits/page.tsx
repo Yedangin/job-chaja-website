@@ -81,13 +81,18 @@ interface PaymentMethodOption {
 
 // ─── 상수 / Constants ─────────────────────────────────────────────────────────
 
+// 열람권 가격: 1건 ₩1,000 기준, 대량 할인 적용
+// Viewing credits: ₩1,000 per credit base, bulk discounts applied
+// ※ 정규직 채용 기업 전용 (알바 공고에는 열람권 불필요)
+// ※ Full-time recruitment companies only (not needed for part-time/alba postings)
+// ※ 가격은 DB ProductCatalog 기반 — 아래는 프론트 표시용 (DB에서 조회해야 함)
 const CREDIT_PACKAGES: CreditPackage[] = [
-  { code: 'VIEW_1',   quantity: 1,   name: '1건',    price: 3000,   originalPrice: 3000,   discountPct: null },
-  { code: 'VIEW_5',   quantity: 5,   name: '5건',    price: 13000,  originalPrice: 15000,  discountPct: 14 },
-  { code: 'VIEW_10',  quantity: 10,  name: '10건',   price: 25000,  originalPrice: 30000,  discountPct: 17 },
-  { code: 'VIEW_30',  quantity: 30,  name: '30건',   price: 70000,  originalPrice: 90000,  discountPct: 22 },
-  { code: 'VIEW_50',  quantity: 50,  name: '50건',   price: 110000, originalPrice: 150000, discountPct: 27, popular: true },
-  { code: 'VIEW_100', quantity: 100, name: '100건',  price: 150000, originalPrice: 300000, discountPct: 50 },
+  { code: 'VIEW_1',   quantity: 1,   name: '1건',    price: 1000,   originalPrice: 1000,   discountPct: null },
+  { code: 'VIEW_5',   quantity: 5,   name: '5건',    price: 4500,   originalPrice: 5000,   discountPct: 10 },
+  { code: 'VIEW_10',  quantity: 10,  name: '10건',   price: 8000,   originalPrice: 10000,  discountPct: 20 },
+  { code: 'VIEW_30',  quantity: 30,  name: '30건',   price: 21000,  originalPrice: 30000,  discountPct: 30 },
+  { code: 'VIEW_50',  quantity: 50,  name: '50건',   price: 30000,  originalPrice: 50000,  discountPct: 40, popular: true },
+  { code: 'VIEW_100', quantity: 100, name: '100건',  price: 50000,  originalPrice: 100000, discountPct: 50 },
 ];
 
 const PAYMENT_METHODS: PaymentMethodOption[] = [

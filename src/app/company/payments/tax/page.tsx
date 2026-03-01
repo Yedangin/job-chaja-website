@@ -301,7 +301,7 @@ export default function CompanyTaxPage() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-purple-800">이력서 열람권 구매</p>
-                <p className="text-xs text-purple-600">3,000원 ~ 150,000원</p>
+                <p className="text-xs text-purple-600">1,000원 ~ 50,000원</p>
               </div>
             </div>
           </div>
