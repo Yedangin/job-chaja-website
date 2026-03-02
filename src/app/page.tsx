@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import Header from '@/components/header';
 import HeroSection from '@/components/hero-section';
 import PremiumJobs from '@/components/premium-jobs';
@@ -8,7 +9,7 @@ import RealtimeJobs from '@/components/realtime-jobs';
 import CompanyLogos from '@/components/company-logos';
 import InfoHub from '@/components/info-hub';
 import Footer from '@/components/footer';
-import { Briefcase, Clock } from 'lucide-react';
+import { Briefcase, Clock, Globe, X, ArrowRight } from 'lucide-react';
 
 /**
  * 메인 페이지 — 외국인 생활 플랫폼 / Main page — Foreign worker life platform
@@ -26,9 +27,50 @@ import { Briefcase, Clock } from 'lucide-react';
 export default function Home() {
   /* 알바/정규직 토글 상태 — '' = 전체 / '' = show all */
   const [jobType, setJobType] = useState<'' | 'PART_TIME' | 'FULL_TIME'>('');
+  /* "Not in Korea?" 배너 표시 여부 / Banner dismiss state (spec 04 §3-2) */
+  const [showBanner, setShowBanner] = useState(false);
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem('intl_banner_dismissed');
+    if (!dismissed) setShowBanner(true);
+  }, []);
+
+  const dismissBanner = () => {
+    setShowBanner(false);
+    localStorage.setItem('intl_banner_dismissed', '1');
+  };
 
   return (
     <div className="flex flex-col min-h-screen font-sans bg-white">
+      {/* "Not in Korea?" 배너 / International banner (spec 04 §3-2) */}
+      {showBanner && (
+        <div className="relative bg-linear-to-r from-blue-600 to-indigo-600 text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-center gap-3 text-sm">
+            <Globe className="w-4 h-4 shrink-0 hidden sm:block" />
+            <Link
+              href="/international"
+              className="flex items-center gap-1.5 hover:underline"
+            >
+              <span className="font-medium">Not in Korea?</span>
+              <span className="hidden sm:inline text-blue-100">
+                Plan your journey to Korea
+              </span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+            <span className="text-blue-200 hidden md:inline mx-1">|</span>
+            <span className="text-blue-200 text-xs hidden md:inline">
+              한국에 계시지 않나요?
+            </span>
+            <button
+              onClick={dismissBanner}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full transition"
+              aria-label="Close banner"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
       <Header />
 
       <main className="grow">

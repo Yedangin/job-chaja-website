@@ -38,13 +38,14 @@ import {
   DAY_LABELS,
   SIDO_LIST,
 } from './components/alba-types';
+import { useMinimumHourlyWage } from '@/hooks/use-minimum-wage';
 
 // ─── 초기 폼 데이터 / Initial form data ───
 const INITIAL_FORM: AlbaJobFormData = {
   jobCategoryCode: '',
   jobDescription: '',
   recruitCount: 1,
-  hourlyWage: 10030,
+  hourlyWage: 0,
   weeklyHours: 0,
   schedule: [],
   workPeriod: { startDate: '', endDate: null },
@@ -89,6 +90,7 @@ const MOCK_VISA_RESULT: VisaMatchingResponse = {
 };
 
 export default function AlbaCreateVariantBPage() {
+  const minimumWage = useMinimumHourlyWage();
   // ─── 상태 / State ───
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<AlbaJobFormData>(INITIAL_FORM);
@@ -117,7 +119,7 @@ export default function AlbaCreateVariantBPage() {
     const errs: FormErrors = {};
     if (!form.jobCategoryCode) errs.jobCategoryCode = '직종을 선택해주세요';
     if (form.recruitCount < 1) errs.recruitCount = '모집인원은 1명 이상이어야 합니다';
-    if (form.hourlyWage < 10030) errs.hourlyWage = '최저시급(10,030원) 이상이어야 합니다';
+    if (form.hourlyWage < minimumWage) errs.hourlyWage = `최저시급(${minimumWage.toLocaleString()}원) 이상이어야 합니다`;
     if (form.schedule.length === 0) errs.schedule = '근무 요일을 1개 이상 선택해주세요';
     if (!form.workPeriod.startDate) errs.workPeriod = '근무 시작일을 입력해주세요';
     setErrors(errs);
@@ -335,10 +337,11 @@ export default function AlbaCreateVariantBPage() {
                   <div className="relative">
                     <input
                       type="number"
-                      min={10030}
+                      min={minimumWage}
                       step={100}
-                      value={form.hourlyWage}
+                      value={form.hourlyWage || ''}
                       onChange={e => updateForm('hourlyWage', parseInt(e.target.value) || 0)}
+                      placeholder={`최저시급 ${minimumWage.toLocaleString()}원`}
                       className={`w-full border rounded px-3 py-2 text-sm pr-8 ${errors.hourlyWage ? 'border-red-400' : 'border-gray-200'}`}
                       aria-label="시급 / Hourly wage"
                     />

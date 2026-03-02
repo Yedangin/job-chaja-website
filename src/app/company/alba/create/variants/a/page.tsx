@@ -10,6 +10,7 @@ import { StepJobInfo } from './components/step-job-info';
 import { StepPreview } from './components/step-preview';
 import { createAlbaJob } from './api';
 import type { AlbaJobFormData, WizardStep, AlbaJobCreateResponse } from './types';
+import { useMinimumHourlyWage } from '@/hooks/use-minimum-wage';
 
 /**
  * 알바 공고 작성 3-Step 위자드 메인 페이지 (Variant A: 미니멀/Toss 스타일)
@@ -43,13 +44,13 @@ const INITIAL_FORM: AlbaJobFormData = {
 };
 
 /** 스텝별 필수 필드 검증 / Per-step required field validation */
-function validateStep(step: WizardStep, form: AlbaJobFormData): Record<string, string> {
+function validateStep(step: WizardStep, form: AlbaJobFormData, minWage: number): Record<string, string> {
   const errors: Record<string, string> = {};
 
   if (step === 1) {
     if (!form.jobCategoryCode) errors.jobCategoryCode = '직종을 선택해주세요 / Select job category';
     if (form.recruitCount < 1) errors.recruitCount = '1명 이상 입력해주세요 / Enter at least 1';
-    if (form.hourlyWage < 10030) errors.hourlyWage = '최저시급 이상이어야 합니다 / Must be at or above minimum wage';
+    if (form.hourlyWage < minWage) errors.hourlyWage = `최저시급(${minWage.toLocaleString()}원) 이상이어야 합니다 / Must be at or above minimum wage`;
     if (form.schedule.length === 0) errors.schedule = '근무 요일을 선택해주세요 / Select work days';
     if (!form.workPeriod.startDate) errors.workPeriod = '시작일을 입력해주세요 / Enter start date';
   }
@@ -64,6 +65,7 @@ function validateStep(step: WizardStep, form: AlbaJobFormData): Record<string, s
 }
 
 export default function AlbaCreateVariantAPage() {
+  const minimumWage = useMinimumHourlyWage();
   const [step, setStep] = useState<WizardStep>(1);
   const [form, setForm] = useState<AlbaJobFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -86,7 +88,7 @@ export default function AlbaCreateVariantAPage() {
 
   // 다음 스텝 / Next step
   const handleNext = useCallback(() => {
-    const validationErrors = validateStep(step, form);
+    const validationErrors = validateStep(step, form, minimumWage);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;

@@ -22,6 +22,8 @@ import StepPreview from './components/step-preview';
 import LiveVisaIndicator from './components/live-visa-indicator';
 import { matchFulltimeVisa, createFulltimeJob } from './api';
 import { useAuth } from '@/contexts/auth-context';
+import { apiClient } from '@/lib/api-client';
+import CompanyAuthGuard from '@/components/guards/company-auth-guard';
 import type {
   FulltimeJobFormData,
   FulltimeVisaMatchingResponse,
@@ -78,6 +80,28 @@ export default function FulltimeCreatePage() {
         contactEmail: prev.contactEmail || user.email || '',
       }));
     }
+  }, [user]);
+
+  // 기업인증 정보에서 회사 정보 자동 입력 / Auto-fill company info from corporate verification
+  useEffect(() => {
+    if (!user || user.role !== 'CORPORATE') return;
+    apiClient.get('/auth/corporate-verify').then(({ data }) => {
+      if (!data) return;
+      setForm((prev) => ({
+        ...prev,
+        // 담당자 전화번호 자동 입력 / Auto-fill manager phone
+        contactPhone: prev.contactPhone || data.managerPhone || '',
+        // 회사 정보 자동 입력 (비자 매칭에 필요) / Auto-fill company info (needed for visa matching)
+        companyInfo: {
+          ...prev.companyInfo,
+          totalEmployees: prev.companyInfo.totalEmployees || data.employeeCountKorean || undefined,
+          foreignEmployeeCount: prev.companyInfo.foreignEmployeeCount || data.employeeCountForeign || undefined,
+        },
+      }));
+    }).catch(() => {
+      // 인증 정보 조회 실패 시 수동 입력으로 진행 / Proceed with manual input on failure
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // 폼 업데이트 / Update form field
@@ -290,6 +314,7 @@ export default function FulltimeCreatePage() {
   );
 
   return (
+    <CompanyAuthGuard requiredAccess="draft">
     <div className="bg-gray-50">
       {/* 상단 컴팩트 스티키 바: 제목 + 진행 단계 / Compact sticky bar: title + step progress */}
       <div className="sticky top-0 z-30 bg-white border-b border-gray-200">
@@ -351,5 +376,6 @@ export default function FulltimeCreatePage() {
         </div>
       )}
     </div>
+    </CompanyAuthGuard>
   );
 }

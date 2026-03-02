@@ -275,8 +275,9 @@ export interface PaginationMeta {
   totalPages: number;
 }
 
-/** 최소 시급 상수 / Minimum wage constant */
-export const MINIMUM_WAGE = 10030;
+/**
+ * @deprecated useMinimumHourlyWage() 훅을 사용하세요 / Use useMinimumHourlyWage() hook instead
+ */
 
 /** 공고 기본 노출 기간(일) / Default posting duration (days) */
 export const ALBA_DEFAULT_DURATION_DAYS = 14;

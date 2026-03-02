@@ -22,9 +22,9 @@ import type {
 import {
   ALL_DAYS, APPLICATION_METHOD_LABELS, BENEFIT_LABELS,
   EXPERIENCE_LEVEL_LABELS, JOB_CATEGORIES, KOREAN_LEVEL_LABELS,
-  MINIMUM_WAGE,
 } from './alba-types';
 import { MOCK_VISA_MATCHING_RESPONSE } from './mock-data';
+import { useMinimumHourlyWage } from '@/hooks/use-minimum-wage';
 
 /**
  * 알바 공고 등록 — Variant D (대시보드/Notion+Linear 스타일)
@@ -34,6 +34,7 @@ import { MOCK_VISA_MATCHING_RESPONSE } from './mock-data';
  * 3-step wizard: Job Details → Settings → Preview
  */
 export default function AlbaCreateVariantD() {
+  const MINIMUM_WAGE = useMinimumHourlyWage();
   // ─── 스텝 상태 / Step state ───
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -44,7 +45,7 @@ export default function AlbaCreateVariantD() {
     jobCategoryCode: '',
     jobDescription: '',
     recruitCount: 1,
-    hourlyWage: MINIMUM_WAGE,
+    hourlyWage: 0,
     weeklyHours: 0,
     schedule: [],
     workPeriod: { startDate: '', endDate: null },
@@ -259,8 +260,9 @@ export default function AlbaCreateVariantD() {
                     type="number"
                     min={MINIMUM_WAGE}
                     step={100}
-                    value={form.hourlyWage}
-                    onChange={(e) => updateForm('hourlyWage', parseInt(e.target.value) || MINIMUM_WAGE)}
+                    value={form.hourlyWage || ''}
+                    onChange={(e) => updateForm('hourlyWage', parseInt(e.target.value) || 0)}
+                    placeholder={`최저시급 ${MINIMUM_WAGE.toLocaleString()}원`}
                     className={cn(
                       'h-11 font-mono pr-8',
                       errors.hourlyWage && 'border-red-300',
@@ -272,7 +274,7 @@ export default function AlbaCreateVariantD() {
                   </span>
                 </div>
                 <p className="text-[11px] text-gray-400 mt-1 font-mono">
-                  min {MINIMUM_WAGE.toLocaleString()} KRW (2025)
+                  min {MINIMUM_WAGE.toLocaleString()} KRW
                 </p>
               </FieldGroup>
             </div>

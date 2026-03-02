@@ -89,8 +89,9 @@ export const POST_STATUS_LABELS: Record<string, { ko: string; en: string; color:
   PAUSED: { ko: '일시정지', en: 'Paused', color: 'amber' },
 };
 
-/** 2025 최저시급 / 2025 minimum hourly wage */
-export const MIN_HOURLY_WAGE = 10030;
+/**
+ * @deprecated useMinimumHourlyWage() 훅을 사용하세요 / Use useMinimumHourlyWage() hook instead
+ */
 
 /** 비자 매칭 목업 결과 / Mock visa matching result */
 export const MOCK_VISA_MATCHING: AlbaVisaMatchingResponse = {

@@ -54,6 +54,7 @@ import {
   KOREAN_LEVEL_LABELS,
   EXPERIENCE_LEVEL_LABELS,
 } from './components/alba-types';
+import { useMinimumHourlyWage } from '@/hooks/use-minimum-wage';
 
 /**
  * 알바 공고 등록 3-Step 위자드 — Variant C (카드 비주얼)
@@ -68,7 +69,7 @@ const DEFAULT_FORM: AlbaJobFormData = {
   jobCategoryCode: '',
   jobDescription: '',
   recruitCount: 1,
-  hourlyWage: 10030,
+  hourlyWage: 0,
   weeklyHours: 0,
   schedule: [],
   workPeriod: { startDate: '', endDate: null },
@@ -95,6 +96,7 @@ const STEPS = [
 ] as const;
 
 export default function AlbaCreateVariantCPage() {
+  const minimumWage = useMinimumHourlyWage();
   // 현재 스텝 / Current step
   const [currentStep, setCurrentStep] = useState(1);
   // 폼 데이터 / Form data
@@ -420,9 +422,10 @@ export default function AlbaCreateVariantCPage() {
                     <div className="mt-1.5 relative">
                       <Input
                         type="number"
-                        min={10030}
-                        value={form.hourlyWage}
+                        min={minimumWage}
+                        value={form.hourlyWage || ''}
                         onChange={(e) => updateForm('hourlyWage', Number(e.target.value))}
+                        placeholder={`최저시급 ${minimumWage.toLocaleString()}원`}
                         className="h-12 rounded-xl text-lg font-bold text-orange-600 pr-12"
                         aria-label="시급 입력 / Enter hourly wage"
                       />
@@ -430,16 +433,14 @@ export default function AlbaCreateVariantCPage() {
                         원
                       </span>
                     </div>
-                    {form.hourlyWage < 10030 && (
+                    {form.hourlyWage > 0 && form.hourlyWage < minimumWage && (
                       <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
-                        {/* 2025년 최저시급 10,030원 이상이어야 합니다 */}
-                        2025 최저시급 10,030원 이상 필요
+                        최저시급 {minimumWage.toLocaleString()}원 이상 필요
                       </p>
                     )}
                     <p className="text-xs text-gray-400 mt-1">
-                      {/* 2025년 최저시급: 10,030원/h */}
-                      2025 minimum wage: 10,030 KRW/h
+                      최저시급: {minimumWage.toLocaleString()} KRW/h
                     </p>
                   </div>
                 </CardContent>

@@ -170,8 +170,11 @@ export function apiCategoriesToGroups(
   return groups;
 }
 
-/** 최저시급 (2025년 기준) / Minimum wage 2025 */
-export const MINIMUM_WAGE = 10_030;
+/**
+ * @deprecated useMinimumHourlyWage() 훅을 사용하세요 / Use useMinimumHourlyWage() hook instead
+ * 서버에서 최저임금을 가져옵니다 (하드코딩 금지)
+ * Minimum wage fetched from server (no hardcoding)
+ */
 
 /** 복리후생 옵션 / Benefit options */
 export const BENEFIT_OPTIONS: { value: Benefit; label: string; emoji: string }[] = [

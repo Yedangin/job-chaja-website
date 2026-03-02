@@ -25,6 +25,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
 
 import { ResidencyStatus, BadgeStatus, KoreanTestType } from './types';
 import type {
@@ -33,7 +34,66 @@ import type {
   AutoSaveStatus,
   BadgeInfo,
 } from './types';
-import { INITIAL_WIZARD_DATA, MOCK_COMPLETION, STEP_META, BADGES } from './mock-data';
+import { INITIAL_WIZARD_DATA, STEP_META, BADGES } from './mock-data';
+
+/**
+ * 위저드 데이터를 Resume API DTO로 변환 / Convert wizard data to Resume API DTO
+ */
+function wizardDataToResumeDto(data: WizardData) {
+  const topikLevel = data.step3.testType === KoreanTestType.TOPIK && data.step3.testLevel
+    ? parseInt(data.step3.testLevel, 10) || 0
+    : undefined;
+  const kiipLevel = data.step3.testType === KoreanTestType.KIIP && data.step3.testLevel
+    ? parseInt(data.step3.testLevel, 10) || 0
+    : undefined;
+
+  // 학력 변환 / Convert educations
+  const educations = data.step4.entries.length > 0
+    ? data.step4.entries.map((e) => ({
+        school: e.schoolName,
+        major: e.major,
+        degree: e.degree || 'BACHELOR',
+        graduationYear: e.endDate ? parseInt(e.endDate.split('-')[0], 10) : undefined,
+        country: e.country || 'KR',
+      }))
+    : undefined;
+
+  // 경력 변환 / Convert work experiences
+  const workExperiences = data.step6.hasExperience && data.step6.entries.length > 0
+    ? data.step6.entries.map((e) => ({
+        company: e.companyName,
+        role: e.position,
+        startDate: e.startDate,
+        endDate: e.isCurrent ? undefined : e.endDate,
+        description: e.description,
+      }))
+    : undefined;
+
+  // 희망 직종 변환 / Convert preferred job types
+  const preferredJobTypes = data.step7.employmentTypes.length > 0
+    ? data.step7.employmentTypes
+    : undefined;
+
+  // 희망 지역 변환 / Convert preferred regions
+  const preferredRegions = data.step7.regions.length > 0
+    ? data.step7.regions
+    : undefined;
+
+  return {
+    nationality: data.step1.nationality || 'OTHER',
+    birthDate: data.step1.birthDate || undefined,
+    educations,
+    workExperiences,
+    topikLevel,
+    kiipLevel,
+    preferredJobTypes,
+    preferredRegions,
+    preferredSalary: data.step7.salaryMin > 0 ? data.step7.salaryMin : undefined,
+    preferredEmploymentTypes: data.step7.employmentTypes.length > 0
+      ? data.step7.employmentTypes
+      : undefined,
+  };
+}
 
 import WizardProgressBar from './components/wizard-progress-bar';
 import Step0Residency from './components/step-0-residency';
@@ -197,7 +257,81 @@ export default function SeekerWizardVariantAPage() {
   /** 첫 방문 여부 추적 / Track first visit */
   const isFirstLoadRef = useRef(true);
 
-  /** 자동저장 시뮬레이션 / Auto-save simulation */
+  /** 이력서 존재 여부 추적 / Track resume existence */
+  const hasResumeRef = useRef(false);
+
+  /** 초기 데이터 로드 (기존 이력서 → 위저드 데이터 복원) / Load initial data from existing resume */
+  useEffect(() => {
+    const loadExistingResume = async () => {
+      try {
+        const res = await apiClient.get('/resumes/me');
+        const resume = res.data;
+        if (resume?.id) {
+          hasResumeRef.current = true;
+          // 이력서 데이터 → 위저드 데이터 역변환 / Reverse-map resume to wizard data
+          setWizardData((prev) => ({
+            ...prev,
+            step1: {
+              ...prev.step1,
+              nationality: resume.nationality || '',
+              birthDate: resume.birthDate ? resume.birthDate.split('T')[0] : '',
+            },
+            step3: {
+              ...prev.step3,
+              testType: resume.topikLevel ? KoreanTestType.TOPIK
+                : resume.kiipLevel ? KoreanTestType.KIIP
+                : prev.step3.testType,
+              testLevel: String(resume.topikLevel || resume.kiipLevel || ''),
+            },
+            step4: {
+              entries: Array.isArray(resume.educations) && resume.educations.length > 0
+                ? resume.educations.map((e: { school?: string; major?: string; degree?: string; graduationYear?: number; country?: string }, i: number) => ({
+                    id: `edu-${i}`,
+                    schoolName: e.school || '',
+                    major: e.major || '',
+                    degree: e.degree || null,
+                    enrollmentStatus: null,
+                    startDate: '',
+                    endDate: e.graduationYear ? `${e.graduationYear}-01-01` : '',
+                    country: e.country || '',
+                    certificateImage: null,
+                    institutionType: null,
+                    institutionId: null,
+                  }))
+                : [],
+            },
+            step6: {
+              ...prev.step6,
+              hasExperience: Array.isArray(resume.workExperiences) && resume.workExperiences.length > 0,
+              entries: Array.isArray(resume.workExperiences) && resume.workExperiences.length > 0
+                ? resume.workExperiences.map((e: { company?: string; role?: string; startDate?: string; endDate?: string; description?: string }, i: number) => ({
+                    id: `exp-${i}`,
+                    companyName: e.company || '',
+                    position: e.role || '',
+                    department: '',
+                    startDate: e.startDate || '',
+                    endDate: e.endDate || '',
+                    isCurrent: !e.endDate,
+                    description: e.description || '',
+                  }))
+                : [],
+            },
+            step7: {
+              ...prev.step7,
+              employmentTypes: Array.isArray(resume.preferredJobTypes) ? resume.preferredJobTypes : [],
+              regions: Array.isArray(resume.preferredRegions) ? resume.preferredRegions : [],
+              salaryMin: resume.preferredSalary || 0,
+            },
+          }));
+        }
+      } catch {
+        // 이력서 없음 — 신규 작성 / No resume — new creation
+      }
+    };
+    loadExistingResume();
+  }, []);
+
+  /** 실제 API 자동저장 / Real API auto-save */
   const triggerAutoSave = useCallback(() => {
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
@@ -205,15 +339,32 @@ export default function SeekerWizardVariantAPage() {
 
     setAutoSaveStatus('SAVING');
 
-    autoSaveTimerRef.current = setTimeout(() => {
-      // 실제로는 PUT /individual-profile/wizard/:step 호출
-      // In production: call PUT /individual-profile/wizard/:step
-      setAutoSaveStatus('SAVED');
+    autoSaveTimerRef.current = setTimeout(async () => {
+      try {
+        const dto = wizardDataToResumeDto(wizardData);
+        // 국적 미입력 시 저장 스킵 (필수 필드) / Skip save if nationality not set (required field)
+        if (!dto.nationality || dto.nationality === 'OTHER' && !wizardData.step1.nationality) {
+          setAutoSaveStatus('IDLE');
+          return;
+        }
+
+        if (hasResumeRef.current) {
+          // 업데이트 / Update existing resume
+          await apiClient.put('/resumes/me', dto);
+        } else {
+          // 생성 / Create new resume
+          await apiClient.post('/resumes', dto);
+          hasResumeRef.current = true;
+        }
+        setAutoSaveStatus('SAVED');
+      } catch {
+        setAutoSaveStatus('ERROR');
+      }
 
       // 2초 후 IDLE로 복귀 / Reset to IDLE after 2s
       setTimeout(() => setAutoSaveStatus('IDLE'), 2000);
-    }, 800);
-  }, []);
+    }, 1500); // 1.5초 디바운스 / 1.5s debounce
+  }, [wizardData]);
 
   /** 데이터 변경 시 자동저장 트리거 / Trigger auto-save on data change */
   const handleDataChange = useCallback(

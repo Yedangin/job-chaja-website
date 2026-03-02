@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import CompanyAuthGuard from '@/components/guards/company-auth-guard';
 
 /** 인재 프로필 (API 응답) / Talent profile from API */
 interface TalentProfile {
@@ -216,6 +217,7 @@ export default function CompanyTalentsPage() {
   );
 
   return (
+    <CompanyAuthGuard requiredAccess="talent">
     <div className="max-w-6xl mx-auto px-4 py-6">
       {/* 헤더 / Header */}
       <div className="flex items-center justify-between mb-6">
@@ -381,5 +383,6 @@ export default function CompanyTalentsPage() {
         </div>
       )}
     </div>
+    </CompanyAuthGuard>
   );
 }

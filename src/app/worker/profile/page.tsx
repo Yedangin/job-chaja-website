@@ -5,16 +5,20 @@
  * - 이름(풀네임) 변경 / Change display name
  * - 프로필 사진 등록·변경 / Upload or change profile picture
  * - 이메일 표시 (읽기 전용) / Email display (read-only)
+ * - 8단계 프로필 위저드 진입점 / 8-step profile wizard entry point
+ * - 프로필 완성도 표시 / Profile completion display
  */
 
 import { useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
-import { User, Camera, Loader2, Check, ArrowLeft } from 'lucide-react';
+import { useProfileCompletion } from '@/hooks/use-profile-completion';
+import { User, Camera, Loader2, Check, ArrowLeft, ChevronRight, ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
 export default function WorkerProfilePage() {
   const { user, refreshAuth } = useAuth();
+  const profileCompletion = useProfileCompletion();
 
   /** 편집 중인 이름 / Name being edited */
   const [fullName, setFullName] = useState(user?.fullName || '');
@@ -76,16 +80,13 @@ export default function WorkerProfilePage() {
     setSaveSuccess(false);
 
     try {
-      const sessionId = localStorage.getItem('sessionId');
       const body: Record<string, string> = { fullName: fullName.trim() };
       if (imageToSave) body.profileImageUrl = imageToSave;
 
       const res = await fetch('/api/auth/my/update-profile', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(sessionId ? { Authorization: `Bearer ${sessionId}` } : {}),
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
 
@@ -109,6 +110,13 @@ export default function WorkerProfilePage() {
   /** 표시할 아바타 이미지 / Avatar image to display */
   const avatarSrc = previewImage || null;
 
+  /** 완성도 색상 / Completion color */
+  const completionColor = profileCompletion.completion >= 80
+    ? 'bg-green-500'
+    : profileCompletion.completion >= 40
+      ? 'bg-yellow-500'
+      : 'bg-red-500';
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       {/* 뒤로 가기 / Back */}
@@ -124,6 +132,49 @@ export default function WorkerProfilePage() {
 
       <h1 className="text-2xl font-bold text-gray-900 mb-1">프로필 설정</h1>
       <p className="text-sm text-gray-500 mb-8">Profile Settings</p>
+
+      {/* 8단계 프로필 위저드 진입 카드 / 8-step wizard entry card */}
+      <div className="mb-6">
+        <Link href="/worker/wizard/variants/a">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 text-white hover:from-blue-700 hover:to-indigo-700 transition-all cursor-pointer shadow-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                  <ClipboardList className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">상세 프로필 등록</h3>
+                  <p className="text-blue-100 text-sm">8단계 프로필 위저드 / 8-Step Profile Wizard</p>
+                </div>
+              </div>
+              <ChevronRight className="w-6 h-6 text-white/60" />
+            </div>
+
+            {/* 완성도 바 / Completion bar */}
+            <div className="mt-4">
+              <div className="flex items-center justify-between text-sm mb-1.5">
+                <span className="text-blue-100">프로필 완성도 / Completion</span>
+                <span className="font-bold">
+                  {profileCompletion.isLoading ? '...' : `${profileCompletion.completion}%`}
+                </span>
+              </div>
+              <div className="w-full bg-white/20 rounded-full h-2.5">
+                <div
+                  className={`h-2.5 rounded-full transition-all duration-500 ${
+                    profileCompletion.completion >= 80 ? 'bg-green-400' : 'bg-white'
+                  }`}
+                  style={{ width: `${profileCompletion.completion}%` }}
+                />
+              </div>
+              <p className="text-xs text-blue-200 mt-2">
+                {profileCompletion.completion < 100
+                  ? '프로필을 완성하면 더 많은 공고에 지원할 수 있어요! / Complete your profile to apply for more jobs!'
+                  : '프로필이 완성되었습니다! / Profile is complete!'}
+              </p>
+            </div>
+          </div>
+        </Link>
+      </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
         {/* 프로필 사진 섹션 / Profile picture section */}
@@ -210,7 +261,7 @@ export default function WorkerProfilePage() {
           {/* 에러 메시지 / Error message */}
           {errorMsg && (
             <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-              <span className="shrink-0 mt-0.5">⚠️</span>
+              <span className="shrink-0 mt-0.5">!</span>
               <span>{errorMsg}</span>
             </div>
           )}

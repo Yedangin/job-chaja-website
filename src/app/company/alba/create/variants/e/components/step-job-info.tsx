@@ -7,6 +7,7 @@ import {
   Briefcase, DollarSign, Users, Clock, Calendar,
   AlertCircle, Info,
 } from 'lucide-react';
+import { useMinimumHourlyWage } from '@/hooks/use-minimum-wage';
 
 interface StepJobInfoProps {
   /** 현재 폼 데이터 / Current form data */
@@ -14,9 +15,6 @@ interface StepJobInfoProps {
   /** 폼 업데이트 콜백 / Form update callback */
   onUpdate: (data: Partial<AlbaJobFormData>) => void;
 }
-
-/** 최저시급 (2026년 기준) / Minimum hourly wage (2026 standard) */
-const MINIMUM_WAGE = 10030;
 
 /** 직종 카테고리 더미 / Job category dummy data */
 const JOB_CATEGORIES = [
@@ -40,6 +38,7 @@ const JOB_CATEGORIES = [
  * Visa insight style: real-time weekly hours calculation + minimum wage warning
  */
 export function StepJobInfo({ form, onUpdate }: StepJobInfoProps) {
+  const MINIMUM_WAGE = useMinimumHourlyWage();
   const [wageWarning, setWageWarning] = useState(false);
 
   /* 시급 변경 핸들러 / Hourly wage change handler */

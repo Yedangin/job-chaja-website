@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Save, CheckCircle } from 'lucide-react';
 import WizardProgress from './components/wizard-progress';
@@ -9,6 +9,10 @@ import StepDetails from './components/step-details';
 import StepPreview from './components/step-preview';
 import { matchAlbaVisa, createAlbaJob } from './api';
 import type { AlbaJobFormData, AlbaVisaMatchingResponse, WizardStep } from './components/alba-types';
+import CompanyAuthGuard from '@/components/guards/company-auth-guard';
+import { useMinimumHourlyWage } from '@/hooks/use-minimum-wage';
+import { useAuth } from '@/contexts/auth-context';
+import { apiClient } from '@/lib/api-client';
 
 /**
  * 알바 공고 등록 위자드 (최종 버전)
@@ -41,6 +45,8 @@ const INITIAL_FORM: AlbaJobFormData = {
 };
 
 export default function AlbaCreatePage() {
+  const { user } = useAuth();
+  const minimumWage = useMinimumHourlyWage();
   const [step, setStep] = useState<WizardStep>(1);
   const [form, setForm] = useState<AlbaJobFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -49,6 +55,23 @@ export default function AlbaCreatePage() {
   const [matchError, setMatchError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [completed, setCompleted] = useState(false);
+
+  // 기업인증 정보에서 담당자 정보 자동 입력 / Auto-fill contact info from corporate profile
+  useEffect(() => {
+    if (!user || user.role !== 'CORPORATE') return;
+    apiClient.get('/auth/corporate-verify').then(({ data }) => {
+      if (!data) return;
+      setForm((prev) => ({
+        ...prev,
+        contactName: prev.contactName || data.managerName || user.fullName || '',
+        contactPhone: prev.contactPhone || data.managerPhone || '',
+        contactEmail: prev.contactEmail || user.email || '',
+      }));
+    }).catch(() => {
+      // 실패 시 수동 입력 / Manual input on failure
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   // 폼 업데이트 / Update form field
   const updateForm = useCallback(<K extends keyof AlbaJobFormData>(key: K, value: AlbaJobFormData[K]) => {
@@ -68,7 +91,7 @@ export default function AlbaCreatePage() {
   const validateStep1 = (): boolean => {
     const errs: Record<string, string> = {};
     if (!form.jobCategoryCode) errs.jobCategoryCode = '직종을 선택해주세요';
-    if (form.hourlyWage < 10030) errs.hourlyWage = '최저시급 이상이어야 합니다';
+    if (form.hourlyWage < minimumWage) errs.hourlyWage = '최저시급 이상이어야 합니다';
     if (form.schedule.length === 0) errs.schedule = '근무일을 선택해주세요';
     if (!form.workPeriod.startDate) errs.workPeriod = '시작일을 입력해주세요';
     setErrors(errs);
@@ -170,6 +193,7 @@ export default function AlbaCreatePage() {
   }
 
   return (
+    <CompanyAuthGuard requiredAccess="draft">
     <div className="min-h-screen bg-gray-50">
       {/* 상단 헤더 / Top header */}
       <div className="sticky top-14 z-30 bg-white border-b border-gray-200">
@@ -258,5 +282,6 @@ export default function AlbaCreatePage() {
         </div>
       </div>
     </div>
+    </CompanyAuthGuard>
   );
 }

@@ -342,7 +342,13 @@ export default function AdminPage() {
                       >
                         <Icon size={18} className={isActive ? 'text-sky-600' : 'text-gray-400'} />
                         <span>{menu.label}</span>
-                        {isActive && <ChevronRight size={14} className="ml-auto text-sky-400" />}
+                        {/* 대기건 수 뱃지 / Pending count badge */}
+                        {menu.id === 'users' && (stats?.pendingCorporateVerifications ?? 0) > 0 && (
+                          <span className="ml-auto px-1.5 py-0.5 text-[10px] font-bold bg-orange-500 text-white rounded-full min-w-[20px] text-center">
+                            {stats!.pendingCorporateVerifications}
+                          </span>
+                        )}
+                        {isActive && !(menu.id === 'users' && (stats?.pendingCorporateVerifications ?? 0) > 0) && <ChevronRight size={14} className="ml-auto text-sky-400" />}
                       </button>
                     </li>
                   );
@@ -1954,10 +1960,22 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
   const [visaRejectReason, setVisaRejectReason] = useState('');
   const [showVisaRejectForm, setShowVisaRejectForm] = useState(false);
 
-  // Corporate actions
+  // Corporate actions / 기업인증 거절 액션
   const [rejectModal, setRejectModal] = useState<AdminUser | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [rejectionDetails, setRejectionDetails] = useState<Record<string, string>>({});
   const [actionLoading, setActionLoading] = useState(false);
+
+  // 필드별 반려 사유 필드 목록 / Field-level rejection fields
+  const REJECTION_FIELDS = [
+    { key: 'bizRegNumber', label: '사업자등록번호' },
+    { key: 'companyName', label: '기업명' },
+    { key: 'ceoName', label: '대표자명' },
+    { key: 'bizRegDoc', label: '사업자등록증 서류' },
+    { key: 'empCertDoc', label: '재직증명서' },
+    { key: 'ocrMismatch', label: 'OCR 검증 불일치' },
+    { key: 'other', label: '기타 사유' },
+  ];
 
   // Document preview
   const [docPreview, setDocPreview] = useState<{ url: string; name: string; type: string } | null>(null);
@@ -2091,14 +2109,31 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
   };
 
   const handleReject = async () => {
-    if (!rejectModal || !rejectReason.trim()) return;
+    if (!rejectModal) return;
+    // 필드별 사유 또는 전체 사유 중 하나는 필수 / Either field-level or general reason required
+    const hasFieldReasons = Object.keys(rejectionDetails).length > 0;
+    if (!rejectReason.trim() && !hasFieldReasons) return;
+
+    // 전체 사유 조합: 필드별 사유를 합침 / Combine reasons: merge field-level reasons
+    const combinedReason = [
+      rejectReason.trim(),
+      ...Object.entries(rejectionDetails).map(([key, reason]) => {
+        const field = REJECTION_FIELDS.find(f => f.key === key);
+        return `[${field?.label || key}] ${reason}`;
+      }),
+    ].filter(Boolean).join('\n');
+
     setActionLoading(true);
     try {
       const res = await fetchWithAuth(`/api/auth/admin/corporate-verifications/${rejectModal.id}`, {
         method: 'PUT',
-        body: JSON.stringify({ action: 'REJECT', reason: rejectReason }),
+        body: JSON.stringify({
+          action: 'REJECT',
+          reason: combinedReason,
+          rejectionDetails: hasFieldReasons ? rejectionDetails : undefined,
+        }),
       });
-      if (res.ok) { setRejectModal(null); setRejectReason(''); setSelectedCorporate(null); loadUsers(); }
+      if (res.ok) { setRejectModal(null); setRejectReason(''); setRejectionDetails({}); setSelectedCorporate(null); loadUsers(); }
     } catch { }
     finally { setActionLoading(false); }
   };
@@ -2785,13 +2820,13 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
             <div className="flex-1 overflow-y-auto p-6">
               {corpDetailTab === 'info' ? (
                 <div className="space-y-6">
-                  {/* Rejection reason */}
+                  {/* 거절 사유 (필드별 표시) / Rejection reason (field-level display) */}
                   {selectedCorporate.corporate.lastRejectionReason && (
                     <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
                       <AlertTriangle size={18} className="text-red-500 shrink-0 mt-0.5" />
-                      <div>
+                      <div className="flex-1">
                         <span className="text-sm font-bold text-red-700">거절 사유</span>
-                        <p className="text-sm text-red-600 mt-1">{selectedCorporate.corporate.lastRejectionReason}</p>
+                        <p className="text-sm text-red-600 mt-1 whitespace-pre-wrap">{selectedCorporate.corporate.lastRejectionReason}</p>
                       </div>
                     </div>
                   )}
@@ -2844,38 +2879,83 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                       <FileCheck size={16} className="text-sky-600" /> OCR 검증 결과
                     </h4>
                     <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-500 block mb-1">입력 사업자번호</span>
-                          <span className="font-medium text-gray-900 font-mono">{selectedCorporate.corporate.bizRegNumber || '-'}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-500 block mb-1">OCR 추출 번호</span>
-                          <span className="font-medium text-gray-900 font-mono">{selectedCorporate.corporate.ocrExtractedBizNo || '미추출'}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <span className="text-sm text-gray-500">OCR 검증:</span>
-                        {selectedCorporate.corporate.ocrVerified === true ? (
-                          <span className="px-3 py-1 text-xs font-bold bg-green-100 text-green-700 rounded-full flex items-center gap-1">
-                            <Check size={12} /> 일치
-                          </span>
-                        ) : selectedCorporate.corporate.ocrVerified === false ? (
-                          <span className="px-3 py-1 text-xs font-bold bg-red-100 text-red-700 rounded-full flex items-center gap-1">
-                            <AlertTriangle size={12} /> 불일치
-                          </span>
-                        ) : (
-                          <span className="px-3 py-1 text-xs font-bold bg-gray-100 text-gray-500 rounded-full">미검증</span>
-                        )}
-                        <span className="text-sm text-gray-500 ml-4">대표자 본인 선언:</span>
-                        {selectedCorporate.corporate.isCeoSelf ? (
-                          <span className="px-3 py-1 text-xs font-bold bg-blue-100 text-blue-700 rounded-full flex items-center gap-1">
-                            <Check size={12} /> 본인
-                          </span>
-                        ) : (
-                          <span className="px-3 py-1 text-xs font-bold bg-gray-100 text-gray-500 rounded-full">아니오</span>
-                        )}
-                      </div>
+                      {/* OCR 비교 테이블 / OCR comparison table */}
+                      <table className="w-full text-sm border-collapse">
+                        <thead>
+                          <tr className="border-b border-gray-200">
+                            <th className="text-left py-2 px-3 text-gray-500 font-medium w-1/4">검증 항목</th>
+                            <th className="text-left py-2 px-3 text-gray-500 font-medium w-1/3">제출 정보</th>
+                            <th className="text-left py-2 px-3 text-gray-500 font-medium w-1/4">검증 결과</th>
+                            <th className="text-center py-2 px-3 text-gray-500 font-medium w-1/6">상태</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {/* 사업자등록번호 / Business registration number */}
+                          <tr className={`border-b border-gray-100 ${
+                            selectedCorporate.corporate.ocrVerified === false ? 'bg-red-50' : ''
+                          }`}>
+                            <td className="py-2.5 px-3 text-gray-600">사업자등록번호</td>
+                            <td className="py-2.5 px-3 font-mono font-medium text-gray-900">
+                              {selectedCorporate.corporate.bizRegNumber || '-'}
+                            </td>
+                            <td className="py-2.5 px-3 font-mono font-medium text-gray-900">
+                              {selectedCorporate.corporate.ocrExtractedBizNo || '미추출'}
+                            </td>
+                            <td className="py-2.5 px-3 text-center">
+                              {selectedCorporate.corporate.ocrVerified === true ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold bg-green-100 text-green-700 rounded-full">
+                                  <Check size={10} /> 일치
+                                </span>
+                              ) : selectedCorporate.corporate.ocrVerified === false ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold bg-red-100 text-red-700 rounded-full">
+                                  <AlertTriangle size={10} /> 불일치
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 text-xs font-bold bg-gray-100 text-gray-500 rounded-full">미검증</span>
+                              )}
+                            </td>
+                          </tr>
+                          {/* 국세청 진위확인 / NTS API verification */}
+                          <tr className={`border-b border-gray-100 ${
+                            !selectedCorporate.corporate.isBizVerified && selectedCorporate.corporate.verificationStatus === 'SUBMITTED' ? 'bg-red-50' : ''
+                          }`}>
+                            <td className="py-2.5 px-3 text-gray-600">국세청 진위확인</td>
+                            <td className="py-2.5 px-3 font-medium text-gray-900" colSpan={1}>
+                              사업자번호 + 대표자명 + 개업일자
+                            </td>
+                            <td className="py-2.5 px-3 font-medium text-gray-900">
+                              {selectedCorporate.corporate.isBizVerified ? '확인 완료' : '미확인'}
+                            </td>
+                            <td className="py-2.5 px-3 text-center">
+                              {selectedCorporate.corporate.isBizVerified ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold bg-green-100 text-green-700 rounded-full">
+                                  <Check size={10} /> 통과
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold bg-yellow-100 text-yellow-700 rounded-full">
+                                  <AlertCircle size={10} /> 미확인
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                          {/* 대표자 본인 선언 / CEO self-declaration */}
+                          <tr>
+                            <td className="py-2.5 px-3 text-gray-600">대표자 본인 선언</td>
+                            <td className="py-2.5 px-3 font-medium text-gray-900" colSpan={2}>
+                              {selectedCorporate.corporate.isCeoSelf ? '대표자 본인임을 확인함' : '본인이 아님 (담당자)'}
+                            </td>
+                            <td className="py-2.5 px-3 text-center">
+                              {selectedCorporate.corporate.isCeoSelf ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-bold bg-blue-100 text-blue-700 rounded-full">
+                                  <Check size={10} /> 본인
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 text-xs font-bold bg-gray-100 text-gray-500 rounded-full">담당자</span>
+                              )}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
 
@@ -2904,10 +2984,16 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                                 })}
                               />
                             ) : (
-                              <a href={getDocPreviewUrl(selectedCorporate.corporate.bizRegDocPath)} target="_blank" rel="noopener noreferrer"
-                                className="text-sky-600 hover:text-sky-700 text-sm flex items-center gap-1">
-                                <ExternalLink size={14} /> PDF 열기
-                              </a>
+                              <button
+                                onClick={() => setDocPreview({
+                                  url: getDocPreviewUrl(selectedCorporate.corporate!.bizRegDocPath!),
+                                  name: selectedCorporate.corporate!.bizRegDocOrigName || '사업자등록증',
+                                  type: 'pdf',
+                                })}
+                                className="text-sky-600 hover:text-sky-700 text-sm flex items-center gap-1"
+                              >
+                                <Eye size={14} /> PDF 미리보기
+                              </button>
                             )}
                           </div>
                         ) : (
@@ -2933,10 +3019,16 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                                 })}
                               />
                             ) : (
-                              <a href={getDocPreviewUrl(selectedCorporate.corporate.empCertDocPath)} target="_blank" rel="noopener noreferrer"
-                                className="text-sky-600 hover:text-sky-700 text-sm flex items-center gap-1">
-                                <ExternalLink size={14} /> PDF 열기
-                              </a>
+                              <button
+                                onClick={() => setDocPreview({
+                                  url: getDocPreviewUrl(selectedCorporate.corporate!.empCertDocPath!),
+                                  name: selectedCorporate.corporate!.empCertDocOrigName || '재직증명서',
+                                  type: 'pdf',
+                                })}
+                                className="text-sky-600 hover:text-sky-700 text-sm flex items-center gap-1"
+                              >
+                                <Eye size={14} /> PDF 미리보기
+                              </button>
                             )}
                           </div>
                         ) : (
@@ -2969,7 +3061,7 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                         className="flex-1 py-2.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
                         {actionLoading ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} 승인
                       </button>
-                      <button onClick={() => { setRejectModal(selectedCorporate); setRejectReason(''); }} disabled={actionLoading}
+                      <button onClick={() => { setRejectModal(selectedCorporate); setRejectReason(''); setRejectionDetails({}); }} disabled={actionLoading}
                         className="flex-1 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
                         <X size={16} /> 거절
                       </button>
@@ -3091,47 +3183,109 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
         </>
       )}
 
-      {/* Image fullscreen preview modal */}
+      {/* 서류 미리보기 모달 (이미지 + PDF) / Document preview modal (image + PDF) */}
       {docPreview && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70" onClick={() => setDocPreview(null)}>
-          <div className="relative max-w-4xl max-h-[90vh] m-4" onClick={(e) => e.stopPropagation()}>
+          <div className="relative max-w-4xl w-full max-h-[90vh] m-4" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setDocPreview(null)}
               className="absolute -top-3 -right-3 z-10 bg-white rounded-full p-1.5 shadow-lg hover:bg-gray-100">
               <X size={18} className="text-gray-600" />
             </button>
             <div className="bg-white rounded-xl p-2 shadow-2xl">
-              <p className="text-sm text-gray-600 px-2 py-1 mb-1">{docPreview.name}</p>
-              <img src={docPreview.url} alt={docPreview.name} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
+              <div className="flex items-center justify-between px-2 py-1 mb-1">
+                <p className="text-sm text-gray-600">{docPreview.name}</p>
+                <a href={docPreview.url} target="_blank" rel="noopener noreferrer"
+                  className="text-xs text-sky-600 hover:text-sky-700 flex items-center gap-1">
+                  <ExternalLink size={12} /> 새 탭에서 열기
+                </a>
+              </div>
+              {docPreview.type === 'pdf' ? (
+                <iframe
+                  src={docPreview.url}
+                  title={docPreview.name}
+                  className="w-full rounded-lg border border-gray-200"
+                  style={{ height: '80vh' }}
+                />
+              ) : (
+                <img src={docPreview.url} alt={docPreview.name} className="max-w-full max-h-[80vh] object-contain rounded-lg" />
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Reject reason modal */}
+      {/* 필드별 반려 사유 입력 모달 / Field-level rejection reason modal */}
       {rejectModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40" onClick={() => setRejectModal(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md m-4" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg m-4 max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-200 shrink-0">
               <h3 className="text-lg font-bold text-gray-900">기업 인증 거절</h3>
               <p className="text-sm text-gray-500 mt-1">
                 {rejectModal.corporate?.companyNameOfficial || rejectModal.email}의 인증을 거절합니다.
               </p>
             </div>
-            <div className="p-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">거절 사유 (필수)</label>
-              <textarea
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="거절 사유를 입력해주세요. 기업 회원에게 전달됩니다."
-                rows={4}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
-              />
-              <div className="flex gap-3 mt-4">
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              {/* 필드별 사유 체크박스 / Field-level rejection checkboxes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">반려 항목 선택 (해당 항목 체크)</label>
+                <div className="space-y-3">
+                  {REJECTION_FIELDS.map((field) => {
+                    const isChecked = field.key in rejectionDetails;
+                    return (
+                      <div key={field.key} className={`border rounded-xl p-3 transition-colors ${isChecked ? 'border-red-300 bg-red-50' : 'border-gray-200'}`}>
+                        <label className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setRejectionDetails(prev => ({ ...prev, [field.key]: '' }));
+                              } else {
+                                setRejectionDetails(prev => {
+                                  const next = { ...prev };
+                                  delete next[field.key];
+                                  return next;
+                                });
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                          />
+                          <span className="text-sm font-medium text-gray-700">{field.label}</span>
+                        </label>
+                        {isChecked && (
+                          <input
+                            type="text"
+                            value={rejectionDetails[field.key]}
+                            onChange={(e) => setRejectionDetails(prev => ({ ...prev, [field.key]: e.target.value }))}
+                            placeholder={`${field.label} 반려 사유를 입력하세요`}
+                            className="mt-2 w-full px-3 py-1.5 border border-red-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 종합 거절 사유 / General rejection reason */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">종합 거절 사유 (선택)</label>
+                <textarea
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="추가 거절 사유를 입력해주세요. 기업 회원에게 전달됩니다."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 shrink-0">
+              <div className="flex gap-3">
                 <button onClick={() => setRejectModal(null)}
                   className="flex-1 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition-colors">
                   취소
                 </button>
-                <button onClick={handleReject} disabled={!rejectReason.trim() || actionLoading}
+                <button onClick={handleReject} disabled={(!rejectReason.trim() && Object.keys(rejectionDetails).length === 0) || actionLoading}
                   className="flex-1 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
                   {actionLoading ? <Loader2 size={16} className="animate-spin" /> : <X size={16} />} 거절 확인
                 </button>

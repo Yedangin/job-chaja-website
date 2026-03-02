@@ -383,6 +383,48 @@ export default function DiagnosisResultPage() {
           })}
         </div>
 
+        {/* 프리미엄 업그레이드 CTA / Premium upgrade CTA */}
+        <Card className="p-8 mt-8 bg-linear-to-r from-indigo-600 to-purple-600 text-white shadow-xl">
+          <div className="text-center">
+            <div className="text-4xl mb-3">&#x1F48E;</div>
+            <h3 className="text-2xl font-bold mb-2">프리미엄 정밀 분석</h3>
+            <p className="text-indigo-100 mb-4">
+              대학 순위, 경력 트랙별 분석, 자격증 보정, 학력-경력 매칭,<br />
+              What-If 시뮬레이션까지 — 무료 진단보다 훨씬 정밀한 결과
+            </p>
+            <ul className="text-sm text-indigo-100 space-y-1 mb-6 max-w-md mx-auto text-left">
+              <li className="flex items-center gap-2">
+                <span className="text-green-300">&#x2714;</span>
+                <span>트랙별 세분화된 점수 분석 (경력 · 학력 · 자격증)</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-300">&#x2714;</span>
+                <span>&quot;만약에?&quot; 시뮬레이션 (TOPIK 상승, 자격증 취득 등)</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-300">&#x2714;</span>
+                <span>비자별 예상 연수입 정보</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-300">&#x2714;</span>
+                <span>6개월 후 무료 재진단 쿠폰</span>
+              </li>
+            </ul>
+            <Link href={`/diagnosis/premium?sessionId=${result.sessionId ?? ''}`}>
+              <Button
+                size="lg"
+                className="bg-white text-indigo-700 hover:bg-indigo-50 font-bold px-8 py-3 rounded-xl shadow-lg"
+              >
+                $10 프리미엄 분석 시작
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+            <p className="text-xs text-indigo-200 mt-3">
+              결과 미조회 시 전액 환불 · Stripe 안전 결제
+            </p>
+          </div>
+        </Card>
+
         {/* 하단 액션 / Bottom actions */}
         <div className="mt-8 text-center">
           <Link href="/diagnosis">

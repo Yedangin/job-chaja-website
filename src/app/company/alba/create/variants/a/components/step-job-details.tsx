@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SchedulePicker } from './schedule-picker';
 import type { AlbaJobFormData, JobCategory } from '../types';
-import { MOCK_JOB_CATEGORIES, MIN_HOURLY_WAGE } from '../mock-data';
+import { MOCK_JOB_CATEGORIES } from '../mock-data';
+import { useMinimumHourlyWage } from '@/hooks/use-minimum-wage';
 
 /**
  * Step 1: 어떤 일인가요? (미니멀 스타일)
@@ -24,6 +25,7 @@ interface StepJobDetailsProps {
 }
 
 export function StepJobDetails({ form, onUpdate, errors }: StepJobDetailsProps) {
+  const MIN_HOURLY_WAGE = useMinimumHourlyWage();
   const [categorySearch, setCategorySearch] = useState('');
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 

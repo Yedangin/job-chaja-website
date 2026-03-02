@@ -7,9 +7,9 @@ import {
   type AlbaJobFormData,
   type JobCategory,
   apiCategoriesToGroups,
-  MINIMUM_WAGE,
 } from './alba-types';
 import { fetchAlbaCategories } from '../api';
+import { useMinimumHourlyWage } from '@/hooks/use-minimum-wage';
 
 /**
  * Step 1: 기본정보 (백엔드 API 기반 직종 로드)
@@ -23,6 +23,7 @@ interface Props {
 }
 
 export default function StepBasicInfo({ form, errors, updateForm }: Props) {
+  const MINIMUM_WAGE = useMinimumHourlyWage();
   const wageAboveMin = form.hourlyWage >= MINIMUM_WAGE;
   const wagePercent = form.hourlyWage > 0
     ? Math.round(((form.hourlyWage - MINIMUM_WAGE) / MINIMUM_WAGE) * 100)
