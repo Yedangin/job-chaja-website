@@ -81,7 +81,7 @@ export function UniversityAutocomplete({
         params.append('type', type);
       }
 
-      const response = await fetch(`http://localhost:8000/institutions/search?${params}`);
+      const response = await fetch(`/api/institutions/search?${params}`);
 
       if (!response.ok) {
         throw new Error('Failed to fetch institutions');

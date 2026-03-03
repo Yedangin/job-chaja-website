@@ -210,9 +210,8 @@ export default function RegisterPage() {
       formData.append('file', file);
       formData.append('docType', docType);
 
-      // Next.js API Route에 10MB body 제한이 있어 백엔드로 직접 업로드
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-      const res = await fetch(`${backendUrl}/auth/upload-corporate-doc`, {
+      // nginx /api-direct/ 를 통해 백엔드로 직접 업로드 (Next.js 10MB body 제한 우회)
+      const res = await fetch('/api-direct/auth/upload-corporate-doc', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Authorization': `Bearer ${sessionId}` },

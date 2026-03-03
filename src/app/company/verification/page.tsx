@@ -175,8 +175,7 @@ export default function CompanyVerificationPage() {
       fd.append('file', file);
       fd.append('docType', docType);
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-      const res = await fetch(`${backendUrl}/auth/upload-corporate-doc`, {
+      const res = await fetch('/api-direct/auth/upload-corporate-doc', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Authorization': `Bearer ${sessionId}` },
