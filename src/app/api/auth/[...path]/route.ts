@@ -39,6 +39,14 @@ export async function GET(
       console.log('[Proxy GET] Redirect:', response.status, location);
       if (location) {
         const redirectResponse = NextResponse.redirect(location, response.status);
+
+        // OAuth 콜백 시 백엔드 세션 쿠키를 브라우저에 전달
+        // Forward backend session cookies during OAuth callback redirect
+        const setCookieHeaders = response.headers.getSetCookie?.() || [];
+        for (const cookie of setCookieHeaders) {
+          redirectResponse.headers.append('set-cookie', cookie);
+        }
+
         // 소셜 로그인 시작 시 userType을 쿠키에 저장 → 콜백에서 읽기 위함
         if (userType) {
           redirectResponse.cookies.set('pending_user_type', userType, {
