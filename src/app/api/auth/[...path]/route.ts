@@ -115,6 +115,13 @@ export async function PUT(
   const auth = request.headers.get('authorization');
   if (auth) headers['Authorization'] = auth;
 
+  // CSRF 가드가 Origin 검증하므로 프록시에서 반드시 전달
+  // Forward Origin/Referer for CSRF guard validation on backend
+  const origin = request.headers.get('origin');
+  if (origin) headers['Origin'] = origin;
+  const referer = request.headers.get('referer');
+  if (referer) headers['Referer'] = referer;
+
   console.log('[Proxy PUT]', url);
 
   try {
@@ -161,6 +168,13 @@ export async function POST(
 
   const auth = request.headers.get('authorization');
   if (auth) headers['Authorization'] = auth;
+
+  // CSRF 가드가 Origin 검증하므로 프록시에서 반드시 전달
+  // Forward Origin/Referer for CSRF guard validation on backend
+  const origin = request.headers.get('origin');
+  if (origin) headers['Origin'] = origin;
+  const referer = request.headers.get('referer');
+  if (referer) headers['Referer'] = referer;
 
   console.log('[Proxy POST]', url, isMultipart ? '(multipart)' : '(json)');
 
