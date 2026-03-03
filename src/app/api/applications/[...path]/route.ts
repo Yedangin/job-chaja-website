@@ -9,7 +9,7 @@ async function proxyRequest(
 ) {
   const { path } = await context.params;
   const search = request.nextUrl.search;
-  const url = `${BACKEND_URL}/${path.join('/')}${search}`;
+  const url = `${BACKEND_URL}/applications/${path.join('/')}${search}`;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -34,8 +34,7 @@ async function proxyRequest(
     if (setCookie) nextResponse.headers.set('set-cookie', setCookie);
 
     return nextResponse;
-  } catch (error) {
-    console.error(`[Proxy Applications ${method}] Error:`, error);
+  } catch {
     return NextResponse.json({ error: 'Proxy error' }, { status: 500 });
   }
 }

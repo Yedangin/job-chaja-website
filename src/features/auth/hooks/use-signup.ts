@@ -83,17 +83,14 @@ export function useSignup(memberType: MemberType = 'seeker') {
         role: memberType === 'company' ? 'CORPORATE' : 'INDIVIDUAL',
       });
 
-      console.log('[회원가입 성공]', response);
       toast.success(t('registerSuccess'));
 
       // 메인 페이지로 이동
-      console.log('[리다이렉트] /으로 이동');
       setTimeout(() => {
         router.push('/');
       }, 100);
-    } catch (err: any) {
-      console.error('[회원가입 실패]', err);
-      const message = err.message || t('registerFail');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : t('registerFail');
       setError(message);
       toast.error(message);
     } finally {

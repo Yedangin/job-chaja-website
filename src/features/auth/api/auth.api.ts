@@ -41,6 +41,22 @@ export const authApi = {
   },
 
   /**
+   * 비밀번호 초기화 요청
+   */
+  requestPasswordReset: async (email: string): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>('/auth/request-password-reset', { email });
+    return response.data;
+  },
+
+  /**
+   * 비밀번호 초기화 (토큰 기반)
+   */
+  resetPassword: async (token: string, newPassword: string): Promise<{ message: string }> => {
+    const response = await apiClient.post<{ message: string }>('/auth/reset-password', { token, newPassword });
+    return response.data;
+  },
+
+  /**
    * 소셜 로그인 URL
    */
   getKakaoLoginUrl: (userType?: string): string =>
@@ -118,7 +134,7 @@ export const authApi = {
   getMyApplications: async (status?: string, page = 1, limit = 20) => {
     const params = new URLSearchParams({ page: String(page), limit: String(limit) });
     if (status) params.set('status', status);
-    const response = await apiClient.get(`/applications/applications/my?${params}`);
+    const response = await apiClient.get(`/applications/my?${params}`);
     return response.data;
   },
 
@@ -126,7 +142,7 @@ export const authApi = {
    * 내 면접 일정 (면접예정 지원건)
    */
   getMyInterviews: async () => {
-    const response = await apiClient.get('/applications/applications/my?status=INTERVIEW_SCHEDULED');
+    const response = await apiClient.get('/applications/my?status=INTERVIEW_SCHEDULED');
     return response.data;
   },
 
@@ -134,7 +150,7 @@ export const authApi = {
    * 내 스크랩 목록
    */
   getMyScraps: async (page = 1, limit = 20) => {
-    const response = await apiClient.get(`/applications/scraps/my?page=${page}&limit=${limit}`);
+    const response = await apiClient.get(`/jobs/my/scraps?page=${page}&limit=${limit}`);
     return response.data;
   },
 

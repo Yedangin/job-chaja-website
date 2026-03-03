@@ -19,17 +19,12 @@ export async function GET(
   const auth = request.headers.get('authorization');
   if (auth) headers['Authorization'] = auth;
 
-  console.log('[Proxy Profile GET]', url);
-
   try {
     const response = await fetch(url, { method: 'GET', headers });
     const data = await response.json();
 
-    console.log('[Proxy Profile GET] Backend status:', response.status);
-
     return NextResponse.json(data, { status: response.status });
-  } catch (error) {
-    console.error('[Proxy Profile GET] Error:', error);
+  } catch {
     return NextResponse.json({ error: 'Proxy error' }, { status: 500 });
   }
 }

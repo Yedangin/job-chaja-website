@@ -38,8 +38,7 @@ async function proxyRequest(
     if (setCookie) nextResponse.headers.set('set-cookie', setCookie);
 
     return nextResponse;
-  } catch (error) {
-    console.error(`[Proxy Payments ${method}] Error:`, error);
+  } catch {
     return NextResponse.json({ error: 'Proxy error' }, { status: 500 });
   }
 }

@@ -61,9 +61,10 @@ export function useDashboardData(): UseDashboardDataResult {
         result.viewingCredits = res.data?.balance ?? res.data?.remaining ?? 0;
       }),
 
-      // 2. 내 공고 목록 / My job listings
-      apiClient.get('/jobs/listing', { params: { myJobs: true } }).then(res => {
-        const jobs = res.data?.jobs ?? res.data ?? [];
+      // 2. 내 공고 목록 / My job listings (GET /jobs/my/list)
+      apiClient.get('/jobs/my/list').then(res => {
+        const payload = res.data?.data ?? res.data;
+        const jobs = payload?.jobs ?? payload?.items ?? (Array.isArray(payload) ? payload : []);
         if (Array.isArray(jobs)) {
           result.activeJobCount = jobs.filter((j: Record<string, unknown>) =>
             j.status === 'ACTIVE' || j.status === 'active'
