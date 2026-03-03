@@ -264,7 +264,7 @@ export const termsAndConditionsData = {
       "Help Center",
       "Contact Support",
       "Email: pch0675@naver.com",
-      "Phone: 010-3885-0675",
+      "Phone: 070-8095-4474",
     ],
   },
 };

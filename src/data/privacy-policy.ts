@@ -168,7 +168,7 @@ export const privacyPolicyData = {
       content: [
         "CPO: Park Chanho (\ubc15\ucc2c\ud638), CEO",
         "Email: pch0675@naver.com",
-        "Phone: 010-3885-0675",
+        "Phone: 070-8095-4474",
         "The CPO is responsible for handling all privacy-related inquiries, complaints, and data subject requests",
         "Response to privacy inquiries: within 10 business days",
       ],
@@ -180,7 +180,7 @@ export const privacyPolicyData = {
       "Help Center",
       "Contact Support",
       "Email: pch0675@naver.com",
-      "Phone: 010-3885-0675",
+      "Phone: 070-8095-4474",
     ],
     externalLinks: [
       "KISA Privacy Center: privacy.kisa.or.kr (Tel: 118)",

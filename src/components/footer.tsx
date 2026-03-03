@@ -14,7 +14,10 @@ export default function Footer() {
               <span className="mx-1.5">|</span>사업자등록번호 485-86-03274
             </p>
             <p className="mt-1">
-              고객센터 010-3885-0675
+              서울특별시 중구 퇴계로 15 519호 (남대문로5가)
+            </p>
+            <p className="mt-1">
+              대표번호 070-8095-4474
               <span className="mx-1.5">|</span>pch0675@naver.com
             </p>
           </div>
