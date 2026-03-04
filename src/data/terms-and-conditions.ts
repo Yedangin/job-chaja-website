@@ -47,7 +47,7 @@ export const termsAndConditionsData = {
         },
         {
           subtitle: "Viewing Credits (Full-time Company Only)",
-          note: "Viewing credits are available only for full-time recruitment companies. Part-time (alba) job postings do not require viewing credits.",
+          note: "Viewing credits are available only for full-time recruitment companies. Part-time (alba) job postings do not require viewing credits. All viewing credits are valid for 90 days from the date of purchase.",
           table: [
             { label: "1 credit:", value: "\u20A91,000" },
             { label: "5 credits:", value: "\u20A94,500 (10% off)" },
@@ -85,6 +85,7 @@ export const termsAndConditionsData = {
             "Viewing credits (unused): Refund available within 7 days of purchase",
             "Viewing credits (partially used): Pro-rata refund for unused credits within 7 days of purchase",
             "Viewing credits (7+ days after purchase): No refund",
+            "Viewing credits expire 90 days after purchase. Expired credits are non-refundable",
             "No refund for violations of Terms of Service",
             "Admin-granted premium: Not eligible for refund",
             "Refund processing: Within 3 business days to original payment method (Electronic Commerce Act §18)",

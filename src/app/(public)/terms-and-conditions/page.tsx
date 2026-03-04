@@ -141,7 +141,7 @@ export default function TermsAndConditionsPage() {
                 <ul className="list-disc list-inside space-y-1">
                   <li>일반 채용공고: 결제 없이 무료 (알바 14일 / 정규직 30일 게시)</li>
                   <li>프리미엄 채용공고: 결제 완료 즉시 적용</li>
-                  <li>열람권: 결제 즉시 지급, 계정 유효기간 내 사용 가능</li>
+                  <li>열람권: 결제 즉시 지급, 구매일로부터 90일 이내 사용 가능</li>
                   <li>비자 진단: 결제 즉시 서비스 제공</li>
                 </ul>
               </div>
@@ -164,9 +164,11 @@ export default function TermsAndConditionsPage() {
               <div>
                 <h3 className="font-semibold text-gray-800 mb-1">② 인재 열람권</h3>
                 <ul className="list-disc list-inside space-y-1">
+                  <li>열람권 유효기간: 구매일로부터 90일</li>
                   <li>미사용 열람권: 결제일로부터 7일 이내 전액 환불 가능</li>
                   <li>사용된 열람권(프로필 열람 완료): 환불 불가</li>
                   <li>일부 사용 시: 미사용 수량에 해당하는 금액 환불</li>
+                  <li>유효기간 만료 후 미사용 열람권: 환불 불가</li>
                 </ul>
               </div>
               <div>

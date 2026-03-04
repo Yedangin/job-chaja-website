@@ -502,7 +502,7 @@ export default function CreditsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-base font-bold text-gray-900">열람권 패키지</h2>
-                <p className="text-xs text-gray-500 mt-0.5">많이 구매할수록 단가가 낮아집니다</p>
+                <p className="text-xs text-gray-500 mt-0.5">많이 구매할수록 단가가 낮아집니다 · 유효기간 구매일로부터 90일</p>
               </div>
             </div>
 

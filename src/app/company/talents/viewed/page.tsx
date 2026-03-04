@@ -244,7 +244,7 @@ function CreditUsageGuideCard() {
   const infoItems: { label: string; value: string; highlight?: boolean }[] = [
     { label: '이력서 1건 열람 시', value: '열람권 1건 차감', highlight: true },
     { label: '열람 후 재열람', value: '추가 차감 없음' },
-    { label: '열람 유효기간', value: '구매일로부터 1년' },
+    { label: '열람 유효기간', value: '구매일로부터 90일' },
     { label: '미사용 열람권', value: '환불 불가 (이용약관)' },
   ];
 

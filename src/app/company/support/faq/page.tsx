@@ -120,7 +120,7 @@ const FAQ_DATA: FaqItem[] = [
     category: 'payment',
     question: '열람권의 유효기간은 얼마나 되나요?',
     answer:
-      '구매한 열람권은 구매일로부터 1년간 유효합니다. 유효기간 만료 30일 전에 이메일 알림을 발송해 드립니다.\n\nPurchased viewing credits are valid for 1 year from the date of purchase. You\'ll receive an email reminder 30 days before expiration.',
+      '구매한 열람권은 구매일로부터 90일간 유효합니다. 유효기간 만료 전에 이메일 알림을 발송해 드립니다.\n\nPurchased viewing credits are valid for 90 days from the date of purchase. You\'ll receive an email reminder before expiration.',
   },
   {
     id: 11,
