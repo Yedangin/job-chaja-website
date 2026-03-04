@@ -21,6 +21,7 @@ import {
   Briefcase,
   MapPin,
 } from 'lucide-react';
+import EmptyState from '@/components/empty-state';
 
 // ─── 타입 정의 / Type definitions ─────────────────────────────────────────────
 
@@ -275,26 +276,13 @@ export default function TalentBookmarksPage() {
 
           {/* 빈 상태 / Empty */}
           {!loading && talents.length === 0 && (
-            <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-12 text-center mb-6">
-              <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Bookmark className="w-8 h-8 text-amber-300" />
-              </div>
-              <h3 className="text-base font-semibold text-gray-700 mb-2">
-                북마크한 인재가 없습니다
-              </h3>
-              <p className="text-sm text-gray-400 mb-6 leading-relaxed">
-                인재 검색에서 관심 인재를 북마크해보세요.
-                <br />
-                <span className="text-gray-300">No bookmarked talents yet. Search and bookmark candidates.</span>
-              </p>
-              <Link
-                href="/company/talents"
-                className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-xl hover:bg-blue-700 transition"
-              >
-                <Users className="w-4 h-4" />
-                인재 검색하기
-              </Link>
-            </div>
+            <EmptyState
+              icon="search"
+              title="저장한 인재가 없습니다"
+              description="관심 있는 인재를 북마크해보세요."
+              actionLabel="인재풀 둘러보기"
+              actionHref="/company/talents"
+            />
           )}
 
           {/* 인재 목록 / Talent list */}

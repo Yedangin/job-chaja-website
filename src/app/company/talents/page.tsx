@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import CompanyAuthGuard from '@/components/guards/company-auth-guard';
+import EmptyState from '@/components/empty-state';
 
 /** 인재 프로필 (API 응답) / Talent profile from API */
 interface TalentProfile {
@@ -277,11 +278,11 @@ export default function CompanyTalentsPage() {
               <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
             </div>
           ) : talents.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-              <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-400 text-sm">조건에 맞는 인재가 없습니다.</p>
-              <p className="text-xs text-gray-400 mt-1">필터를 조정해보세요.</p>
-            </div>
+            <EmptyState
+              icon="talent"
+              title="인재풀이 비어있습니다"
+              description="아직 등록된 인재가 없습니다."
+            />
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

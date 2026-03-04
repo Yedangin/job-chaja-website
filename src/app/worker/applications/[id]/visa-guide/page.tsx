@@ -25,6 +25,7 @@ import {
   BadgeCheck,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
+import EmptyState from '@/components/empty-state';
 
 interface ChecklistItem {
   id: string;
@@ -242,6 +243,15 @@ export default function WorkerVisaGuidePage() {
             {data.checklist.progress.percentage}%
           </p>
         </div>
+
+        {/* 체크리스트 빈 상태 / Checklist empty state */}
+        {data.checklist.company.length === 0 && data.checklist.applicant.length === 0 && (
+          <EmptyState
+            icon="document"
+            title="체크리스트가 없습니다"
+            description="채용이 확정되면 비자 가이드가 생성됩니다."
+          />
+        )}
 
         {/* 기업 준비 서류 / Company documents */}
         {data.checklist.company.length > 0 && (

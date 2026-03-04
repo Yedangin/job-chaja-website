@@ -57,6 +57,7 @@ import {
   Crown,
   MinusCircle,
 } from 'lucide-react';
+import EmptyState from '@/components/empty-state';
 
 interface AdminStats {
   totalUsers: number;
@@ -684,9 +685,12 @@ function ActivityLogsContent({
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={6} className="px-4 py-16 text-center text-gray-400">
-                      <Activity className="w-8 h-8 mx-auto mb-2 text-gray-200" />
-                      <p className="text-sm">활동 로그가 없습니다.</p>
+                    <td colSpan={6}>
+                      <EmptyState
+                        icon="inbox"
+                        title="데이터가 없습니다"
+                        description="아직 등록된 항목이 없습니다."
+                      />
                     </td>
                   </tr>
                 )}
@@ -858,10 +862,11 @@ function SupportContent({
           </table>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-          <MessageSquare className="w-10 h-10 mb-3 text-gray-200" />
-          <p className="text-sm font-medium">접수된 문의가 없습니다.</p>
-        </div>
+        <EmptyState
+          icon="inbox"
+          title="데이터가 없습니다"
+          description="아직 등록된 항목이 없습니다."
+        />
       )}
     </div>
   );
@@ -1226,10 +1231,11 @@ function AdminJobsContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
             </table>
           </div>
         ) : (
-          <div className="flex flex-col items-center py-16 text-gray-400">
-            <Briefcase className="w-8 h-8 mb-2 text-gray-200" />
-            <p className="text-sm">등록된 공고가 없습니다.</p>
-          </div>
+          <EmptyState
+            icon="inbox"
+            title="데이터가 없습니다"
+            description="아직 등록된 항목이 없습니다."
+          />
         )}
 
         {meta.totalPages > 1 && (
@@ -1740,10 +1746,11 @@ function AdminSalesContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                 </table>
               </div>
             ) : (
-              <div className="flex flex-col items-center py-16 text-gray-400">
-                <ShoppingCart className="w-8 h-8 mb-2 text-gray-200" />
-                <p className="text-sm">주문 내역이 없습니다.</p>
-              </div>
+              <EmptyState
+                icon="inbox"
+                title="데이터가 없습니다"
+                description="아직 등록된 항목이 없습니다."
+              />
             )}
 
             {ordersMeta.totalPages > 1 && (
@@ -2428,11 +2435,11 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
             )}
           </div>
         ) : (
-          <div className="text-center py-16 text-gray-400">
-            {userTab === 'INDIVIDUAL' ? '등록된 개인 회원이 없습니다.' :
-             userTab === 'CORPORATE' ? '등록된 기업 회원이 없습니다.' :
-             '등록된 회원이 없습니다.'}
-          </div>
+          <EmptyState
+            icon="inbox"
+            title="데이터가 없습니다"
+            description="아직 등록된 항목이 없습니다."
+          />
         )}
       </div>
 
@@ -3171,10 +3178,11 @@ function AdminUsersContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                       </div>
                     ))
                   ) : (
-                    <div className="text-center py-16 text-gray-400">
-                      <Briefcase size={40} className="mx-auto mb-3 text-gray-300" />
-                      <p className="text-sm">등록된 공고가 없습니다.</p>
-                    </div>
+                    <EmptyState
+                      icon="job"
+                      title="데이터가 없습니다"
+                      description="아직 등록된 항목이 없습니다."
+                    />
                   )}
                 </div>
               )}
@@ -3672,10 +3680,11 @@ function PolicyChangesTab({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
             </table>
           </div>
         ) : (
-          <div className="flex flex-col items-center py-16 text-gray-400">
-            <AlertTriangle className="w-8 h-8 mb-2 text-gray-200" />
-            <p className="text-sm">감지된 정책 변경이 없습니다.</p>
-          </div>
+          <EmptyState
+            icon="inbox"
+            title="데이터가 없습니다"
+            description="아직 등록된 항목이 없습니다."
+          />
         )}
 
         {meta.totalPages > 1 && (
@@ -4189,10 +4198,11 @@ function RulesTab({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
             </table>
           </div>
         ) : (
-          <div className="flex flex-col items-center py-16 text-gray-400">
-            <Shield className="w-8 h-8 mb-2 text-gray-200" />
-            <p className="text-sm">등록된 규칙이 없습니다.</p>
-          </div>
+          <EmptyState
+            icon="inbox"
+            title="데이터가 없습니다"
+            description="아직 등록된 항목이 없습니다."
+          />
         )}
       </div>
     </div>
@@ -4315,10 +4325,11 @@ function VisaTypesTab({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
             </tbody>
           </table>
         ) : (
-          <div className="flex flex-col items-center py-16 text-gray-400">
-            <Globe className="w-8 h-8 mb-2 text-gray-200" />
-            <p className="text-sm">등록된 비자 유형이 없습니다.</p>
-          </div>
+          <EmptyState
+            icon="inbox"
+            title="데이터가 없습니다"
+            description="아직 등록된 항목이 없습니다."
+          />
         )}
       </div>
     </div>
@@ -4437,10 +4448,11 @@ function IndustryCodesTab({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
             </table>
           </div>
         ) : (
-          <div className="flex flex-col items-center py-16 text-gray-400">
-            <Building2 className="w-8 h-8 mb-2 text-gray-200" />
-            <p className="text-sm">등록된 업종코드가 없습니다.</p>
-          </div>
+          <EmptyState
+            icon="inbox"
+            title="데이터가 없습니다"
+            description="아직 등록된 항목이 없습니다."
+          />
         )}
       </div>
     </div>
@@ -4611,7 +4623,7 @@ function SystemLogsContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                       <td className="px-4 py-2 text-gray-500 text-xs">{l.ip || '-'}</td>
                     </tr>
                   )) : (
-                    <tr><td colSpan={7} className="px-4 py-12 text-center text-gray-400 text-sm">로그가 없습니다.</td></tr>
+                    <tr><td colSpan={7}><EmptyState icon="inbox" title="데이터가 없습니다" description="아직 등록된 항목이 없습니다." /></td></tr>
                   )}
                 </tbody>
               </table>
@@ -4648,7 +4660,7 @@ function SystemLogsContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                       </tr>
                     );
                   }) : (
-                    <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-400 text-sm">로그가 없습니다.</td></tr>
+                    <tr><td colSpan={5}><EmptyState icon="inbox" title="데이터가 없습니다" description="아직 등록된 항목이 없습니다." /></td></tr>
                   )}
                 </tbody>
               </table>
@@ -4677,7 +4689,7 @@ function SystemLogsContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                       <td className="px-4 py-2 text-gray-500 text-xs">{l.userId || '-'}</td>
                     </tr>
                   )) : (
-                    <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400 text-sm">에러 로그가 없습니다.</td></tr>
+                    <tr><td colSpan={6}><EmptyState icon="inbox" title="데이터가 없습니다" description="아직 등록된 항목이 없습니다." /></td></tr>
                   )}
                 </tbody>
               </table>
@@ -4711,7 +4723,7 @@ function SystemLogsContent({ fetchWithAuth }: { fetchWithAuth: FetchFn }) {
                       <td className="px-4 py-2 text-gray-500 text-xs">{l.recordId}</td>
                     </tr>
                   )) : (
-                    <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-400 text-sm">변경 로그가 없습니다.</td></tr>
+                    <tr><td colSpan={5}><EmptyState icon="inbox" title="데이터가 없습니다" description="아직 등록된 항목이 없습니다." /></td></tr>
                   )}
                 </tbody>
               </table>
