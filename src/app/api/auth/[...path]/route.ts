@@ -7,6 +7,48 @@ export const dynamic = 'force-dynamic';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
+/**
+ * Set-Cookie 헤더 문자열을 파싱하여 NextResponse에 쿠키를 설정합니다.
+ * Parse raw Set-Cookie header strings and set cookies on NextResponse.
+ * headers.append('set-cookie', ...) 보다 안정적인 방법 / More reliable than headers.append
+ */
+function forwardSetCookies(setCookieHeaders: string[], nextResponse: NextResponse<unknown>): void {
+  for (const rawCookie of setCookieHeaders) {
+    try {
+      const parts = rawCookie.split(';');
+      const [nameValue, ...attrParts] = parts.map(p => p.trim());
+      const eqIdx = nameValue.indexOf('=');
+      if (eqIdx === -1) continue;
+
+      const name = nameValue.slice(0, eqIdx).trim();
+      const value = nameValue.slice(eqIdx + 1).trim();
+
+      const attrs: Record<string, string | boolean> = {};
+      for (const attr of attrParts) {
+        const eqPos = attr.indexOf('=');
+        if (eqPos === -1) {
+          attrs[attr.toLowerCase()] = true;
+        } else {
+          attrs[attr.slice(0, eqPos).trim().toLowerCase()] = attr.slice(eqPos + 1).trim();
+        }
+      }
+
+      nextResponse.cookies.set({
+        name,
+        value,
+        httpOnly: Boolean(attrs['httponly']),
+        secure: Boolean(attrs['secure']),
+        sameSite: attrs['samesite'] as 'strict' | 'lax' | 'none' | undefined,
+        path: (attrs['path'] as string) || '/',
+        maxAge: attrs['max-age'] !== undefined ? Number(attrs['max-age']) : undefined,
+      });
+    } catch {
+      // 파싱 실패 시 raw 헤더 직접 추가 / Fallback: append raw header on parse failure
+      nextResponse.headers.append('set-cookie', rawCookie);
+    }
+  }
+}
+
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> }
@@ -46,9 +88,7 @@ export async function GET(
         // OAuth 콜백 시 백엔드 세션 쿠키를 브라우저에 전달
         // Forward backend session cookies during OAuth callback redirect
         const setCookieHeaders = response.headers.getSetCookie?.() || [];
-        for (const cookie of setCookieHeaders) {
-          redirectResponse.headers.append('set-cookie', cookie);
-        }
+        forwardSetCookies(setCookieHeaders, redirectResponse);
 
         // 소셜 로그인 시작 시 userType을 쿠키에 저장 → 콜백에서 읽기 위함
         if (userType) {
@@ -89,10 +129,8 @@ export async function GET(
     nextResponse.headers.set('Pragma', 'no-cache');
     nextResponse.headers.set('Expires', '0');
 
-    const setCookie = response.headers.get('set-cookie');
-    if (setCookie) {
-      nextResponse.headers.set('set-cookie', setCookie);
-    }
+    const setCookieHeaders = response.headers.getSetCookie?.() || [];
+    forwardSetCookies(setCookieHeaders, nextResponse);
 
     return nextResponse;
   } catch (error) {
@@ -137,10 +175,8 @@ export async function PUT(
 
     const nextResponse = NextResponse.json(data, { status: response.status });
 
-    const setCookie = response.headers.get('set-cookie');
-    if (setCookie) {
-      nextResponse.headers.set('set-cookie', setCookie);
-    }
+    const setCookieHeaders = response.headers.getSetCookie?.() || [];
+    forwardSetCookies(setCookieHeaders, nextResponse);
 
     return nextResponse;
   } catch (error) {
@@ -205,10 +241,8 @@ export async function POST(
 
     const nextResponse = NextResponse.json(data, { status: response.status });
 
-    const setCookie = response.headers.get('set-cookie');
-    if (setCookie) {
-      nextResponse.headers.set('set-cookie', setCookie);
-    }
+    const setCookieHeaders = response.headers.getSetCookie?.() || [];
+    forwardSetCookies(setCookieHeaders, nextResponse);
 
     return nextResponse;
   } catch (error) {

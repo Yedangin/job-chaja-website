@@ -20,6 +20,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   success?: boolean;
   sessionId?: string;
+  accessToken?: string;
   message?: string;
   user?: {
     id: string;

@@ -16,7 +16,7 @@ export function useLogin() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();
-  const { refreshAuth } = useAuth();
+  const { refreshAuth, loginWithUser } = useAuth();
   const [memberType, setMemberType] = useState<MemberType>('seeker');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,20 +40,27 @@ export function useLogin() {
     try {
       const response = await authApi.login({ ...data, memberType });
 
-      if (!response.success && !response.sessionId) {
-        setError('로그인에 실패했습니다 / Login failed');
-        return;
+      // 로그인 응답 데이터로 즉시 AuthContext 상태 업데이트 (refreshAuth 경쟁 조건 방지)
+      // Immediately update AuthContext from login response (avoids refreshAuth race condition)
+      const loginUser = response.user;
+      if (loginUser) {
+        loginWithUser({
+          id: loginUser.id || '',
+          email: loginUser.email || '',
+          role: loginUser.role || 0,
+        });
       }
 
       // 하위호환: localStorage에도 sessionId 저장 (직접 fetch 사용하는 페이지용)
       // Backward compat: store sessionId in localStorage (for pages using direct fetch)
-      if (response.sessionId) {
-        localStorage.setItem('sessionId', response.sessionId);
+      const token = response.sessionId ?? response.accessToken;
+      if (token) {
+        localStorage.setItem('sessionId', token);
       }
 
-      // AuthContext 상태 업데이트 (프로필 재조회) → 이동 전에 반드시 완료
-      // Update AuthContext state (re-fetch profile) → must complete before navigation
-      await refreshAuth();
+      // 백그라운드에서 프로필 재조회 (fullName, verificationStatus 등 완전한 정보 업데이트)
+      // Background profile refresh for complete data (fullName, verificationStatus, etc.)
+      refreshAuth();
 
       // redirect 파라미터가 있으면 해당 경로로, 없으면 role 기반 기본 경로로 이동
       // If redirect param exists, use it; otherwise fall back to role-based default
@@ -63,7 +70,7 @@ export function useLogin() {
         router.push(redirectTo);
       } else {
         // 관리자만 관리자 페이지, 나머지는 메인페이지 / Admin → admin page, others → main
-        const userRole = response.user?.role;
+        const userRole = loginUser?.role;
         if (userRole === 5) {
           router.push('/admin');
         } else {

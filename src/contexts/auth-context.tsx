@@ -36,6 +36,8 @@ interface AuthContextType {
   verificationStatus: VerificationStatus;
   refreshAuth: () => Promise<void>;
   logout: () => Promise<void>;
+  /** 로그인 직후 호출 — 로그인 응답 데이터로 즉시 상태 업데이트 (refreshAuth 경쟁 조건 방지) */
+  loginWithUser: (data: { id: string; email: string; fullName?: string; role: number }) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -115,8 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // refreshAuth: httpOnly 쿠키만으로 인증 상태 확인 / Check auth state using httpOnly cookie only
   // useRef로 동시 호출 방지 / Prevent concurrent calls with useRef
   const refreshAuth = useCallback(async () => {
-    // 이미 실행 중이면 스킵 (F5 연타 시 중복 요청 방지)
-    // Skip if already running (prevent duplicate requests on rapid F5)
+    // 동시 호출 방지: 이미 실행 중이면 스킵 (단, loginWithUser로 먼저 상태 업데이트 후 백그라운드 호출 시는 문제없음)
+    // Prevent concurrent calls: skip if already running
     if (isRefreshingRef.current) return;
     isRefreshingRef.current = true;
 
@@ -201,6 +203,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshAuth();
   }, [refreshAuth]);
 
+  const loginWithUser = useCallback((data: { id: string; email: string; fullName?: string; role: number }) => {
+    const roleStr = roleNumberToString(data.role);
+    setUser({
+      id: data.id,
+      email: data.email,
+      fullName: data.fullName || data.email.split('@')[0] || '',
+      role: roleStr,
+      roleNumber: data.role,
+    });
+    setIsLoading(false);
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       // httpOnly 쿠키 기반 로그아웃: credentials: 'include'로 쿠키 자동 전송
@@ -231,6 +245,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         verificationStatus: user?.verificationStatus || null,
         refreshAuth,
         logout,
+        loginWithUser,
       }}
     >
       {children}
