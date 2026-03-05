@@ -96,13 +96,15 @@ Article 4 (Service Use)
 
 제5조 (결제 및 환불)
 ① 열람권 등 유료 서비스의 결제는 PG사를 통해 이루어집니다.
-② 환불 정책은 관련 법령 및 회사의 환불 정책에 따릅니다.
-③ 사용된 열람권은 환불되지 않습니다.
+② 열람권 유효기간은 구매일로부터 90일이며, 만료 시 미사용분은 자동 소멸됩니다.
+③ 환불은 구매 후 7일 이내에만 가능합니다. 미사용 시 전액 환불, 일부 사용 시 사용분은 정가(1,000원/건) 기준 차감 후 잔액을 환불합니다.
+④ 구매 후 7일 경과 시 환불이 불가합니다.
 
 Article 5 (Payment and Refund)
 ① Payment for paid services such as viewing credits is processed through a payment gateway.
-② Refund policies follow applicable laws and the Company's refund policy.
-③ Used viewing credits are non-refundable.
+② Viewing credits are valid for 90 days from purchase. Unused credits expire automatically.
+③ Refunds are available within 7 days of purchase only. Unused: full refund. Partially used: used credits are deducted at the standard rate (₩1,000/credit), remainder refunded.
+④ No refund after 7 days from purchase.
 
 ---
 

@@ -37,8 +37,8 @@ const CHECKLIST_ITEMS: { icon: string; text: string; textEn: string }[] = [
   },
   {
     icon: '💳',
-    text:   '미사용 열람권 및 프리미엄 잔여 기간은 환불되지 않습니다.',
-    textEn: 'Unused viewing credits and premium time will not be refunded.',
+    text:   '미사용 열람권(유효기간 90일) 및 프리미엄 잔여 기간은 탈퇴 시 소멸되며 환불되지 않습니다. 탈퇴 전 환불 가능 기간(구매 후 7일 이내)을 확인하세요.',
+    textEn: 'Unused viewing credits (90-day validity) and remaining premium time will be forfeited upon withdrawal. Check if you are within the refund window (7 days from purchase) before withdrawing.',
   },
   {
     icon: '📁',

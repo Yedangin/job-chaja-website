@@ -649,8 +649,8 @@ export default function CreditsPage() {
                 className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <span className="text-xs text-gray-500 leading-relaxed">
-                상품 정보 및 결제에 동의합니다. 열람권은 구매 즉시 지급되며,
-                <span className="text-gray-700 font-medium"> 미사용분에 한해 환불</span>이 가능합니다.
+                상품 정보 및 결제에 동의합니다. 열람권은 구매 즉시 지급되며, 유효기간은 90일입니다.
+                <span className="text-gray-700 font-medium"> 구매 후 7일 이내 환불 가능</span> (사용분은 정가 1,000원/건 차감). 7일 경과 시 환불 불가, 90일 만료 시 소멸.
               </span>
             </label>
 

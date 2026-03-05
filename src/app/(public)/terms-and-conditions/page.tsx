@@ -164,9 +164,10 @@ export default function TermsAndConditionsPage() {
               <div>
                 <h3 className="font-semibold text-gray-800 mb-1">② 인재 열람권</h3>
                 <ul className="list-disc list-inside space-y-1">
+                  <li>유효기간: 구매일로부터 90일 (만료 시 미사용분 자동 소멸)</li>
                   <li>미사용 열람권: 결제일로부터 7일 이내 전액 환불 가능</li>
-                  <li>사용된 열람권(프로필 열람 완료): 환불 불가</li>
-                  <li>일부 사용 시: 미사용 수량에 해당하는 금액 환불</li>
+                  <li>일부 사용 후 환불: 사용분은 정가(1,000원/건) 기준 차감, 잔액 환불 (7일 이내)</li>
+                  <li>결제일로부터 7일 경과 시: 환불 불가</li>
                 </ul>
               </div>
               <div>

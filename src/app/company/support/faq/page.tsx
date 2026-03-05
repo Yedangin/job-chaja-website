@@ -120,14 +120,14 @@ const FAQ_DATA: FaqItem[] = [
     category: 'payment',
     question: '열람권의 유효기간은 얼마나 되나요?',
     answer:
-      '구매한 열람권은 구매일로부터 1년간 유효합니다. 유효기간 만료 30일 전에 이메일 알림을 발송해 드립니다.\n\nPurchased viewing credits are valid for 1 year from the date of purchase. You\'ll receive an email reminder 30 days before expiration.',
+      '구매한 열람권은 구매일로부터 90일간 유효합니다. 유효기간 만료 30일 전에 이메일 알림을 발송해 드립니다.\n\nPurchased viewing credits are valid for 90 days from the date of purchase. You\'ll receive an email reminder 30 days before expiration.',
   },
   {
     id: 11,
     category: 'payment',
     question: '결제 취소 및 환불은 어떻게 하나요?',
     answer:
-      '결제 후 7일 이내, 미사용 상품에 한해 환불이 가능합니다. [마이페이지 > 결제 내역]에서 환불 신청을 하거나, 고객센터 1:1 문의를 통해 접수해 주세요.\n\nRefunds are available within 7 days of purchase for unused products. Apply via [My Page > Payment History] or through our 1:1 inquiry.',
+      '열람권은 구매 후 7일 이내에 환불 신청이 가능합니다. 미사용 시 전액 환불, 일부 사용 시 사용분은 정가(1,000원/건) 기준으로 차감 후 잔액을 환불합니다. 7일 경과 후에는 환불이 불가하며, 유효기간(90일) 만료 시 미사용분은 자동 소멸됩니다. [마이페이지 > 결제 내역]에서 환불 신청을 하거나, 고객센터 1:1 문의를 통해 접수해 주세요.\n\nViewing credits can be refunded within 7 days of purchase. Unused credits: full refund. Partially used: used credits are deducted at the standard rate (₩1,000/credit), and the remainder is refunded. No refund after 7 days. Unused credits expire automatically after 90 days. Apply via [My Page > Payment History] or through our 1:1 inquiry.',
   },
   // 비자매칭 / Visa Matching
   {
