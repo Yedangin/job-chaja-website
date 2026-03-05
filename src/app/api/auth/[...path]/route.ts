@@ -12,7 +12,10 @@ export async function GET(
   context: { params: Promise<{ path: string[] }> }
 ) {
   const { path } = await context.params;
-  const url = `${BACKEND_URL}/auth/${path.join('/')}`;
+  // 쿼리 파라미터 전달 (OAuth 콜백의 ?code= 등 필수)
+  // Forward query params (essential for OAuth callback ?code= etc.)
+  const searchParams = request.nextUrl.searchParams.toString();
+  const url = `${BACKEND_URL}/auth/${path.join('/')}${searchParams ? `?${searchParams}` : ''}`;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
