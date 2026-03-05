@@ -1,68 +1,39 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { proxyToBackend, buildBackendPath } from '@/lib/api-proxy';
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
-
-async function proxyRequest(
-  request: NextRequest,
-  context: { params: Promise<{ path: string[] }> },
-  method: string,
-) {
-  const { path } = await context.params;
-  const search = request.nextUrl.search;
-  const url = `${BACKEND_URL}/policy/${path.join('/')}${search}`;
-
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
-  const cookie = request.headers.get('cookie');
-  if (cookie) headers['Cookie'] = cookie;
-  const auth = request.headers.get('authorization');
-  if (auth) headers['Authorization'] = auth;
-
-  try {
-    const options: RequestInit = { method, headers };
-    if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-      options.body = await request.text();
-    }
-
-    const response = await fetch(url, options);
-    const data = await response.json();
-
-    const nextResponse = NextResponse.json(data, { status: response.status });
-    const setCookie = response.headers.get('set-cookie');
-    if (setCookie) nextResponse.headers.set('set-cookie', setCookie);
-
-    return nextResponse;
-  } catch {
-    return NextResponse.json({ error: 'Proxy error' }, { status: 500 });
-  }
-}
+/**
+ * 정책 API 프록시 — /api/policy/* -> 백엔드 /policy/*
+ * Policy API proxy — /api/policy/* -> backend /policy/*
+ */
 
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> },
 ) {
-  return proxyRequest(request, context, 'GET');
+  const { path } = await context.params;
+  return proxyToBackend(request, buildBackendPath('/policy', path), 'GET');
 }
 
 export async function POST(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> },
 ) {
-  return proxyRequest(request, context, 'POST');
+  const { path } = await context.params;
+  return proxyToBackend(request, buildBackendPath('/policy', path), 'POST');
 }
 
 export async function PUT(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> },
 ) {
-  return proxyRequest(request, context, 'PUT');
+  const { path } = await context.params;
+  return proxyToBackend(request, buildBackendPath('/policy', path), 'PUT');
 }
 
 export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> },
 ) {
-  return proxyRequest(request, context, 'DELETE');
+  const { path } = await context.params;
+  return proxyToBackend(request, buildBackendPath('/policy', path), 'DELETE');
 }
