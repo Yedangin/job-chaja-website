@@ -21,6 +21,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import EmptyState from '@/components/empty-state';
 
 /** 진단 세션 이력 / Diagnosis session history entry */
 interface HistoryEntry {
@@ -184,18 +185,13 @@ export default function DiagnosisHistoryPage() {
 
           {/* 빈 상태 / Empty */}
           {!loading && entries.length === 0 && (
-            <Card className="p-12 text-center border-dashed">
-              <AlertCircle className="w-10 h-10 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-base font-semibold text-gray-700 mb-2">진단 이력이 없습니다</h3>
-              <p className="text-sm text-gray-400 mb-6">
-                비자 진단을 시작하여 맞춤 경로를 확인해보세요.
-              </p>
-              <Link href="/diagnosis">
-                <Button className="bg-indigo-600 hover:bg-indigo-700">
-                  진단 시작하기
-                </Button>
-              </Link>
-            </Card>
+            <EmptyState
+              icon="search"
+              title="진단 이력이 없습니다"
+              description="비자 진단을 받아보세요."
+              actionLabel="비자 진단 시작"
+              actionHref="/diagnosis"
+            />
           )}
 
           {/* 이력 목록 / History list */}
