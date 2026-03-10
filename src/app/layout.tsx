@@ -32,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="ko">
       <head>
         {/* Pretendard — 한글 최적화 가변 폰트 / Korean-optimized variable font */}
         <link

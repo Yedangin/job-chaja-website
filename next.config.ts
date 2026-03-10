@@ -4,13 +4,13 @@ import createNextIntlPlugin from "next-intl/plugin";
 const nextConfig: NextConfig = {
   devIndicators: false,
   reactCompiler: true,
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   reactStrictMode: true,
   trailingSlash: false,
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      { protocol: 'https', hostname: '**' },
+      { protocol: 'http', hostname: 'localhost' },
+    ],
   },
 
   async rewrites() {

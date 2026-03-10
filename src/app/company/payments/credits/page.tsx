@@ -412,8 +412,8 @@ export default function CreditsPage() {
 
       // 2. 포트원 결제창 호출 / Open PortOne checkout
       const payResponse = await PortOne.requestPayment({
-        storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID || 'store-a2a5e6a1-a425-4720-9c30-6340aca9964d',
-        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || 'channel-key-5d1a5927-000f-4dd0-a3e0-a8468182cab6',
+        storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID || '',
+        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || '',
         paymentId: order.orderNo,
         orderName: order.productName,
         totalAmount: order.totalAmount,

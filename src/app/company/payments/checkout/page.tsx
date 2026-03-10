@@ -28,7 +28,7 @@ export default function PaymentCheckoutPage() {
   // 상품 정보 조회 / Load product info
   useEffect(() => {
     if (!productCode) return;
-    fetch(`/api/payments/products/${productCode}`)
+    fetch(`/api/payments/products/${productCode}`, { credentials: 'include' })
       .then((r) => r.json())
       .then((data) => {
         if (data.error) {
@@ -47,6 +47,7 @@ export default function PaymentCheckoutPage() {
     try {
       const res = await fetch(
         `/api/payments/coupons/validate?code=${couponCode}&product=${product?.category || ''}`,
+        { credentials: 'include' },
       );
       const data = await res.json();
       if (!res.ok) {
@@ -83,6 +84,7 @@ export default function PaymentCheckoutPage() {
       // 1. 주문 생성 / Create order
       const orderRes = await fetch('/api/payments/orders', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           productCode,
@@ -122,6 +124,7 @@ export default function PaymentCheckoutPage() {
       // 3. 결제 확인 / Confirm payment
       const confirmRes = await fetch(`/api/payments/orders/${order.orderId}/confirm`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           portonePaymentId: paymentResponse.paymentId,

@@ -17,10 +17,7 @@ async function proxyRequest(
 ) {
   const { path } = await context.params;
   const search = request.nextUrl.search;
-  // 디버그: path 확인 / Debug: check path params
-  console.log(`[Proxy Alba DEBUG] path params:`, JSON.stringify(path));
   const url = `${BACKEND_URL}/api/alba/${path.join('/')}${search}`;
-  console.log(`[Proxy Alba DEBUG] target URL:`, url);
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -37,20 +34,17 @@ async function proxyRequest(
       options.body = await request.text();
     }
 
-    console.log(`[Proxy Alba] ${method} ${url}`);
     options.cache = 'no-store';
     const response = await fetch(url, options);
     const rawData = await response.json();
     const data = unwrapBackendResponse(rawData);
-    console.log(`[Proxy Alba] Response status: ${response.status}`);
 
     const nextResponse = NextResponse.json(data, { status: response.status });
     const setCookie = response.headers.get('set-cookie');
     if (setCookie) nextResponse.headers.set('set-cookie', setCookie);
 
     return nextResponse;
-  } catch (error) {
-    console.error(`[Proxy Alba ${method}] Error:`, error);
+  } catch {
     return NextResponse.json({ error: 'Proxy error' }, { status: 500 });
   }
 }

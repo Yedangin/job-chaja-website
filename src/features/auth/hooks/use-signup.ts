@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLanguage } from '@/i18n/LanguageProvider';
+import { useAuth } from '@/contexts/auth-context';
 import { authApi } from '../api/auth.api';
 import { signupSchema, type SignupFormData } from '../schemas/auth.schema';
 import { toast } from '@/lib/toast';
@@ -14,6 +15,7 @@ import type { TermsAgreement, MemberType } from '../types/auth.types';
 export function useSignup(memberType: MemberType = 'seeker') {
   const router = useRouter();
   const { t } = useLanguage();
+  const { loginWithUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -83,16 +85,29 @@ export function useSignup(memberType: MemberType = 'seeker') {
         role: memberType === 'company' ? 'CORPORATE' : 'INDIVIDUAL',
       });
 
-      console.log('[회원가입 성공]', response);
       toast.success(t('registerSuccess'));
 
-      // 메인 페이지로 이동
-      console.log('[리다이렉트] /으로 이동');
-      setTimeout(() => {
-        router.push('/');
-      }, 100);
+      // 회원가입 후 자동 로그인 / Auto-login after registration
+      try {
+        const loginRes = await authApi.login({
+          email: data.email,
+          password: data.password,
+          memberType,
+        });
+        if (loginRes.user) {
+          loginWithUser(loginRes.user);
+        }
+      } catch {
+        // 로그인 실패 시 로그인 페이지로 이동 / If auto-login fails, redirect to login page
+        router.push('/login');
+        return;
+      }
+
+      // 역할별 대시보드로 이동 / Redirect to role-specific dashboard
+      const dashboard =
+        memberType === 'company' ? '/company/dashboard' : '/worker/dashboard';
+      router.push(dashboard);
     } catch (err: any) {
-      console.error('[회원가입 실패]', err);
       const message = err.message || t('registerFail');
       setError(message);
       toast.error(message);

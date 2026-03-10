@@ -1,0 +1,10 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /diagnosis/designs/
+Disallow: /job-cards/designs/
+Disallow: /job-cards/designs-gemini/
+Disallow: /company/alba/variants/
+Disallow: /worker/wizard/variants/
+Disallow: /api/
+
+Sitemap: https://jobchaja.com/sitemap.xml

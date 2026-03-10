@@ -126,17 +126,9 @@ export function useEmailVerification() {
     }
 
     setIsSending(true);
-    console.log('='.repeat(50));
-    console.log('[OTP] 발송 시작');
-    console.log('[OTP] 이메일:', email);
-    console.log('[OTP] 시간:', new Date().toLocaleTimeString());
 
     try {
       await authApi.sendOtp(email);
-
-      console.log('[OTP] ✅ 발송 성공!');
-      console.log('[OTP] 타이머 시작: 300초 (5분)');
-      console.log('='.repeat(50));
 
       // 3. 성공했을 때만 발송 히스토리 기록
       recordSuccessfulSend();
@@ -145,11 +137,6 @@ export function useEmailVerification() {
       setTimeLeft(300); // 5분 타이머 시작
       toast.success(t('authSent'));
     } catch (error: any) {
-      console.error('[OTP] ❌ 발송 실패!');
-      console.error('[OTP] 에러:', error);
-      console.error('[OTP] 에러 메시지:', error.message);
-      console.log('='.repeat(50));
-
       // 실패 시에는 발송 히스토리를 기록하지 않음
       // 사용자가 3초만 기다리면 즉시 다시 시도 가능
       toast.error(error.message || t('errAuthSendFail'));
@@ -168,26 +155,14 @@ export function useEmailVerification() {
     }
 
     setIsVerifying(true);
-    console.log('='.repeat(50));
-    console.log('[OTP] 검증 시작');
-    console.log('[OTP] 이메일:', email);
-    console.log('[OTP] 코드:', code);
 
     try {
       await authApi.verifyOtp(email, code);
-
-      console.log('[OTP] ✅ 검증 성공!');
-      console.log('[OTP] 타이머 중지');
-      console.log('='.repeat(50));
 
       setIsAuthVerified(true);
       setTimeLeft(0); // 타이머 중지
       toast.success('인증이 완료되었습니다.');
     } catch (error: any) {
-      console.error('[OTP] ❌ 검증 실패!');
-      console.error('[OTP] 에러:', error);
-      console.log('='.repeat(50));
-
       toast.error(error.message || t('errAuthCode') || 'Wrong Code');
     } finally {
       setIsVerifying(false);
