@@ -168,6 +168,13 @@ export const authApi = {
   },
 
   /**
+   * 비밀번호 초기화 요청 / Request password reset email
+   */
+  requestPasswordReset: async (email: string): Promise<void> => {
+    await apiClient.post('/auth/request-password-reset', { email });
+  },
+
+  /**
    * 결제 상품 목록
    */
   getProducts: async (boardType?: string) => {

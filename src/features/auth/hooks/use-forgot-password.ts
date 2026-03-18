@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useLanguage } from '@/i18n/LanguageProvider';
 import { emailSchema, type EmailFormData } from '../schemas/auth.schema';
 import { toast } from '@/lib/toast';
+import { authApi } from '../api/auth.api';
 
 /**
  * 비밀번호 찾기 로직
@@ -31,11 +32,7 @@ export function useForgotPassword() {
     setIsSuccess(false);
 
     try {
-      // TODO: 백엔드 API 구현 후 연결
-      // await authApi.requestPasswordReset(data.email);
-
-      // 임시: 성공 메시지
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await authApi.requestPasswordReset(data.email);
 
       setIsSuccess(true);
       toast.success('비밀번호 초기화 링크가 이메일로 전송되었습니다.');
