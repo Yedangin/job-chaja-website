@@ -10,6 +10,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /** 리다이렉트 매핑 / Redirect mapping (order matters — more specific paths first) */
 const REDIRECT_MAP: Array<{ from: string; to: string; exact?: boolean }> = [
+  // 비자 플래너 리브랜딩 / Visa planner rebranding
+  { from: '/diagnosis/result', to: '/visa-planner/result' },
+  { from: '/diagnosis/premium', to: '/visa-planner/profile' },
+  { from: '/diagnosis/history', to: '/visa-planner/history' },
+  { from: '/diagnosis', to: '/visa-planner' },
+
   // 결제 관련 (구체적 경로 우선) / Payment routes (specific paths first)
   { from: '/payments/checkout', to: '/company/payments/checkout' },
   { from: '/payments/success', to: '/company/payments/success' },
@@ -70,5 +76,6 @@ export const config = {
     '/jobs/:path*',
     '/payment/:path*',
     '/payments/:path*',
+    '/diagnosis/:path*',
   ],
 };

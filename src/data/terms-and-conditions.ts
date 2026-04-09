@@ -41,7 +41,7 @@ export const termsAndConditionsData = {
             { label: "Premium posting (14 days):", value: "\u20A929,000 (launch) / \u20A979,000 (regular)" },
             { label: "Premium posting (30 days):", value: "\u20A950,000 (launch) / \u20A9130,000 (regular)" },
             { label: "Premium posting (60 days):", value: "\u20A979,000 (launch) / \u20A9199,000 (regular)" },
-            { label: "Detailed visa diagnosis:", value: "$10 USD" },
+            { label: "Visa planner and profile completion:", value: "Free" },
           ],
           note: "Launch prices are limited-time offers. Regular prices will apply when the launch period ends (announced separately).",
         },
@@ -67,21 +67,10 @@ export const termsAndConditionsData = {
           ],
         },
         {
-          subtitle: "Free Re-diagnosis Coupon",
-          bullets: [
-            "One free re-diagnosis coupon is automatically issued upon purchasing the detailed visa diagnosis",
-            "Coupon is valid for 6 months from the date of issuance",
-            "Expired coupons are automatically voided with no compensation",
-            "Coupons are non-transferable and cannot be exchanged for cash",
-          ],
-        },
-        {
           subtitle: "Refund Policy",
           bullets: [
             "Premium posting (before activation): Full refund",
             "Premium posting (after activation): Pro-rata refund for remaining days. No refund if more than 50% of the period has elapsed",
-            "Visa diagnosis (before result viewed): Full refund within 7 days of purchase (Electronic Commerce Act §17)",
-            "Visa diagnosis (after result viewed): No refund (digital content; consent to waive cooling-off period required at checkout)",
             "Viewing credits (unused): Full refund within 7 days of purchase",
             "Viewing credits (partially used): Used credits deducted at standard rate (₩1,000/credit), remainder refunded within 7 days",
             "Viewing credits (7+ days after purchase): No refund. Unused credits expire after 90 days",
@@ -94,7 +83,6 @@ export const termsAndConditionsData = {
         {
           subtitle: "International Payments",
           bullets: [
-            "Visa Planner Premium is priced in USD ($10) for international users",
             "International card payments (Visa, Mastercard, JCB, AMEX) are processed through KG Inicis via PortOne",
             "VAT is zero-rated for international transactions (VAT Act §24, export of services)",
             "Exchange rate is determined at the time of payment by your card issuer",

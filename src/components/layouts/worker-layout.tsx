@@ -86,7 +86,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
 
   // GNB 메뉴 항목 / GNB menu items
   const gnbItems = [
-    { href: '/diagnosis', label: '비자진단' },
+    { href: '/visa-planner', label: '비자 플래너' },
     { href: '/worker/alba', label: '알바채용관' },
     { href: '/worker/regular', label: '정규채용관' },
   ];

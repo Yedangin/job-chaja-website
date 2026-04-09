@@ -16,7 +16,7 @@ import {
   priorityOptions,
 } from './designs/_mock/diagnosis-mock-data';
 
-// 비자 진단 입력 페이지 (여정 스타일) / Visa diagnosis input page (journey style)
+// 비자 플래너 입력 페이지 (여정 스타일) / Visa planner input page (journey style)
 export default function DiagnosisPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -57,7 +57,7 @@ export default function DiagnosisPage() {
 
     // 결과 페이지로 이동 (결과 페이지에서 API 호출) / Navigate to result page (API called there)
     setTimeout(() => {
-      router.push('/diagnosis/result');
+      router.push('/visa-planner/result');
     }, 1500);
   };
 
@@ -99,9 +99,9 @@ export default function DiagnosisPage() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 text-blue-600 mb-4">
             <Plane className="w-8 h-8" />
-            <h1 className="text-3xl font-bold">한국 비자 여정</h1>
+            <h1 className="text-3xl font-bold">비자 플래너</h1>
           </div>
-          <p className="text-gray-600">탑승권을 작성하여 당신만의 한국 비자 여정을 시작하세요</p>
+          <p className="text-gray-600">무료로 경로를 확인하고 인재 프로필 완성까지 이어가세요</p>
         </div>
 
         {/* 출발 애니메이션 / Departure animation */}

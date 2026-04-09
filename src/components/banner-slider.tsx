@@ -87,10 +87,10 @@ const banners: Banner[] = [
     accentText: 'text-white',
     tag: '서비스 안내',
     icon: ShieldCheck,
-    title: '비자 진단 서비스 출시',
-    desc: '31개 비자 유형 · 30초 무료 진단 · 맞춤 일자리 연결',
+    title: '비자 플래너 무료 오픈',
+    desc: '31개 비자 경로 분석 · 무료 이용 · 프로필 등록까지 연결',
     cta: '진단 시작',
-    href: '/diagnosis',
+    href: '/visa-planner',
   },
 ];
 

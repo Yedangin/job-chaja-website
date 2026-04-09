@@ -45,9 +45,9 @@ export default function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center ml-8 gap-1 text-sm">
-            {/* 비자진단 / Visa Diagnosis */}
-            <Link href="/diagnosis" className="px-3 py-2 text-sky-600 hover:text-sky-700 font-semibold transition">
-              비자진단
+            {/* 비자 플래너 / Visa Planner */}
+            <Link href="/visa-planner" className="px-3 py-2 text-sky-600 hover:text-sky-700 font-semibold transition">
+              비자 플래너
             </Link>
 
             {/* 구직자(개인) 드롭다운 / Worker dropdown */}

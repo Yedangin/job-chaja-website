@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { ArrowRight, ChevronLeft, ChevronRight, Briefcase, FileText, Scale } from 'lucide-react';
 
 /**
- * 메인 히어로 — 3분할 (비자진단 | 가이드슬라이더+아이콘3 | 교육·생활리스트)
- * Main hero — 3-split (Visa diagnosis | Guide slider+3 icons | Education+Life list)
+ * 메인 히어로 — 3분할 (비자 플래너 | 가이드슬라이더+아이콘3 | 교육·생활리스트)
+ * Main hero — 3-split (Visa planner | Guide slider+3 icons | Education+Life list)
  *
  * 슬라이더: API에서 게시글을 불러와 동적 표시, 6초 자동 회전, 좌우 화살표
  * Slider: Fetches posts from API dynamically, 6s auto-rotate, left/right arrows
@@ -243,7 +243,7 @@ export default function HeroSection() {
         <div className="flex gap-2.5 mb-6 max-w-[340px]">
           {/* 비자 플래너 — 비자 미보유자용 / Visa Planner — for those without a visa */}
           <Link
-            href="/diagnosis"
+            href="/visa-planner"
             className="group flex-1 flex flex-col gap-1 bg-[#0066FF] hover:bg-[#0052CC] text-white px-3.5 py-2.5 rounded-xl transition-all duration-200 shadow-[0_4px_12px_rgba(0,102,255,0.25)] hover:shadow-[0_6px_16px_rgba(0,102,255,0.3)] hover:-translate-y-0.5"
           >
             <div className="flex items-center gap-1.5">

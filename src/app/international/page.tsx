@@ -191,7 +191,7 @@ export default function InternationalPage() {
 
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
-                href="/diagnosis"
+                href="/visa-planner"
                 className="inline-flex items-center gap-2 px-8 py-3.5 bg-blue-600 text-white rounded-full text-base font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 hover:shadow-xl transition-all"
               >
                 Start Free Visa Planner
@@ -255,7 +255,7 @@ export default function InternationalPage() {
               {VISA_PATHWAYS.map((path) => (
                 <Link
                   key={path.title}
-                  href="/diagnosis"
+                  href="/visa-planner"
                   className={`rounded-2xl border p-5 transition hover:shadow-md hover:-translate-y-0.5 ${path.color}`}
                 >
                   <path.icon className={`w-8 h-8 ${path.iconColor} mb-3`} />
@@ -301,7 +301,7 @@ export default function InternationalPage() {
               </div>
 
               <Link
-                href="/diagnosis"
+                href="/visa-planner"
                 className="mt-8 inline-flex items-center gap-2 px-8 py-3 bg-white text-blue-700 rounded-full font-bold hover:bg-blue-50 transition shadow-lg"
               >
                 Try Free Planner First

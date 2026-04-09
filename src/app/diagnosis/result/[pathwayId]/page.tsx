@@ -77,7 +77,7 @@ export default function DiagnosisDetailPage() {
         <div className="text-center">
           <div className="text-6xl mb-4">&#x274C;</div>
           <p className="text-gray-600 mb-4">경로를 찾을 수 없습니다</p>
-          <Button onClick={() => router.push('/diagnosis/result')}>결과로 돌아가기</Button>
+          <Button onClick={() => router.push('/visa-planner/result')}>결과로 돌아가기</Button>
         </div>
       </div>
     );
@@ -103,9 +103,9 @@ export default function DiagnosisDetailPage() {
       <div className="max-w-3xl mx-auto">
         {/* 헤더 / Header */}
         <div className="mb-8">
-          <Button variant="ghost" onClick={() => router.push('/diagnosis/result')} className="mb-4">
+          <Button variant="ghost" onClick={() => router.push('/visa-planner/result')} className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            지도로 돌아가기
+            결과로 돌아가기
           </Button>
 
           <div className="text-center">
@@ -349,7 +349,7 @@ export default function DiagnosisDetailPage() {
             이 여정 시작하기
           </Button>
           <div>
-            <Button variant="outline" onClick={() => router.push('/diagnosis/result')}>
+            <Button variant="outline" onClick={() => router.push('/visa-planner/result')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               다른 경로 보기
             </Button>

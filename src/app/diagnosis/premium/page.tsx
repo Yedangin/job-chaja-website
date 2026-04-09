@@ -1,248 +1,155 @@
 'use client';
 
-/**
- * 프리미엄 진단 체크아웃 페이지 / Premium diagnosis checkout page
- * Stripe 결제 동의 → 결제 → 결과 페이지로 이동
- * Consent → Stripe checkout → redirect to result
- */
-
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
-  Shield,
-  CreditCard,
   ArrowLeft,
+  ArrowRight,
+  Briefcase,
   CheckCircle2,
-  AlertTriangle,
-  Loader2,
+  FileText,
+  GraduationCap,
+  Languages,
   Sparkles,
-  BarChart3,
-  RefreshCw,
-  DollarSign,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useAuth } from '@/contexts/auth-context';
+import { useProfileCompletion } from '@/hooks/use-profile-completion';
 
 export default function PremiumCheckoutPage() {
-  const router = useRouter();
+  const { isLoggedIn, role } = useAuth();
+  const profileCompletion = useProfileCompletion();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('sessionId');
 
-  const [agreed, setAgreed] = useState({
-    refundPolicy: false,
-    digitalContent: false,
-    privacy: false,
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const nextHref = useMemo(() => {
+    const target = `/worker/resume${sessionId ? `?source=visa-planner&sessionId=${sessionId}` : '?source=visa-planner'}`;
 
-  // sessionId 없으면 진단 페이지로 / Redirect if no sessionId
-  useEffect(() => {
-    if (!sessionId) {
-      router.replace('/diagnosis');
+    if (!isLoggedIn) {
+      return `/login?redirect=${encodeURIComponent(target)}`;
     }
-  }, [sessionId, router]);
 
-  const allAgreed = agreed.refundPolicy && agreed.digitalContent && agreed.privacy;
-
-  // Stripe 체크아웃 시작 / Start Stripe checkout
-  const handleCheckout = async () => {
-    if (!allAgreed || !sessionId) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch('/api/visa-planner/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          diagnosisSessionId: sessionId,
-          successUrl: `${window.location.origin}/diagnosis/premium/verify`,
-          cancelUrl: `${window.location.origin}/diagnosis/premium?sessionId=${sessionId}`,
-          refundPolicyAgreed: true,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || `결제 세션 생성 실패 (${res.status})`);
-      }
-
-      const data = await res.json();
-      if (data.checkoutUrl) {
-        // sessionId 저장 후 Stripe로 이동 / Save sessionId then redirect to Stripe
-        sessionStorage.setItem('premium-sessionId', sessionId);
-        window.location.href = data.checkoutUrl;
-      } else {
-        throw new Error('체크아웃 URL을 받지 못했습니다');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '결제 처리 중 오류가 발생했습니다');
-      setIsLoading(false);
+    if (role === 'INDIVIDUAL') {
+      return target;
     }
-  };
 
-  if (!sessionId) return null;
+    return '/worker/resume';
+  }, [isLoggedIn, role, sessionId]);
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-indigo-50 to-white py-8 px-4">
-      <div className="max-w-lg mx-auto">
-        {/* 뒤로가기 / Back */}
+    <div className="min-h-screen bg-linear-to-b from-cyan-50 via-white to-emerald-50 py-8 px-4">
+      <div className="max-w-3xl mx-auto">
         <Link
-          href="/diagnosis/result"
+          href="/visa-planner/result"
           className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
-          무료 진단 결과로 돌아가기
+          비자 플래너 결과로 돌아가기
         </Link>
 
-        {/* 상품 설명 / Product description */}
-        <Card className="p-6 mb-6 border-indigo-200">
-          <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Sparkles className="w-8 h-8 text-indigo-600" />
+        <Card className="p-8 border-cyan-200 shadow-xl">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 rounded-2xl bg-cyan-100 text-cyan-700 flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="w-8 h-8" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">프리미엄 정밀 분석</h1>
-            <p className="text-sm text-gray-500">Premium Visa Pathway Analysis</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">상세 프로필 완성</h1>
+            <p className="text-gray-600">
+              결제 없이 계속 진행할 수 있습니다. 학력, 경력, 언어, 희망 직무를 채우면
+              기업이 인재채용관에서 프로필을 보고 스카우트 제안을 보낼 수 있습니다.
+            </p>
           </div>
 
-          {/* 포함 항목 / Included features */}
-          <div className="space-y-3 mb-6">
-            <div className="flex items-start gap-3 p-3 bg-indigo-50 rounded-xl">
-              <BarChart3 className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-gray-800">트랙별 세분화 점수 분석</p>
-                <p className="text-xs text-gray-500">대학 순위, 경력, 자격증, 학력-경력 매칭 보정</p>
+          <div className="grid gap-4 md:grid-cols-2 mb-8">
+            <div className="rounded-2xl border border-cyan-100 bg-cyan-50 p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <GraduationCap className="w-5 h-5 text-cyan-700" />
+                <h2 className="font-semibold text-gray-900">학력 상세 등록</h2>
               </div>
+              <p className="text-sm text-gray-600">
+                학교명, 전공, 학위, 재학/졸업 상태를 세부적으로 등록해 학력 기반 매칭 신뢰도를 높입니다.
+              </p>
             </div>
-            <div className="flex items-start gap-3 p-3 bg-indigo-50 rounded-xl">
-              <Sparkles className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-gray-800">What-If 시뮬레이션</p>
-                <p className="text-xs text-gray-500">TOPIK 상승, 자격증 취득 시 점수 변화 예측</p>
+
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <Briefcase className="w-5 h-5 text-emerald-700" />
+                <h2 className="font-semibold text-gray-900">경력 상세 등록</h2>
               </div>
+              <p className="text-sm text-gray-600">
+                회사명, 직무, 근무 기간, 주요 업무를 입력해 직접 채용과 스카우트 제안 가능성을 높입니다.
+              </p>
             </div>
-            <div className="flex items-start gap-3 p-3 bg-indigo-50 rounded-xl">
-              <DollarSign className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-gray-800">비자별 예상 연수입</p>
-                <p className="text-xs text-gray-500">통계청 기반 비자 유형별 평균 연수입 참조</p>
+
+            <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <Languages className="w-5 h-5 text-amber-700" />
+                <h2 className="font-semibold text-gray-900">언어 및 자격</h2>
               </div>
+              <p className="text-sm text-gray-600">
+                TOPIK, KIIP, 자격증, 선호 지역을 함께 입력하면 기업이 바로 검색할 수 있는 프로필이 됩니다.
+              </p>
             </div>
-            <div className="flex items-start gap-3 p-3 bg-indigo-50 rounded-xl">
-              <RefreshCw className="w-5 h-5 text-indigo-600 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-gray-800">6개월 후 무료 재진단</p>
-                <p className="text-xs text-gray-500">상황 변경 후 무료로 다시 분석 가능</p>
+
+            <div className="rounded-2xl border border-violet-100 bg-violet-50 p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <FileText className="w-5 h-5 text-violet-700" />
+                <h2 className="font-semibold text-gray-900">인재채용관 노출</h2>
               </div>
+              <p className="text-sm text-gray-600">
+                프로필이 완성되면 기업은 국적, 직무, 지역, 한국어 수준, 경력 수 기준으로 인재를 탐색할 수 있습니다.
+              </p>
             </div>
           </div>
 
-          {/* 가격 / Price */}
-          <div className="text-center p-4 bg-gray-50 rounded-xl">
-            <span className="text-3xl font-bold text-gray-900">$10</span>
-            <span className="text-sm text-gray-500 ml-1">USD</span>
-            <p className="text-xs text-gray-400 mt-1">일회성 결제 · 추가 요금 없음</p>
+          <div className="rounded-2xl bg-gray-900 text-white p-6 mb-6">
+            <div className="flex items-center justify-between gap-4 mb-3">
+              <h2 className="font-semibold">현재 프로필 완성도</h2>
+              <span className="text-2xl font-bold">
+                {profileCompletion.isLoading ? '...' : `${profileCompletion.completion}%`}
+              </span>
+            </div>
+            <div className="w-full h-3 rounded-full bg-white/15 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-linear-to-r from-cyan-400 to-emerald-400 transition-all duration-500"
+                style={{ width: `${profileCompletion.isLoading ? 0 : profileCompletion.completion}%` }}
+              />
+            </div>
+            <p className="text-sm text-white/75 mt-3">
+              프로필 완성도는 인재채용관 노출 품질과 스카우트 수신 가능성에 직접 연결됩니다.
+            </p>
           </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 mb-8">
+            <h2 className="font-semibold text-gray-900 mb-3">추천 다음 단계</h2>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                무료 진단에서 본 경로를 참고하되, 기업이 먼저 볼 수 있는 프로필 정보를 우선 채웁니다.
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                학력과 경력은 최소 1개 이상 구체적으로 입력하고, 직무 설명은 검색 가능한 키워드 중심으로 작성합니다.
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
+                TOPIK, 희망 지역, 희망 직무를 추가하면 인재 검색 필터에서 더 잘 노출됩니다.
+              </li>
+            </ul>
+          </div>
+
+          <Button
+            asChild
+            size="lg"
+            className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-4 rounded-xl"
+          >
+            <Link href={nextHref}>
+              상세 프로필 등록 시작
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
+          </Button>
         </Card>
-
-        {/* 동의 항목 / Consent checkboxes */}
-        <Card className="p-6 mb-6">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-            <Shield className="w-4 h-4 text-gray-400" />
-            결제 전 동의사항
-          </h3>
-
-          <div className="space-y-3">
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={agreed.refundPolicy}
-                onChange={(e) => setAgreed(prev => ({ ...prev, refundPolicy: e.target.checked }))}
-                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              <div>
-                <p className="text-sm text-gray-700 group-hover:text-gray-900">
-                  <span className="text-red-500">[필수]</span> 환불 규정에 동의합니다
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  결과 미조회 시 전액 환불 · 결과 조회 후 환불 불가
-                </p>
-              </div>
-            </label>
-
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={agreed.digitalContent}
-                onChange={(e) => setAgreed(prev => ({ ...prev, digitalContent: e.target.checked }))}
-                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              <div>
-                <p className="text-sm text-gray-700 group-hover:text-gray-900">
-                  <span className="text-red-500">[필수]</span> 디지털 콘텐츠 제공에 동의합니다
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  결제 후 즉시 결과 제공 (청약 철회 제한)
-                </p>
-              </div>
-            </label>
-
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={agreed.privacy}
-                onChange={(e) => setAgreed(prev => ({ ...prev, privacy: e.target.checked }))}
-                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              <div>
-                <p className="text-sm text-gray-700 group-hover:text-gray-900">
-                  <span className="text-red-500">[필수]</span> 개인정보 처리 동의
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  진단 결과 생성을 위한 입력 정보 처리
-                </p>
-              </div>
-            </label>
-          </div>
-        </Card>
-
-        {/* 에러 메시지 / Error message */}
-        {error && (
-          <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-xl mb-6">
-            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
-            <p className="text-sm text-red-700">{error}</p>
-          </div>
-        )}
-
-        {/* 결제 버튼 / Payment button */}
-        <Button
-          size="lg"
-          disabled={!allAgreed || isLoading}
-          onClick={handleCheckout}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-xl disabled:opacity-50"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              결제 페이지로 이동 중...
-            </>
-          ) : (
-            <>
-              <CreditCard className="w-5 h-5 mr-2" />
-              $10 결제하기 (Stripe)
-            </>
-          )}
-        </Button>
-
-        {/* 보안 안내 / Security notice */}
-        <div className="flex items-center justify-center gap-2 mt-4">
-          <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-          <p className="text-xs text-gray-400">Stripe 보안 결제 · SSL 암호화</p>
-        </div>
       </div>
     </div>
   );

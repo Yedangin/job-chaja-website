@@ -73,9 +73,9 @@ const services: Service[] = [
     icon: ShieldCheck,
     iconBg: 'bg-[#0066FF]/8',
     iconColor: 'text-[#0066FF]',
-    title: '비자 정보',
-    desc: '31개 비자 유형 상세 안내',
-    href: '/diagnosis',
+    title: '비자 플래너',
+    desc: '무료 경로 분석 · 프로필 등록 연결',
+    href: '/visa-planner',
   },
 ];
 
