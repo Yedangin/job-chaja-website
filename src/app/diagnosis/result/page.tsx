@@ -15,8 +15,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import type { DiagnosisResult } from '../designs/_mock/diagnosis-mock-data';
-import { getFeasibilityEmoji, getScoreColor } from '../designs/_mock/diagnosis-mock-data';
+import type { DiagnosisResult } from '../types';
+import { getFeasibilityEmoji, getScoreColor } from '../types';
 
 type LoadingPhase = 'analyzing' | 'results';
 
@@ -190,7 +190,7 @@ export default function DiagnosisResultPage() {
               <p className="text-gray-600">{profileHeadline}</p>
             </div>
             <Button asChild size="lg" className="bg-cyan-600 hover:bg-cyan-700">
-              <Link href={`/visa-planner/profile?sessionId=${result.sessionId ?? ''}`}>
+              <Link href={`/worker/profile?source=visa-planner${result.sessionId ? `&sessionId=${result.sessionId}` : ''}`}>
                 상세 프로필 등록
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
@@ -228,6 +228,13 @@ export default function DiagnosisResultPage() {
                     </div>
 
                     <p className="text-sm text-gray-700 mb-4">{pathway.note}</p>
+
+                    {pathway.lastUpdatedAt && (
+                      <div className="mb-4 text-xs text-gray-500">
+                        정보 기준일: {pathway.lastUpdatedAt}
+                        {pathway.lastUpdatedReason ? ` · ${pathway.lastUpdatedReason}` : ''}
+                      </div>
+                    )}
 
                     <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                       <div className="flex items-center gap-1">
@@ -268,24 +275,24 @@ export default function DiagnosisResultPage() {
               </div>
               <h2 className="text-2xl font-bold mb-2">무료 결과 다음은 프로필 완성입니다</h2>
               <p className="text-white/75">
-                학력, 경력, 한국어 수준, 희망 직무와 지역을 상세히 등록하면 인재채용관에서 검색 가능한 프로필이 됩니다.
+                이 경로에 맞는 포지션을 기업들이 찾고 있어요. 프로필을 등록하면 기업에게 직접 발견됩니다.
               </p>
             </div>
             <div className="space-y-2 text-sm text-white/80">
               <p className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 mt-0.5 text-emerald-300 shrink-0" />
-                학력과 경력을 세부 입력하면 스카우트 제안을 받을 수 있습니다.
+                학력, 경력, 한국어 수준, 희망 직무와 지역을 자세히 등록할 수 있습니다.
               </p>
               <p className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 mt-0.5 text-emerald-300 shrink-0" />
-                별도 결제 없이 무료로 계속 진행할 수 있습니다.
+                미로그인 상태라면 회원가입 후 바로 이어서 작성할 수 있습니다.
               </p>
               <p className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 mt-0.5 text-emerald-300 shrink-0" />
-                프로필이 완성되면 기업 검색 필터에서 노출 품질이 좋아집니다.
+                프로필 완성도 70% 이상이면 기업 인재 검색에 더 잘 노출됩니다.
               </p>
               <Button asChild size="lg" className="w-full mt-3 bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-bold">
-                <Link href={`/visa-planner/profile?sessionId=${result.sessionId ?? ''}`}>
+                <Link href={`/worker/profile?source=visa-planner${result.sessionId ? `&sessionId=${result.sessionId}` : ''}`}>
                   프로필 등록으로 이어가기
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Link>

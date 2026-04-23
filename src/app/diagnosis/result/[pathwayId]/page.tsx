@@ -6,8 +6,8 @@ import { MapPin, ArrowLeft, Clock, Wallet, Briefcase, CheckCircle2, AlertCircle,
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { DiagnosisResult, RecommendedPathway, Milestone } from '../../designs/_mock/diagnosis-mock-data';
-import { getScoreColor } from '../../designs/_mock/diagnosis-mock-data';
+import type { DiagnosisResult, RecommendedPathway } from '../../types';
+import { getScoreColor } from '../../types';
 
 // 여정 상세 페이지 / Journey detail page (scroll-driven timeline)
 export default function DiagnosisDetailPage() {
@@ -112,6 +112,12 @@ export default function DiagnosisDetailPage() {
             <Badge className="bg-orange-500 text-white mb-3">추천 경로</Badge>
             <h1 className="text-3xl font-bold text-blue-900 mb-2">{pathway.nameKo}</h1>
             <p className="text-gray-600">{pathway.nameEn}</p>
+            {pathway.lastUpdatedAt && (
+              <p className="mt-3 text-sm text-gray-500">
+                정보 기준일: {pathway.lastUpdatedAt}
+                {pathway.lastUpdatedReason ? ` · ${pathway.lastUpdatedReason}` : ''}
+              </p>
+            )}
           </div>
         </div>
 

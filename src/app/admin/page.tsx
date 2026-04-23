@@ -141,6 +141,7 @@ const sidebarGroups = [
     label: '지원',
     items: [
       { id: 'support', label: '고객센터', icon: MessageSquare },
+      { id: 'visa-pathways', label: '비자 경로 관리', icon: MapPin },
       { id: 'policy', label: '정책/규정 관리', icon: Scale },
       { id: 'law-amendments', label: '법령 변경 관리', icon: FileCheck },
     ],
@@ -416,6 +417,9 @@ export default function AdminPage() {
               onSubmitAnswer={handleAnswerTicket}
               answerLoading={answerLoading}
             />
+          )}
+          {activeMenu === 'visa-pathways' && (
+            <DiagnosisPathwayContent fetchWithAuth={fetchWithAuth} />
           )}
           {activeMenu === 'policy' && (
             <PolicyManagementContent
@@ -5531,5 +5535,352 @@ function LawAmendmentContent({ fetchWithAuth }: { fetchWithAuth: (url: string, o
         </div>
       )}
     </div>
+  );
+}
+
+interface DiagnosisPathwayAdminItem {
+  id: string;
+  pathwayId: string;
+  nameKo: string;
+  nameEn: string;
+  pathwayType: string;
+  ageMin: number;
+  ageMax: number;
+  minEducation: string;
+  allowedNationalityType: string;
+  topikMin: number;
+  minFund: number;
+  requiresEthnicKorean: boolean;
+  visaChain: string;
+  estimatedMonths: number;
+  estimatedCostWon: number;
+  platformSupport: string;
+  baseScore: number;
+  note: string;
+  isActive: boolean;
+  lastUpdatedAt?: string | null;
+  lastUpdatedReason?: string | null;
+}
+
+interface DiagnosisPathwayChangelogItem {
+  id: string;
+  fieldChanged: string;
+  oldValue: string | null;
+  newValue: string | null;
+  reason: string;
+  changedBy: string | null;
+  changedAt: string;
+}
+
+function DiagnosisPathwayContent({ fetchWithAuth }: { fetchWithAuth: (url: string, options?: RequestInit) => Promise<Response> }) {
+  const [pathways, setPathways] = useState<DiagnosisPathwayAdminItem[]>([]);
+  const [selectedPathwayId, setSelectedPathwayId] = useState<string | null>(null);
+  const [form, setForm] = useState<DiagnosisPathwayAdminItem | null>(null);
+  const [changelog, setChangelog] = useState<DiagnosisPathwayChangelogItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const loadPathways = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetchWithAuth('/api/admin/diagnosis/pathways?includeInactive=true');
+      if (!res.ok) throw new Error('비자 경로 목록을 불러오지 못했습니다.');
+      const data = await res.json();
+      setPathways(data);
+
+      const targetId = selectedPathwayId ?? data[0]?.pathwayId ?? null;
+      setSelectedPathwayId(targetId);
+      setForm(targetId ? data.find((item: DiagnosisPathwayAdminItem) => item.pathwayId === targetId) ?? null : null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '불러오기에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadChangelog = async (pathwayId: string) => {
+    try {
+      const res = await fetchWithAuth(`/api/admin/diagnosis/pathways/${pathwayId}/changelog?limit=10`);
+      if (!res.ok) throw new Error();
+      setChangelog(await res.json());
+    } catch {
+      setChangelog([]);
+    }
+  };
+
+  useEffect(() => {
+    loadPathways();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedPathwayId) return;
+    const found = pathways.find((item) => item.pathwayId === selectedPathwayId) ?? null;
+    setForm(found);
+    loadChangelog(selectedPathwayId);
+  }, [selectedPathwayId, pathways]);
+
+  const updateField = (field: keyof DiagnosisPathwayAdminItem, value: string | number | boolean | null) => {
+    setForm((prev) => (prev ? { ...prev, [field]: value } : prev));
+  };
+
+  const handleSave = async () => {
+    if (!form) return;
+    setSaving(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const res = await fetchWithAuth(`/api/admin/diagnosis/pathways/${form.pathwayId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          nameKo: form.nameKo,
+          nameEn: form.nameEn,
+          pathwayType: form.pathwayType,
+          ageMin: Number(form.ageMin),
+          ageMax: Number(form.ageMax),
+          minEducation: form.minEducation,
+          allowedNationalityType: form.allowedNationalityType,
+          topikMin: Number(form.topikMin),
+          minFund: Number(form.minFund),
+          requiresEthnicKorean: form.requiresEthnicKorean,
+          visaChain: form.visaChain,
+          estimatedMonths: Number(form.estimatedMonths),
+          estimatedCostWon: Number(form.estimatedCostWon),
+          platformSupport: form.platformSupport,
+          baseScore: Number(form.baseScore),
+          note: form.note,
+          isActive: form.isActive,
+          lastUpdatedAt: form.lastUpdatedAt || null,
+          lastUpdatedReason: form.lastUpdatedReason || '관리자 수정',
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || '저장에 실패했습니다.');
+      }
+
+      setSuccess('저장되었습니다.');
+      await loadPathways();
+      await loadChangelog(form.pathwayId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '저장에 실패했습니다.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-gray-500">
+        비자 경로 데이터를 불러오는 중입니다.
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">비자 경로 목록</h2>
+            <p className="text-sm text-gray-500">활성 상태와 정보 기준일을 빠르게 확인할 수 있습니다.</p>
+          </div>
+          <button
+            onClick={loadPathways}
+            className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+          >
+            <RefreshCw className="w-4 h-4" />
+            새로고침
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          {pathways.map((pathway) => {
+            const isSelected = pathway.pathwayId === selectedPathwayId;
+            return (
+              <button
+                key={pathway.pathwayId}
+                onClick={() => setSelectedPathwayId(pathway.pathwayId)}
+                className={`w-full rounded-xl border px-4 py-3 text-left transition ${
+                  isSelected ? 'border-sky-300 bg-sky-50' : 'border-gray-200 bg-white hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400">{pathway.pathwayId}</p>
+                    <p className="font-semibold text-gray-900">{pathway.nameKo}</p>
+                    <p className="text-xs text-gray-500">{pathway.nameEn}</p>
+                  </div>
+                  <span className={`rounded-full px-2 py-1 text-xs font-semibold ${pathway.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                    {pathway.isActive ? '활성' : '비활성'}
+                  </span>
+                </div>
+                {pathway.lastUpdatedAt && (
+                  <p className="mt-2 text-xs text-gray-500">기준일 {pathway.lastUpdatedAt}</p>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">비자 경로 편집</h2>
+              <p className="text-sm text-gray-500">법 개정일, 정세 변경 사유, 노출 여부를 즉시 반영합니다.</p>
+            </div>
+            <button
+              onClick={handleSave}
+              disabled={!form || saving}
+              className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-700 disabled:opacity-50"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+              저장
+            </button>
+          </div>
+
+          {error && <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+          {success && <div className="mb-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700">{success}</div>}
+
+          {!form ? (
+            <EmptyState title="선택된 경로 없음" description="왼쪽 목록에서 편집할 비자 경로를 선택하세요." />
+          ) : (
+            <div className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <AdminInput label="경로 ID" value={form.pathwayId} disabled />
+                <AdminInput label="한글명" value={form.nameKo} onChange={(value) => updateField('nameKo', value)} />
+                <AdminInput label="영문명" value={form.nameEn} onChange={(value) => updateField('nameEn', value)} />
+                <AdminInput label="경로 타입" value={form.pathwayType} onChange={(value) => updateField('pathwayType', value)} />
+                <AdminInput label="최소 나이" type="number" value={String(form.ageMin)} onChange={(value) => updateField('ageMin', Number(value))} />
+                <AdminInput label="최대 나이" type="number" value={String(form.ageMax)} onChange={(value) => updateField('ageMax', Number(value))} />
+                <AdminInput label="최소 학력" value={form.minEducation} onChange={(value) => updateField('minEducation', value)} />
+                <AdminInput label="허용 국적 타입" value={form.allowedNationalityType} onChange={(value) => updateField('allowedNationalityType', value)} />
+                <AdminInput label="최소 TOPIK" type="number" value={String(form.topikMin)} onChange={(value) => updateField('topikMin', Number(value))} />
+                <AdminInput label="최소 자금(만원)" type="number" value={String(form.minFund)} onChange={(value) => updateField('minFund', Number(value))} />
+                <AdminInput label="예상 기간(개월)" type="number" value={String(form.estimatedMonths)} onChange={(value) => updateField('estimatedMonths', Number(value))} />
+                <AdminInput label="예상 비용(만원)" type="number" value={String(form.estimatedCostWon)} onChange={(value) => updateField('estimatedCostWon', Number(value))} />
+                <AdminInput label="플랫폼 지원" value={form.platformSupport} onChange={(value) => updateField('platformSupport', value)} />
+                <AdminInput label="기본 점수" type="number" value={String(form.baseScore)} onChange={(value) => updateField('baseScore', Number(value))} />
+                <AdminInput label="비자 체인" value={form.visaChain} onChange={(value) => updateField('visaChain', value)} />
+                <AdminInput label="정보 기준일" type="date" value={form.lastUpdatedAt ?? ''} onChange={(value) => updateField('lastUpdatedAt', value)} />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <AdminTextarea
+                  label="변경 사유"
+                  value={form.lastUpdatedReason ?? ''}
+                  onChange={(value) => updateField('lastUpdatedReason', value)}
+                  placeholder="예: 2026년 EPS 쿼터 변경"
+                />
+                <AdminTextarea
+                  label="경로 메모"
+                  value={form.note}
+                  onChange={(value) => updateField('note', value)}
+                  placeholder="결과 카드에 노출되는 설명"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-3">
+                <label className="inline-flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={form.requiresEthnicKorean}
+                    onChange={(e) => updateField('requiresEthnicKorean', e.target.checked)}
+                  />
+                  재외동포 전용 경로
+                </label>
+
+                <label className="inline-flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    checked={form.isActive}
+                    onChange={(e) => updateField('isActive', e.target.checked)}
+                  />
+                  결과 노출 활성화
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">최근 변경 이력</h3>
+          {changelog.length === 0 ? (
+            <p className="text-sm text-gray-500">변경 이력이 아직 없습니다.</p>
+          ) : (
+            <div className="space-y-3">
+              {changelog.map((item) => (
+                <div key={item.id} className="rounded-xl border border-gray-200 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <p className="font-medium text-gray-900">{item.fieldChanged}</p>
+                    <p className="text-xs text-gray-500">{new Date(item.changedAt).toLocaleString('ko-KR')}</p>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-1">이전값: {item.oldValue ?? '-'}</p>
+                  <p className="text-sm text-gray-600 mb-1">새값: {item.newValue ?? '-'}</p>
+                  <p className="text-sm text-gray-700">사유: {item.reason}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminInput({
+  label,
+  value,
+  onChange,
+  type = 'text',
+  disabled = false,
+}: {
+  label: string;
+  value: string;
+  onChange?: (value: string) => void;
+  type?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-medium text-gray-700">{label}</span>
+      <input
+        type={type}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange?.(e.target.value)}
+        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none focus:border-sky-400 disabled:bg-gray-50 disabled:text-gray-500"
+      />
+    </label>
+  );
+}
+
+function AdminTextarea({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-medium text-gray-700">{label}</span>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        rows={4}
+        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 outline-none focus:border-sky-400"
+      />
+    </label>
   );
 }
