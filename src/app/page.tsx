@@ -52,15 +52,10 @@ export default function Home() {
               className="flex items-center gap-1.5 hover:underline"
             >
               <span className="font-medium">Not in Korea?</span>
-              <span className="hidden sm:inline text-blue-100">
-                Plan your journey to Korea
-              </span>
+              <span className="hidden sm:inline text-blue-100">Explore visa options before you move</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-            <span className="text-blue-200 hidden md:inline mx-1">|</span>
-            <span className="text-blue-200 text-xs hidden md:inline">
-              한국에 계시지 않나요?
-            </span>
+            <span className="text-blue-200 text-xs hidden md:inline">Start with the international planner</span>
             <button
               onClick={dismissBanner}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full transition"
@@ -97,7 +92,7 @@ export default function Home() {
                   }`}
                 >
                   <Clock size={14} />
-                  알바
+                  Part-time
                 </button>
                 <button
                   onClick={() => setJobType((prev) => (prev === 'FULL_TIME' ? '' : 'FULL_TIME'))}
@@ -108,7 +103,7 @@ export default function Home() {
                   }`}
                 >
                   <Briefcase size={14} />
-                  정규직
+                  Full-time
                 </button>
               </div>
             </div>

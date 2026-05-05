@@ -9,22 +9,22 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-gray-400">
           <div>
             <p>
-              <span className="font-semibold text-gray-500">주식회사 리브소프트 (LivSoft Inc)</span>
-              <span className="mx-1.5">|</span>대표 박찬호
-              <span className="mx-1.5">|</span>사업자등록번호 485-86-03274
+              <span className="font-semibold text-gray-500">LivSoft Inc.</span>
+              <span className="mx-1.5">|</span>CEO Chanho Park
+              <span className="mx-1.5">|</span>Business Registration No. 485-86-03274
             </p>
             <p className="mt-1">
-              서울특별시 중구 퇴계로 15 519호 (남대문로5가)
+              Room 519, 15 Toegye-ro, Jung-gu, Seoul, Republic of Korea
             </p>
             <p className="mt-1">
-              대표번호 070-8095-4474
+              Main line 070-8095-4474
               <span className="mx-1.5">|</span>pch0675@naver.com
             </p>
           </div>
           <div className="flex items-center gap-3 text-gray-400">
-            <Link href="/terms-and-conditions" className="hover:text-gray-600 transition-colors">이용약관</Link>
+            <Link href="/terms-and-conditions" className="hover:text-gray-600 transition-colors">Terms & Conditions</Link>
             <span>|</span>
-            <Link href="/privacy-policy" className="hover:text-gray-600 transition-colors">개인정보처리방침</Link>
+            <Link href="/privacy-policy" className="hover:text-gray-600 transition-colors">Privacy Policy</Link>
           </div>
         </div>
         <p className="text-[11px] text-gray-300 mt-3">&copy; {new Date().getFullYear()} Jobchaja. All rights reserved.</p>

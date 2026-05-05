@@ -32,12 +32,12 @@ export default function CompanyLogos() {
   return (
     <section>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-[15px] font-bold text-[#14191E]">채용 중인 기업</h2>
+        <h2 className="text-[15px] font-bold text-[#14191E]">Companies Hiring Now</h2>
         <Link
           href="/register"
           className="text-[12px] text-[#9CA3AF] hover:text-[#0066FF] transition-colors"
         >
-          기업 서비스 알아보기
+          Explore employer tools
         </Link>
       </div>
 

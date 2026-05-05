@@ -118,7 +118,7 @@ function JobRow({ job, faded }: { job: JobPosting; faded: boolean }) {
             </div>
             <span className="text-[11px] text-slate-600 flex items-center gap-1 shrink-0">
               <Briefcase size={11} />
-              {job.boardType === 'FULL_TIME' ? '정규직 · 4대보험' : '파트타임 · 시급제'}
+              {job.boardType === 'FULL_TIME' ? 'Full-time · benefits included' : 'Part-time · hourly pay'}
             </span>
           </div>
 
@@ -152,7 +152,7 @@ function JobRow({ job, faded }: { job: JobPosting; faded: boolean }) {
               }`}
               onClick={e => e.stopPropagation()}
             >
-              {isClosed ? '마감' : '상세보기 →'}
+              {isClosed ? 'Closed' : 'View details →'}
             </Link>
           </div>
         </div>
@@ -205,12 +205,12 @@ export default function RealtimeJobs({ boardFilter = '' }: RealtimeJobsProps) {
             <Zap size={15} className="text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-slate-900">실시간 채용 정보</h2>
-            <p className="text-xs text-sky-600 mt-0.5 font-medium">지금 막 올라온 최신 공고</p>
+            <h2 className="text-lg font-bold text-slate-900">Latest Job Openings</h2>
+            <p className="text-xs text-sky-600 mt-0.5 font-medium">Fresh listings from verified employers</p>
           </div>
         </div>
-        <Link href="/alba" className="text-[13px] text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1">
-          전체보기 <ArrowRight size={13} />
+        <Link href="/worker/jobs" className="text-[13px] text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1">
+          View all <ArrowRight size={13} />
         </Link>
       </div>
 
@@ -237,14 +237,14 @@ export default function RealtimeJobs({ boardFilter = '' }: RealtimeJobsProps) {
 
         {/* 더보기 / See more */}
         <div className="border-t border-slate-100 py-3 text-center bg-slate-50/50">
-          <Link href="/alba" className="inline-flex items-center gap-1.5 text-sm text-sky-600 font-medium hover:text-sky-700 hover:underline transition-colors">
-            더 많은 공고 보기 <ArrowRight size={13} />
+          <Link href="/worker/jobs" className="inline-flex items-center gap-1.5 text-sm text-sky-600 font-medium hover:text-sky-700 hover:underline transition-colors">
+            Browse more jobs <ArrowRight size={13} />
           </Link>
         </div>
       </div>
 
       {showExample && (
-        <p className="text-center text-xs text-slate-400 mt-2">위 공고는 예시입니다. 실제 공고가 등록되면 표시됩니다.</p>
+        <p className="text-center text-xs text-slate-400 mt-2">These are sample listings until live openings are published.</p>
       )}
     </section>
   );

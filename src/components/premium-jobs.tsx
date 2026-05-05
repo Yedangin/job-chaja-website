@@ -159,7 +159,7 @@ function PremiumCard({ job, imageIndex }: { job: JobPosting; imageIndex: number 
             {fmtSalary(job)}
           </p>
           <p className={`text-[10px] mb-4 transition-colors duration-300 ${h ? 'text-white/40' : 'text-slate-400'}`}>
-            {job.boardType === 'FULL_TIME' ? '정규직' : '알바'}
+            {job.boardType === 'FULL_TIME' ? 'Full-time' : 'Part-time'}
           </p>
         </div>
 
@@ -174,9 +174,9 @@ function PremiumCard({ job, imageIndex }: { job: JobPosting; imageIndex: number 
                 ))}
               </div>
               <div className="flex items-center gap-1.5 text-white/50 text-[10px]">
-                <Briefcase size={10} /> {job.boardType === 'FULL_TIME' ? '정규직 · 4대보험' : '파트타임 · 시급제'}
+                <Briefcase size={10} /> {job.boardType === 'FULL_TIME' ? 'Full-time · benefits included' : 'Part-time · hourly pay'}
               </div>
-              <Link href={job.id !== '0' ? `/jobs/${job.id}` : '#'} className="block text-[10px] text-center bg-sky-500 hover:bg-sky-400 text-white rounded-md py-1.5 font-semibold transition-colors" onClick={e => e.stopPropagation()}>상세보기</Link>
+              <Link href={job.id !== '0' ? `/jobs/${job.id}` : '#'} className="block text-[10px] text-center bg-sky-500 hover:bg-sky-400 text-white rounded-md py-1.5 font-semibold transition-colors" onClick={e => e.stopPropagation()}>View details</Link>
             </div>
           </div>
         </div>
@@ -222,10 +222,10 @@ export default function PremiumJobs({ boardFilter = '' }: PremiumJobsProps) {
           <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center shrink-0">
             <Crown size={14} className="text-white" />
           </div>
-          <h2 className="text-[17px] font-bold text-slate-900">프리미엄 채용</h2>
+          <h2 className="text-[17px] font-bold text-slate-900">Featured Jobs</h2>
         </div>
-        <Link href="/alba" className="text-[13px] text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1">
-          전체보기 <ArrowRight size={13} />
+        <Link href="/worker/jobs" className="text-[13px] text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1">
+          View all <ArrowRight size={13} />
         </Link>
       </div>
 
@@ -236,7 +236,7 @@ export default function PremiumJobs({ boardFilter = '' }: PremiumJobsProps) {
       </div>
 
       {showExample && (
-        <p className="text-center text-[11px] text-slate-400 mt-4">위 공고는 예시입니다. 실제 프리미엄 공고가 등록되면 표시됩니다.</p>
+        <p className="text-center text-[11px] text-slate-400 mt-4">These are sample listings until live featured jobs are published.</p>
       )}
     </section>
   );
