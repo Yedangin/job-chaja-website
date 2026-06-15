@@ -49,7 +49,10 @@ export function ForgotPasswordForm({ onSwitchView }: ForgotPasswordFormProps) {
               />
               {form.formState.errors.email && (
                 <p className="text-xs text-red-500 mt-1 ml-1">
-                  {t(form.formState.errors.email.message as string)}
+                  {t(
+                    form.formState.errors.email
+                      .message as Parameters<typeof t>[0],
+                  )}
                 </p>
               )}
             </div>

@@ -19,6 +19,9 @@ export const signupSchema = z.object({
   fullName: z
     .string()
     .min(1, 'Name is required'),
+  birthDate: z
+    .string()
+    .date('Valid birth date is required'),
   email: z
     .string()
     .email('errEmailFormat'),
@@ -30,10 +33,20 @@ export const signupSchema = z.object({
       'pwRulePh'
     ),
   passwordConfirm: z.string(),
-}).refine((data) => data.password === data.passwordConfirm, {
-  message: 'errPwMatch',
-  path: ['passwordConfirm'],
-});
+})
+  .refine((data) => data.password === data.passwordConfirm, {
+    message: 'errPwMatch',
+    path: ['passwordConfirm'],
+  })
+  .refine((data) => {
+    const birthDate = new Date(`${data.birthDate}T00:00:00Z`);
+    const cutoff = new Date();
+    cutoff.setUTCFullYear(cutoff.getUTCFullYear() - 18);
+    return birthDate <= cutoff;
+  }, {
+    message: 'You must be at least 18 years old',
+    path: ['birthDate'],
+  });
 
 /**
  * 이메일 검증 스키마 (비밀번호 찾기 등)

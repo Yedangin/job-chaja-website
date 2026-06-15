@@ -1,40 +1,47 @@
 import { privacyPolicyData } from "@/data/privacy-policy";
 import { Fragment } from "react";
-
-// A simple component to render the table data
-const renderTable = (table: { label: string; value: string }[]) => (
-  <div className="overflow-x-auto my-4">
-    <table className="min-w-full divide-y divide-gray-200 border">
-      <tbody className="bg-white divide-y divide-gray-200">
-        {table.map((row, index) => (
-          <tr key={index} className="hover:bg-gray-50">
-            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{row.label}</td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.value}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
+import krMessages from "../../../../messages/kr.json";
 
 export default function PrivacyPolicyPage() {
   const { header, sections } = privacyPolicyData;
+  const koreanPolicy = krMessages.PrivacyPolicy;
 
   return (
     <main className="bg-gray-50 py-12 md:py-20">
       <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header */}
         <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900">{header.title}</h1>
-          <p className="text-sm text-gray-500 mt-2">Last updated: {header.lastUpdated}</p>
-          <p className="mt-4 text-lg text-gray-600">{header.description}</p>
-          <p className="mt-2 text-sm text-gray-500 italic">{header.disclaimer}</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900">{koreanPolicy.header.title}</h1>
+          <p className="text-sm text-gray-500 mt-2">{koreanPolicy.header.lastUpdated}</p>
+          <p className="mt-4 text-lg text-gray-600">{koreanPolicy.header.description}</p>
         </header>
 
-        {/* Sections */}
         <div className="space-y-10">
+          {koreanPolicy.sections.map((section) => (
+            <section
+              id={`privacy-section-${section.id}`}
+              key={`ko-${section.id}`}
+              className="scroll-mt-6 bg-white p-6 md:p-8 rounded-lg shadow-sm"
+            >
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">{section.title}</h2>
+              <ul className="list-disc list-inside space-y-2 text-gray-700">
+                {section.content.map((item, index) => <li key={index}>{item}</li>)}
+              </ul>
+            </section>
+          ))}
+
+          <header className="border-t border-gray-300 pt-12 text-center">
+            <h2 className="text-3xl font-bold text-gray-900">{header.title} - English Reference</h2>
+            <p className="text-sm text-gray-500 mt-2">Last updated: {header.lastUpdated}</p>
+            <p className="mt-4 text-gray-600">{header.description}</p>
+            <p className="mt-2 text-sm text-gray-500 italic">{header.disclaimer}</p>
+          </header>
+
           {sections.map((section) => (
-            <section key={section.id} className="bg-white p-6 md:p-8 rounded-lg shadow-sm">
+            <section
+              id={`privacy-en-section-${section.id}`}
+              key={`en-${section.id}`}
+              className="scroll-mt-6 bg-white p-6 md:p-8 rounded-lg shadow-sm"
+            >
               <h2 className="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">{section.title}</h2>
               {section.type === 'bullet-list' && section.content && (
                 <ul className="list-disc list-inside space-y-2 text-gray-700">
@@ -71,7 +78,6 @@ export default function PrivacyPolicyPage() {
                                     ))}
                                 </ul>
                             )}
-                            {subsection.table && renderTable(subsection.table)}
                         </Fragment>
                     ))}
                  </div>

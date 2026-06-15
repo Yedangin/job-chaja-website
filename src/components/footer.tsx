@@ -25,6 +25,10 @@ export default function Footer() {
             <Link href="/terms-and-conditions" className="hover:text-gray-600 transition-colors">이용약관</Link>
             <span>|</span>
             <Link href="/privacy-policy" className="hover:text-gray-600 transition-colors">개인정보처리방침</Link>
+            <span>|</span>
+            <Link href="/refund-policy" className="hover:text-gray-600 transition-colors">취소 및 환불 정책</Link>
+            <span>|</span>
+            <Link href="/privacy-request" className="hover:text-gray-600 transition-colors">개인정보 권리 요청</Link>
           </div>
         </div>
         <p className="text-[11px] text-gray-300 mt-3">&copy; {new Date().getFullYear()} Jobchaja. All rights reserved.</p>

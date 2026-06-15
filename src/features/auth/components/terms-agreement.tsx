@@ -1,11 +1,11 @@
 import { useLanguage } from '@/i18n/LanguageProvider';
+import Link from 'next/link';
 import type { TermsAgreement } from '../types/auth.types';
 
 interface TermsAgreementProps {
   terms: TermsAgreement;
   onTermChange: (key: keyof TermsAgreement) => void;
   onAllTermsChange: (checked: boolean) => void;
-  onViewTerm: (termKey: string) => void;
   isAllChecked: boolean;
 }
 
@@ -16,14 +16,13 @@ export function TermsAgreementComponent({
   terms,
   onTermChange,
   onAllTermsChange,
-  onViewTerm,
   isAllChecked,
 }: TermsAgreementProps) {
   const { t } = useLanguage();
 
   return (
     <div className="space-y-3">
-      {/* 전체 동의 */}
+      {/* Required agreements only; optional marketing remains a free choice. */}
       <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100 transition">
         <input
           type="checkbox"
@@ -31,16 +30,17 @@ export function TermsAgreementComponent({
           onChange={(e) => onAllTermsChange(e.target.checked)}
           className="w-5 h-5 rounded border-slate-300 accent-sky-600"
         />
-        <span className="text-sm font-bold text-slate-800">{t('agreeAll')}</span>
+        <span className="text-sm font-bold text-slate-800">필수 약관 모두 동의</span>
       </label>
 
       {/* 개별 약관 */}
       <div className="space-y-2 pl-2">
         {[
-          { key: 'term1', label: t('term1') },
-          { key: 'term2', label: t('term2') },
-          { key: 'term3', label: t('term3') },
-          { key: 'term4', label: t('term4') },
+          { key: 'term1', label: t('term1'), href: '/terms-and-conditions' },
+          { key: 'term2', label: t('term2'), href: '/privacy-policy' },
+          { key: 'term3', label: t('term3'), href: '/privacy-policy#privacy-section-5' },
+          { key: 'term4', label: t('term4'), href: '/privacy-policy' },
+          { key: 'term5', label: '[필수] 만 18세 이상입니다', hideView: true },
         ].map((term) => (
           <div key={term.key} className="flex items-center justify-between">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -52,13 +52,16 @@ export function TermsAgreementComponent({
               />
               <span className="text-xs text-slate-600">{term.label}</span>
             </label>
-            <button
-              type="button"
-              onClick={() => onViewTerm(term.key)}
-              className="text-xs text-slate-400 underline hover:text-slate-600 cursor-pointer p-1"
-            >
-              {t('view')}
-            </button>
+            {!term.hideView && (
+              <Link
+                href={term.href || '/privacy-policy'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-slate-400 underline hover:text-slate-600 cursor-pointer p-1"
+              >
+                {t('view')}
+              </Link>
+            )}
           </div>
         ))}
       </div>

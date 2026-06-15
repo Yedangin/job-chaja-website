@@ -267,7 +267,7 @@ export default function CompanyVisaGuidePage() {
                   <td className="p-3 font-medium text-gray-700 sticky left-0 bg-white">{row.label}</td>
                   {VISA_GUIDE_DATA.map(v => (
                     <td key={v.code} className="p-3 text-gray-600 text-center">
-                      {(v as Record<string, unknown>)[row.key] as string}
+                      {(v as unknown as Record<string, unknown>)[row.key] as string}
                     </td>
                   ))}
                 </tr>

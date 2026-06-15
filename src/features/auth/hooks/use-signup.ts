@@ -7,6 +7,7 @@ import { authApi } from '../api/auth.api';
 import { signupSchema, type SignupFormData } from '../schemas/auth.schema';
 import { toast } from '@/lib/toast';
 import type { TermsAgreement, MemberType } from '../types/auth.types';
+import { CURRENT_POLICY_VERSION } from '@/lib/legal';
 
 /**
  * 회원가입 로직 및 상태 관리
@@ -23,6 +24,7 @@ export function useSignup(memberType: MemberType = 'seeker') {
     term2: false,
     term3: false,
     term4: false,
+    term5: false,
   });
 
   // react-hook-form 설정
@@ -31,6 +33,7 @@ export function useSignup(memberType: MemberType = 'seeker') {
     mode: 'onChange', // 타자 칠 때마다 실시간 검증
     defaultValues: {
       fullName: '',
+      birthDate: '',
       email: '',
       password: '',
       passwordConfirm: '',
@@ -38,8 +41,8 @@ export function useSignup(memberType: MemberType = 'seeker') {
   });
 
   // 약관 체크 관련
-  const isAllRequiredChecked = terms.term1 && terms.term2 && terms.term3;
-  const isAllChecked = Object.values(terms).every((v) => v);
+  const isAllRequiredChecked = terms.term1 && terms.term2 && terms.term3 && terms.term5;
+  const isAllChecked = isAllRequiredChecked;
 
   const handleTermChange = (key: keyof TermsAgreement) => {
     setTerms((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -50,7 +53,8 @@ export function useSignup(memberType: MemberType = 'seeker') {
       term1: checked,
       term2: checked,
       term3: checked,
-      term4: checked,
+      term4: false,
+      term5: checked,
     });
   };
 
@@ -80,7 +84,15 @@ export function useSignup(memberType: MemberType = 'seeker') {
         email: data.email,
         password: data.password,
         fullName: data.fullName,
+        birthDate: data.birthDate,
         role: memberType === 'company' ? 'CORPORATE' : 'INDIVIDUAL',
+        termsConsent: true,
+        privacyConsent: true,
+        internationalTransferConsent: true,
+        marketingConsent: terms.term4,
+        ageConfirmed: true,
+        policyVersion: CURRENT_POLICY_VERSION,
+        consentChannel: 'WEB_SIGNUP',
       });
 
       console.log('[회원가입 성공]', response);
@@ -91,9 +103,9 @@ export function useSignup(memberType: MemberType = 'seeker') {
       setTimeout(() => {
         router.push('/');
       }, 100);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[회원가입 실패]', err);
-      const message = err.message || t('registerFail');
+      const message = err instanceof Error ? err.message : t('registerFail');
       setError(message);
       toast.error(message);
     } finally {

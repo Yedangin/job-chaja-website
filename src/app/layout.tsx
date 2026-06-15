@@ -1,6 +1,5 @@
 import React from "react"
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
 // import { Analytics } from '@vercel/analytics/next'
 import Script from 'next/script'
 import './globals.css'
@@ -9,13 +8,13 @@ import { LanguageProvider } from '@/i18n/LanguageProvider'
 import { AuthProvider } from '@/contexts/auth-context'
 import { Toaster } from 'sonner'
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
-
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://jobchaja.com'),
   title: 'JobChaja - Global Talent Platform',
   description: 'Global talent matching platform for employers and job seekers',
-  generator: 'v0.app',
+  alternates: {
+    canonical: '/',
+  },
   icons: {
     icon: [
       {
@@ -31,6 +30,8 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const paidFeaturesEnabled = process.env.PAID_FEATURES_ENABLED === 'true';
+
   return (
     <html lang="en">
       <head>
@@ -41,11 +42,12 @@ export default function RootLayout({
           crossOrigin="anonymous"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
         />
-        {/* PortOne Script */}
-        <Script
-          src="https://cdn.iamport.kr/v1/iamport.js"
-          strategy="beforeInteractive"
-        />
+        {paidFeaturesEnabled && (
+          <Script
+            src="https://cdn.iamport.kr/v1/iamport.js"
+            strategy="beforeInteractive"
+          />
+        )}
       </head>
 
       <body className="font-sans antialiased">

@@ -1,6 +1,6 @@
 /**
- * 잡차자 서비스 이용약관 (2026-02-25 시행)
- * JobChaja Terms of Service (Effective: 2026-02-25)
+ * 잡차자 서비스 이용약관 (2026-03-02 시행)
+ * JobChaja Terms of Service (Effective: 2026-03-02)
  * 카카오페이·KG이니시스 심사 요건 충족 포함
  */
 
@@ -20,6 +20,13 @@ export default function TermsAndConditionsPage() {
         </header>
 
         <div className="space-y-8 text-sm text-gray-700 leading-relaxed">
+          <section className="rounded-xl border border-amber-300 bg-amber-50 p-6 text-amber-900">
+            <h2 className="mb-2 text-base font-bold">유료 서비스 출시 준비 안내</h2>
+            <p>
+              현재 유료 및 예치금 서비스는 제공되지 않습니다. 관련 조항은 출시 전 법률 검토와
+              별도 고지를 거쳐 확정되며, 필요한 경우 회원의 동의를 다시 받습니다.
+            </p>
+          </section>
 
           {/* 제1조 */}
           <section className="bg-white rounded-xl p-6 shadow-sm">

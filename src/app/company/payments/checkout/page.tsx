@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import * as PortOne from '@portone/browser-sdk/v2';
 
 /**
@@ -24,6 +25,8 @@ export default function PaymentCheckoutPage() {
   const [discount, setDiscount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [agreedToPurchaseTerms, setAgreedToPurchaseTerms] = useState(false);
+  const [agreedToRefundPolicy, setAgreedToRefundPolicy] = useState(false);
 
   // 상품 정보 조회 / Load product info
   useEffect(() => {
@@ -75,7 +78,7 @@ export default function PaymentCheckoutPage() {
 
   // 결제하기 / Process payment
   const handlePayment = async () => {
-    if (loading) return;
+    if (loading || !agreedToPurchaseTerms || !agreedToRefundPolicy) return;
     setLoading(true);
     setError('');
 
@@ -228,10 +231,49 @@ export default function PaymentCheckoutPage() {
           </div>
         )}
 
+        {/* 구매 전 필수 고지 및 동의 / Required pre-purchase disclosures */}
+        <div className="mb-4 rounded-xl bg-white p-6 shadow-sm">
+          <h2 className="mb-3 text-lg font-semibold">구매 전 필수 확인</h2>
+          <p className="mb-4 text-sm leading-6 text-gray-600">
+            결제 금액은 VAT 포함 금액입니다. 상품명, 제공 기간, 적용 시점,
+            취소 및 환불 조건을 확인한 뒤 결제해 주세요.
+          </p>
+          <label className="mb-3 flex cursor-pointer items-start gap-3 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={agreedToPurchaseTerms}
+              onChange={(event) => setAgreedToPurchaseTerms(event.target.checked)}
+              className="mt-1"
+            />
+            <span>
+              [필수] 주문 내용과{' '}
+              <Link className="font-semibold text-blue-700 underline" href="/terms-and-conditions" target="_blank">
+                이용약관
+              </Link>
+              을 확인했습니다.
+            </span>
+          </label>
+          <label className="flex cursor-pointer items-start gap-3 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={agreedToRefundPolicy}
+              onChange={(event) => setAgreedToRefundPolicy(event.target.checked)}
+              className="mt-1"
+            />
+            <span>
+              [필수] 서비스 제공 개시 후 청약철회가 제한될 수 있음을 포함한{' '}
+              <Link className="font-semibold text-blue-700 underline" href="/refund-policy" target="_blank">
+                취소 및 환불 정책
+              </Link>
+              을 확인했습니다.
+            </span>
+          </label>
+        </div>
+
         {/* 결제 버튼 / Payment button */}
         <button
           onClick={handlePayment}
-          disabled={loading || !product}
+          disabled={loading || !product || !agreedToPurchaseTerms || !agreedToRefundPolicy}
           className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold text-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
           {loading ? '결제 처리 중...' : `${finalAmount.toLocaleString()}원 결제하기`}

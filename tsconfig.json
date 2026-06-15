@@ -38,6 +38,10 @@
     "out/dev/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "src/app/**/variants/**",
+    "src/app/diagnosis/designs/**",
+    "src/app/job-cards/**",
+    "src/components/example.tsx"
   ]
 }

@@ -15,6 +15,10 @@ async function proxyRequest(
   context: { params: Promise<{ path?: string[] }> },
   method: string,
 ) {
+  if (process.env.SENSITIVE_DATA_FEATURES_ENABLED !== 'true') {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
   const { path } = await context.params;
   const search = request.nextUrl.search;
   const pathStr = path && path.length > 0 ? `/${path.join('/')}` : '';

@@ -43,6 +43,7 @@ type SortKey = 'latest' | 'deadline' | 'applicants';
  * 채용중/마감/임시저장 탭, 정렬, ⋯ 메뉴 (수정/복사/마감/프리미엄/삭제)
  */
 export default function CompanyJobsPage() {
+  const [renderedAt] = useState(() => Date.now());
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabKey>('active');
   const [sortBy, setSortBy] = useState<SortKey>('latest');
@@ -71,7 +72,10 @@ export default function CompanyJobsPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchJobs(); }, [activeTab]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => void fetchJobs(), 0);
+    return () => window.clearTimeout(timer);
+  }, [activeTab]);
 
   // 메뉴 바깥 클릭 닫기 / Close menu on outside click
   useEffect(() => {
@@ -96,7 +100,7 @@ export default function CompanyJobsPage() {
   // D-day 계산 / Calculate days until deadline
   const getDday = (dateStr?: string): string | null => {
     if (!dateStr) return null;
-    const diff = Math.ceil((new Date(dateStr).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    const diff = Math.ceil((new Date(dateStr).getTime() - renderedAt) / (1000 * 60 * 60 * 24));
     if (diff < 0) return '만료';
     if (diff === 0) return 'D-Day';
     return `D-${diff}`;
@@ -252,10 +256,8 @@ export default function CompanyJobsPage() {
                       </div>
 
                       {/* 비자 매칭 배지 / Visa match badges */}
-                      {job.allowedVisas && (typeof job.allowedVisas === 'string' ? job.allowedVisas : '').length > 0 && (() => {
-                        const visas = typeof job.allowedVisas === 'string'
-                          ? job.allowedVisas.split(',').map(v => v.trim()).filter(Boolean)
-                          : Array.isArray(job.allowedVisas) ? job.allowedVisas : [];
+                      {job.allowedVisas && job.allowedVisas.length > 0 && (() => {
+                        const visas = job.allowedVisas;
                         return visas.length > 0 ? (
                           <div className="flex flex-wrap gap-1 mt-1.5">
                             {visas.slice(0, 5).map(v => (

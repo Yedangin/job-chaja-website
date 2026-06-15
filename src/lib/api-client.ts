@@ -57,7 +57,7 @@ apiClient.interceptors.response.use(
     // Removed window.location.href redirect: caused full page navigation
     // that redirected to login before auth-context's refreshAuth could complete
     if (error.response?.status === 401) {
-      const suppressRedirect = (error.config as Record<string, unknown>)?._suppressAuthRedirect;
+      const suppressRedirect = (error.config as unknown as Record<string, unknown>)?._suppressAuthRedirect;
 
       if (!suppressRedirect && typeof window !== 'undefined') {
         // window.location.href 대신 아무 것도 하지 않음 — AuthProvider의 상태로 로그인 여부 판단

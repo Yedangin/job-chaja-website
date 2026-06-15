@@ -45,7 +45,7 @@ export function LoginForm({ onSwitchView, memberType, onMemberTypeChange }: Logi
         />
         {errors.email && (
           <p className="text-xs text-red-500 ml-1">
-            {t(errors.email.message as string)}
+            {t(errors.email.message as Parameters<typeof t>[0])}
           </p>
         )}
 

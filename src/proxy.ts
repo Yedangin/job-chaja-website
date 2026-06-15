@@ -33,8 +33,67 @@ const REDIRECT_MAP: Array<{ from: string; to: string; exact?: boolean }> = [
   { from: '/talents', to: '/company/talents' },
 ];
 
-export function middleware(request: NextRequest) {
+const INTERNAL_ROUTE_PREFIXES = [
+  '/diagnosis/designs',
+  '/job-cards',
+];
+
+const PAID_ROUTE_PREFIXES = [
+  '/company/payments',
+  '/worker/payments',
+  '/diagnosis/premium',
+];
+
+const SENSITIVE_ROUTE_PREFIXES = ['/worker/visa-verification'];
+
+function matchesPrefix(pathname: string, prefixes: string[]) {
+  return prefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
+function isInternalRoute(pathname: string) {
+  return matchesPrefix(pathname, INTERNAL_ROUTE_PREFIXES) || pathname.includes('/variants/');
+}
+
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Design explorations and route variants are development-only and must not
+  // be publicly accessible or indexed in production.
+  if (process.env.NODE_ENV === 'production' && isInternalRoute(pathname)) {
+    return NextResponse.rewrite(new URL('/_not-found', request.url), { status: 404 });
+  }
+
+  // Paid services stay opt-in until legal, payment, and refund launch gates
+  // have been approved. Set PAID_FEATURES_ENABLED=true to release them.
+  if (
+    process.env.NODE_ENV === 'production'
+    && process.env.PAID_FEATURES_ENABLED !== 'true'
+    && matchesPrefix(pathname, PAID_ROUTE_PREFIXES)
+  ) {
+    return NextResponse.rewrite(new URL('/_not-found', request.url), { status: 404 });
+  }
+
+  // Sensitive-document collection stays disabled until separate consent,
+  // retention, deletion, and access-control evidence is approved.
+  if (
+    process.env.NODE_ENV === 'production'
+    && process.env.SENSITIVE_DATA_FEATURES_ENABLED !== 'true'
+    && matchesPrefix(pathname, SENSITIVE_ROUTE_PREFIXES)
+  ) {
+    return NextResponse.rewrite(new URL('/_not-found', request.url), { status: 404 });
+  }
+
+  // Admin UI is disabled by default for the public launch. Enable it only on
+  // an access-controlled deployment after an admin security review.
+  if (
+    process.env.NODE_ENV === 'production'
+    && process.env.ADMIN_ROUTES_ENABLED !== 'true'
+    && matchesPrefix(pathname, ['/admin'])
+  ) {
+    return NextResponse.rewrite(new URL('/_not-found', request.url), { status: 404 });
+  }
 
   for (const rule of REDIRECT_MAP) {
     if (rule.exact) {
@@ -61,14 +120,5 @@ export function middleware(request: NextRequest) {
 
 /** 레거시 경로에만 적용 / Only apply to legacy paths */
 export const config = {
-  matcher: [
-    '/profile/:path*',
-    '/resume/:path*',
-    '/talents/:path*',
-    '/visa-verification/:path*',
-    '/biz/:path*',
-    '/jobs/:path*',
-    '/payment/:path*',
-    '/payments/:path*',
-  ],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|icon.svg).*)'],
 };

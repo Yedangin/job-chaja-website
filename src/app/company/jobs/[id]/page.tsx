@@ -15,6 +15,7 @@ interface JobDetail {
   id: string;
   boardType: string;
   tierType: string;
+  premiumSource?: string | null;
   title: string;
   description: string;
   status: string;
@@ -75,6 +76,7 @@ const STATUS_MAP: Record<string, { label: string; color: string }> = {
  * GET /api/jobs/:id 연동 / Connects to GET /api/jobs/:id
  */
 export default function CompanyJobDetailPage() {
+  const [renderedAt] = useState(() => Date.now());
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [job, setJob] = useState<JobDetail | null>(null);
@@ -143,7 +145,7 @@ export default function CompanyJobDetailPage() {
   const getDday = () => {
     if (!job?.closingDate && !job?.expiresAt) return null;
     const target = job.closingDate || job.expiresAt;
-    const diff = Math.ceil((new Date(target!).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    const diff = Math.ceil((new Date(target!).getTime() - renderedAt) / (1000 * 60 * 60 * 24));
     if (diff < 0) return '마감';
     if (diff === 0) return 'D-Day';
     return `D-${diff}`;

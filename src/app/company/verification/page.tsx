@@ -1,17 +1,17 @@
 'use client';
 
 import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   AlertCircle, CheckCircle2, ArrowRight, ArrowLeft, Loader2,
-  Clock, Upload, X, FileText, Shield, ShieldCheck,
+  Clock, Upload, X, FileText, ShieldCheck,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { CURRENT_POLICY_VERSION } from '@/lib/legal';
 
 type Step = 1 | 2 | 3;
 
@@ -26,6 +26,7 @@ interface FormData {
   openDate: string;
   agreeTerms: boolean;
   agreePrivacy: boolean;
+  agreeInternationalTransfer: boolean;
   agreeMarketing: boolean;
 }
 
@@ -35,12 +36,9 @@ interface FormData {
  * register/page.tsx 기반, CompanyLayout 내에서 동작
  */
 export default function CompanyVerificationPage() {
-  const router = useRouter();
-  const { user, refreshAuth } = useAuth();
+  const { refreshAuth } = useAuth();
 
   const [currentStep, setCurrentStep] = useState<Step>(1);
-  const [isVerified, setIsVerified] = useState(false);
-  const [showAuthCode, setShowAuthCode] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [bizCheckLoading, setBizCheckLoading] = useState(false);
   const [bizCheckResult, setBizCheckResult] = useState<{
@@ -55,7 +53,7 @@ export default function CompanyVerificationPage() {
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
   const [lastRejectionReason, setLastRejectionReason] = useState<string | null>(null);
 
-  // PASS 본인인증 (다날) - 아직 미연동
+  // Real PASS verification is not integrated, so CEO identity exemption stays disabled.
   const [verifiedName] = useState<string | null>(null);
 
   // 서류 업로드 상태 / Document upload state
@@ -76,15 +74,19 @@ export default function CompanyVerificationPage() {
     openDate: '',
     agreeTerms: false,
     agreePrivacy: false,
+    agreeInternationalTransfer: false,
     agreeMarketing: false,
   });
 
   // 기업 인증 상태 조회 / Fetch corporate verification status
   useEffect(() => {
-    const sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') : null;
-    if (!sessionId) { setPageLoading(false); return; }
-
     const fetchStatus = async () => {
+      const sessionId = localStorage.getItem('sessionId');
+      if (!sessionId) {
+        setPageLoading(false);
+        return;
+      }
+
       try {
         const res = await fetch('/api/auth/corporate-verify', {
           credentials: 'include',
@@ -112,9 +114,6 @@ export default function CompanyVerificationPage() {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
-
-  const handleRequestAuthCode = () => { setShowAuthCode(true); };
-  const handleConfirmAuthCode = () => { setIsVerified(true); setShowAuthCode(false); };
 
   // 사업자 진위확인 / Business number verification
   const handleCheckBizInfo = async () => {
@@ -205,7 +204,14 @@ export default function CompanyVerificationPage() {
 
   const handleNextStep = (e: FormEvent) => {
     e.preventDefault();
-    if (currentStep === 1 && isVerified && formData.agreeTerms && formData.agreePrivacy) {
+    if (
+      currentStep === 1
+      && formData.managerName.trim()
+      && formData.managerPhone.trim()
+      && formData.agreeTerms
+      && formData.agreePrivacy
+      && formData.agreeInternationalTransfer
+    ) {
       setCurrentStep(2);
     }
   };
@@ -231,6 +237,12 @@ export default function CompanyVerificationPage() {
           empCertDocPath: empCertDoc?.filePath || null,
           empCertDocOrigName: empCertDoc?.originalName || null,
           isCeoSelf,
+          termsConsent: formData.agreeTerms,
+          privacyConsent: formData.agreePrivacy,
+          internationalTransferConsent: formData.agreeInternationalTransfer,
+          marketingConsent: formData.agreeMarketing,
+          policyVersion: CURRENT_POLICY_VERSION,
+          consentChannel: 'WEB_CORPORATE_VERIFY',
         }),
       });
       if (res.ok) {
@@ -251,10 +263,15 @@ export default function CompanyVerificationPage() {
   const handleBackStep = () => { setCurrentStep(prev => (prev === 1 ? 1 : (prev - 1) as Step)); };
 
   const toggleAllAgreements = (checked: boolean) => {
-    setFormData(prev => ({ ...prev, agreeTerms: checked, agreePrivacy: checked, agreeMarketing: checked }));
+    setFormData(prev => ({
+      ...prev,
+      agreeTerms: checked,
+      agreePrivacy: checked,
+      agreeInternationalTransfer: checked,
+    }));
   };
 
-  const isAllAgreed = formData.agreeTerms && formData.agreePrivacy;
+  const isAllAgreed = formData.agreeTerms && formData.agreePrivacy && formData.agreeInternationalTransfer;
 
   // ─── 로딩 / Loading ──────────────────────────
   if (pageLoading) {
@@ -362,9 +379,12 @@ export default function CompanyVerificationPage() {
             <p className="text-sm text-gray-500 mt-1">채용 공고 관리 및 지원자 연락을 위한 정보를 입력해주세요.</p>
           </div>
 
-          {/* 휴대폰 본인인증 / Phone verification */}
+          {/* Manager contact details. Phone identity verification is not enabled yet. */}
           <div className="bg-gray-50 rounded-xl p-5 border border-gray-100 space-y-4">
-            <h3 className="font-bold text-gray-800 text-sm">휴대폰 본인인증</h3>
+            <h3 className="font-bold text-gray-800 text-sm">담당자 연락처</h3>
+            <p className="text-xs leading-relaxed text-amber-700">
+              휴대폰 본인인증은 현재 제공되지 않습니다. 담당자 확인을 위해 정확한 연락처를 입력해 주세요.
+            </p>
 
             <Input
               type="text"
@@ -372,53 +392,19 @@ export default function CompanyVerificationPage() {
               value={formData.managerName}
               onChange={handleInputChange}
               placeholder="담당자 실명 입력"
-              disabled={isVerified}
+              required
             />
 
-            <div className="flex gap-3">
-              <Input
-                type="text"
-                name="managerPhone"
-                value={formData.managerPhone}
-                onChange={handleInputChange}
-                placeholder="휴대폰 번호 ('-' 없이 입력)"
-                maxLength={11}
-                inputMode="numeric"
-                disabled={isVerified}
-                className="flex-1"
-              />
-              {!isVerified && (
-                <Button type="button" onClick={handleRequestAuthCode}
-                  className="bg-gray-800 hover:bg-gray-700 text-white font-bold w-28 text-sm">
-                  인증요청
-                </Button>
-              )}
-            </div>
-
-            {showAuthCode && !isVerified && (
-              <div className="space-y-2">
-                <div className="flex gap-3">
-                  <div className="relative flex-1">
-                    <Input type="text" placeholder="인증번호 6자리" maxLength={6} inputMode="numeric" />
-                    <span className="absolute right-4 top-2.5 text-xs text-red-500 font-bold">02:59</span>
-                  </div>
-                  <Button type="button" onClick={handleConfirmAuthCode}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold w-20 text-sm">
-                    확인
-                  </Button>
-                </div>
-                <p className="text-xs text-gray-400">
-                  인증번호가 도착하지 않았나요?{' '}
-                  <button type="button" className="underline text-gray-600 font-medium">재발송</button>
-                </p>
-              </div>
-            )}
-
-            {isVerified && (
-              <div className="flex items-center gap-1 text-sm text-green-600 font-bold">
-                <CheckCircle2 className="w-4 h-4" /> 인증되었습니다.
-              </div>
-            )}
+            <Input
+              type="text"
+              name="managerPhone"
+              value={formData.managerPhone}
+              onChange={handleInputChange}
+              placeholder="휴대폰 번호 ('-' 없이 입력)"
+              maxLength={11}
+              inputMode="numeric"
+              required
+            />
           </div>
 
           {/* 추가 정보 / Additional info */}
@@ -454,14 +440,15 @@ export default function CompanyVerificationPage() {
                 className="w-5 h-5"
               />
               <label htmlFor="all-agree" className="ml-2 font-bold text-gray-900 cursor-pointer text-sm">
-                약관 전체 동의
+                필수 약관 모두 동의
               </label>
             </div>
             <div className="space-y-3 pl-1">
               {[
-                { id: 'agreeTerms', label: '[필수] 기업회원 이용약관 동의' },
-                { id: 'agreePrivacy', label: '[필수] 개인정보 수집 및 이용 동의' },
-                { id: 'agreeMarketing', label: '[선택] 마케팅 정보 수신 및 활용 동의' },
+                { id: 'agreeTerms', label: '[필수] 기업회원 이용약관 동의', href: '/terms-and-conditions' },
+                { id: 'agreePrivacy', label: '[필수] 개인정보 수집 및 이용 동의', href: '/privacy-policy' },
+                { id: 'agreeInternationalTransfer', label: '[필수] 개인정보 국외 이전 동의', href: '/privacy-policy#privacy-section-5' },
+                { id: 'agreeMarketing', label: '[선택] 마케팅 정보 수신 및 활용 동의', href: '/privacy-policy' },
               ].map(item => (
                 <div key={item.id} className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -477,7 +464,14 @@ export default function CompanyVerificationPage() {
                     />
                     <label htmlFor={item.id} className="ml-2 text-sm text-gray-600 cursor-pointer">{item.label}</label>
                   </div>
-                  <button type="button" className="text-xs text-gray-400 underline">보기</button>
+                  <Link
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-gray-400 underline"
+                  >
+                    보기
+                  </Link>
                 </div>
               ))}
             </div>
@@ -486,7 +480,7 @@ export default function CompanyVerificationPage() {
           <div className="flex justify-end pt-2">
             <Button
               type="submit"
-              disabled={!isVerified || !isAllAgreed}
+              disabled={!formData.managerName.trim() || !formData.managerPhone.trim() || !isAllAgreed}
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2"
             >
               다음 단계 <ArrowRight className="w-4 h-4" />

@@ -40,16 +40,16 @@
     },
 
     "company": {
-      "name": "Yedangin Co., Ltd.",
-      "ceo": "CEO: Woon-ah Choi",
-      "address": "2F, Unit 201, 58, Jogunari 1-gil, Sangnok-gu, Ansan-si, Gyeonggi-do, Republic of Korea",
-      "registration": "Business Registration Number: 187-81-03467",
-      "contact": "Contact: +82-10-7209-7488"
+      "name": "LivSoft Inc.",
+      "ceo": "CEO: Park Chanho",
+      "address": "Room 519, 15 Toegye-ro, Jung-gu, Seoul, Republic of Korea",
+      "registration": "Business Registration Number: 485-86-03274",
+      "contact": "Contact: +82-70-8095-4474"
     },
 
     "copyright": "© {year} Jobchaja. All rights reserved. | Design by Jobchaja",
 
-    "depositInfo": "Deposit System: Job Seeker ₩50,000 per application (win ₩50,000 when hired) | Corporate: ₩50,000 opening + ₩30,000 per post + ₩50,000 per interview"
+    "depositInfo": "Paid and deposit services are not currently available. Approved pricing and refund terms will be shown before launch."
   },
   "HomePage": {
     "HeroSection": {
@@ -62,7 +62,7 @@
     "FeaturesSection": {
       "badge": "Fair & Secure Interview Platform",
       "title": "Fair Interviews with Secure Deposit System",
-      "description": "Both job seekers and employers deposit 50,000 MMK each to ensure commitment to the interview process. Full refund after interview completion regardless of outcome.",
+      "description": "Paid and deposit services are being prepared and are not currently available. Approved pricing and refund terms will be shown before launch.",
 
       "features": {
         "twoWay": {
@@ -109,14 +109,14 @@
         "tags": [
           {
             "title": "Per Application Deposit",
-            "description": "Job seekers deposit 50,000 MMK per interview application",
-            "pricing": "₩50,000",
+            "description": "Pricing will be shown before paid services launch",
+            "pricing": "Coming soon",
             "icon": "/home/icons/1.png"
           },
           {
             "title": "Hiring Bonus",
-            "description": "Receive 50,000 MMK bonus if hired",
-            "pricing": "₩50,000 Bonus",
+            "description": "Any approved benefit terms will be shown before launch",
+            "pricing": "Coming soon",
             "icon": "/home/icons/2.png"
           },
           {
@@ -131,20 +131,20 @@
         "tags": [
           {
             "title": "Account Opening",
-            "description": "Deposit 50,000 MMK when opening corporate account",
-            "pricing": "₩50,000",
+            "description": "Pricing will be shown before paid services launch",
+            "pricing": "Coming soon",
             "icon": "/home/icons/4.png"
           },
           {
             "title": "Per Job Post",
-            "description": "Deposit 30,000 MMK per job posting",
-            "pricing": "₩30,000",
+            "description": "Pricing will be shown before paid services launch",
+            "pricing": "Coming soon",
             "icon": "/home/icons/5.png"
           },
           {
             "title": "Per Interview",
-            "description": "Deposit 50,000 MMK per interview conducted",
-            "pricing": "₩50,000",
+            "description": "Pricing will be shown before paid services launch",
+            "pricing": "Coming soon",
             "icon": "/home/icons/6.png"
           },
           {
@@ -194,7 +194,7 @@
   "TermsAndConditions": {
     "header": {
       "title": "Terms & Conditions",
-      "lastUpdated": "February 9, 2028",
+      "lastUpdated": "March 2, 2026",
       "description": "Please read these Terms of Service carefully before using Jobchaja platform.",
       "disclaimer": "By using Jobchaja forms, you agree to these simple terms. Please read them carefully."
     },
@@ -204,9 +204,9 @@
         "title": "General Provisions",
         "type": "bullet-list",
         "content": [
-          "These Terms of Service (“Terms”) set forth the rights, obligations, and responsibilities of Yedangin Co., Ltd. (the “Company”) and the users (“Members”) in connection with the use of the Jabchaja platform (the “Service”) operated by the Company. The Service provides an online platform connecting job seekers and employers, and these Terms apply equally to use of the Service via the website and mobile application.",
+          "These Terms of Service (“Terms”) set forth the rights, obligations, and responsibilities of LivSoft Inc. (the “Company”) and the users (“Members”) in connection with the use of the JobChaja platform (the “Service”) operated by the Company. The Service provides an online platform connecting job seekers and employers, and these Terms apply equally to use of the Service via the website and mobile application.",
           "“Service” refers to the online job matching platform and related services provided by the Company through its website and mobile app. Through this Service, Individual Members can search for and apply to jobs or schedule interviews, and Business Members can post job listings and manage interview reservations.",
-          "“Company” means Yedangin Co., Ltd., the entity that operates and manages the Service.",
+          "“Company” means LivSoft Inc., the entity that operates and manages the Service.",
           "“Member” refers to any user who has agreed to these Terms, registered for the Service, and entered into a service use agreement with the Company. Members include both Individual Members and Business Members as defined below.",
           "“Individual Member” means a Member who is an individual job seeker aged 18 or older, using the Service for the purpose of seeking employment opportunities. Individual Members must provide accurate personal information and may not use false or someone else’s information when registering or using the Service.",
           "“Business Member” means a Member that is a company, organization, or an authorized representative thereof, using the Service to post job offers and recruit candidates. Business Members must have the legal authority to represent the company and must provide any required company information (such as business registration details) accurately during registration.",
@@ -357,7 +357,7 @@
           "Changes to Service: The Company may modify, suspend, or discontinue any part of the Service at any time by providing notice to Members via the Service or email, especially if such changes significantly affect the users’ rights or obligations. If any such change to the Service requires a change to these Terms, the Company will follow the procedure in Article 3 regarding amendment of Terms.",
           "Headings: Section headings in these Terms are for convenience only and have no legal or contractual effect.",
           "Language: These Terms are made in Korean and translated into English. The Korean text is the original and binding version, particularly for legal interpretation. The English version is provided for convenience and to aid understanding for non-Korean users or stakeholders. In case of any inconsistency between the Korean and English versions, the Korean version shall prevail.",
-          "Effective Date: These Terms of Service are effective as of February 1, 2026, and will apply to all users from that date forward. For existing Members, continued use of the Service on or after the effective date constitutes acceptance of these Terms as updated. The Company may require a fresh acknowledgment of these Terms via an in-app or website prompt. If you do not agree to the changes, you must cease using the Service and may terminate your account as per Article 9."
+          "Effective Date: These Terms of Service are effective as of March 2, 2026. Material changes will be announced in advance, and fresh consent will be collected where required by law."
         ]
       }
     ]
@@ -365,8 +365,8 @@
   "PrivacyPolicy": {
     "header": {
       "title": "Privacy Policy",
-      "lastUpdated": "March 15, 2028",
-      "description": "Yedangin Co., Ltd. (“Company” or “we”) operates the Jabchaja recruitment platform, which connects individual job seekers with business recruiters. We are committed to protecting your personal information in accordance with applicable laws and global best practices. This Privacy Policy explains what information we collect from users of Jabchaja, including individual users (job seekers) and business users (employers/recruiters), and how we use, share, and safeguard that information. It also outlines the distinctions in data handling for individual vs. business users, our outsourcing arrangements, international data transfers, and your rights regarding your personal data.",
+      "lastUpdated": "March 2, 2026",
+      "description": "LivSoft Inc. (“Company” or “we”) operates the JobChaja recruitment platform, which connects individual job seekers with business recruiters. We are committed to protecting your personal information in accordance with applicable laws and global best practices. This Privacy Policy explains what information we collect from users of JobChaja, including individual users (job seekers) and business users (employers/recruiters), and how we use, share, and safeguard that information. It also outlines the distinctions in data handling for individual vs. business users, our outsourcing arrangements, international data transfers, and your rights regarding your personal data.",
       "disclaimer": "By using the Jabchaja platform, you agree to the collection and use of your information as described in this Privacy Policy. If you do not agree, you should refrain from using our services. We do not knowingly allow persons under the age of 15 to register as job seekers in compliance with labor and privacy laws."
     },
     "sections": [
@@ -500,10 +500,10 @@
         "type": "bullet-list",
         "content": [
           "We have appointed a Data Protection Officer to oversee our privacy management and to handle any inquiries or complaints regarding personal information. If you have any questions, concerns, or requests about this Privacy Policy or how your data is handled, you may contact our DPO as follows:",
-          "Data Protection Officer (Privacy Officer): Ms. Woon Ah Choi – Representative Director, Yedangin Co., Ltd.",
-          "Address: 2F, Suite 201, 58 Jogona-ri 1-gil, Sangnok-gu, Ansan-si, Gyeonggi-do 15536, Republic of Korea (Company Headquarters)",
-          "Email: privacy@jabchaja.com",
-          "Telephone: +82-31-XXX-XXXX (available during normal business hours, Korea Standard Time)",
+          "Data Protection Officer (Privacy Officer): Park Chanho – CEO, LivSoft Inc.",
+          "Address: Room 519, 15 Toegye-ro, Jung-gu, Seoul, Republic of Korea",
+          "Email: pch0675@naver.com",
+          "Telephone: +82-70-8095-4474 (available during normal business hours, Korea Standard Time)",
           "(For security and privacy reasons, please do not send highly sensitive information (like passwords) via email. For general support requests, you may also reach us at our customer support line or through the help center on our website.)",
           "Our Data Protection Officer is responsible for managing and supervising the protection of personal information and for handling complaints and dispute resolution regarding personal data. We will do our best to promptly and adequately respond to any questions or concerns you raise. If you contact us, we may need to verify your identity before addressing certain requests, especially those involving access to or deletion of personal data.",
           "If you are not satisfied with our response to your privacy-related inquiry or if you need to escalate the matter, you also have the right to seek assistance from government privacy regulators as noted in the “User Rights” section (for instance, by contacting Korea’s Personal Information Dispute Mediation Committee or similar authorities). However, we encourage you to reach out to us first so we have the opportunity to address your concerns directly."

@@ -4,6 +4,8 @@ import createNextIntlPlugin from "next-intl/plugin";
 const nextConfig: NextConfig = {
   devIndicators: false,
   reactCompiler: true,
+  // Next generates route types for development-only prototype pages. They are
+  // blocked in production and validated separately from the launch scope.
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -11,6 +13,32 @@ const nextConfig: NextConfig = {
   trailingSlash: false,
   images: {
     unoptimized: true,
+  },
+
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "Strict-Transport-Security", value: "max-age=31536000" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), payment=(self)",
+          },
+        ],
+      },
+      ...["admin", "company", "worker"].map((segment) => ({
+        source: `/${segment}/:path*`,
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }],
+      })),
+      ...["login", "register"].map((segment) => ({
+        source: `/${segment}`,
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" }],
+      })),
+    ];
   },
 
   async rewrites() {

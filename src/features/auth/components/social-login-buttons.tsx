@@ -14,6 +14,15 @@ interface SocialLoginButtonsProps {
 export function SocialLoginButtons({ memberType, redirectTo }: SocialLoginButtonsProps) {
   const { t } = useLanguage();
   const userType = memberType === 'company' ? 'CORPORATE' : 'INDIVIDUAL';
+  const socialLoginEnabled = process.env.NEXT_PUBLIC_SOCIAL_LOGIN_ENABLED === 'true';
+
+  if (!socialLoginEnabled) {
+    return (
+      <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-center text-xs text-amber-800">
+        소셜 로그인은 동의 기록 연동 완료 후 제공됩니다. 현재는 이메일 로그인을 이용해 주세요.
+      </p>
+    );
+  }
 
   const handleSocialLogin = (url: string) => {
     // OAuth 콜백(localhost:8000)에서 읽을 수 있도록 쿠키를 먼저 설정

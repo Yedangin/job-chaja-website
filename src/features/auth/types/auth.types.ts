@@ -35,7 +35,15 @@ export interface RegisterRequest {
   email: string;
   password: string;
   fullName: string;
+  birthDate: string;
   role: 'INDIVIDUAL' | 'CORPORATE'; // ★ 필수: 개인 회원 or 기업 회원
+  termsConsent: true;
+  privacyConsent: true;
+  internationalTransferConsent: true;
+  marketingConsent: boolean;
+  ageConfirmed: true;
+  policyVersion: string;
+  consentChannel: string;
 }
 
 // 회원가입 응답
@@ -49,6 +57,7 @@ export interface TermsAgreement {
   term2: boolean; // 개인정보 수집 및 이용 (필수)
   term3: boolean; // 개인정보 국외 이전 (필수)
   term4: boolean; // 마케팅 정보 수신 (선택)
+  term5: boolean; // 만 18세 이상 확인 (필수)
 }
 
 // 리뷰 데이터 (좌측 캐러셀)

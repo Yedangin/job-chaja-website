@@ -23,16 +23,15 @@ export const privacyPolicyData = {
         {
           subtitle: "Payment Info",
           bullets: [
-            "Processed securely through PG (KG Inicis) or Stripe",
-            "We do NOT store your card numbers \u2014 payment providers handle them",
+            "Payment provider transaction IDs, product, amount, currency, payment status, and refund records",
+            "Card and bank-account credentials are processed by the payment provider and are not stored directly by JobChaja",
           ],
         },
         {
           subtitle: "Sensitive Information (Separate Consent)",
           bullets: [
-            "Criminal record info: For specific visa evaluations (e.g., E-7) \u2014 deleted immediately after evaluation",
-            "Health info: For specific job types (construction, food processing) \u2014 deleted after hiring decision",
-            "You can decline sensitive info collection without losing access to basic services",
+            "Sensitive-information collection is disabled until separate consent, retention, deletion, and access controls are approved",
+            "Sensitive information is collected only when needed for the feature you choose",
           ],
         },
         {
@@ -50,7 +49,7 @@ export const privacyPolicyData = {
       content: [
         "To create and manage your account",
         "To match you with jobs or candidates via visa matching",
-        "To process payments and refunds (via PortOne V2 / Stripe)",
+        "To process payments, cancellations, and refunds",
         "To send you important service notifications",
         "To improve our platform and user experience",
         "To prevent fraud and ensure security",
@@ -63,9 +62,7 @@ export const privacyPolicyData = {
       type: "bullet-list",
       content: [
         "Job application info shared with the employer you apply to",
-        "Payment gateway: PortOne V2 (Korea) \u2014 payment processing orchestration",
-        "Payment processor: KG Inicis (domestic) or Stripe (international)",
-        "OAuth login: Kakao Corp., Google LLC, Apple Inc., Meta Platforms Inc. \u2014 social login authentication only",
+        "Payment and OAuth providers when you choose the related payment or social-login feature",
         "Cloud hosting: AWS (Seoul region server + Lightsail)",
         "Email delivery: AWS SES",
         "Notifications: Kakao Corp. (KakaoTalk Alimtalk, Phase 2)",
@@ -80,10 +77,7 @@ export const privacyPolicyData = {
       type: "bullet-list",
       content: [
         "Yedangin Co., Ltd. (Myanmar): Platform development and maintenance \u2014 Items transferred: source code, anonymized test data (no personal info in production); Purpose: software development support; Retention: project duration; Transfer method: encrypted VPN/SSH",
-        "Stripe, Inc. (USA): International payment processing with PCI DSS Level 1 certification",
-        "Google LLC (USA): OAuth login authentication",
-        "Apple Inc. (USA): OAuth login authentication",
-        "Meta Platforms Inc. (USA): OAuth login authentication",
+        "Payment and social-login providers: transaction or authentication data required for the feature selected by the user",
         "AWS (USA headquarters / Seoul region servers): Cloud infrastructure and email services",
         "All transfers use encrypted communication (SSL/TLS, SSH, VPN)",
         "Contracts with all providers include privacy protection obligations",
@@ -104,8 +98,7 @@ export const privacyPolicyData = {
         "Login records: 3 months (telecommunications law)",
         "System logs (request/error logs): 90\u2013180 days for security monitoring",
         "Inactive accounts: Separated after 1 year of inactivity",
-        "Sensitive info (criminal records): Deleted IMMEDIATELY after evaluation \u2014 never retained",
-        "Sensitive info (health data): Deleted immediately after hiring decision",
+        "Sensitive-information collection remains disabled until approved controls are implemented",
         "You can request deletion of your data anytime",
       ],
     },
@@ -130,9 +123,7 @@ export const privacyPolicyData = {
       content: [
         "Encrypted data transmission (SSL/TLS) and storage (AES-256)",
         "Passwords hashed with bcrypt (one-way encryption)",
-        "Secure payment processing (we don't store card details)",
-        "Sensitive info encrypted at rest and in transit",
-        "Firewall and intrusion detection systems (24/7)",
+        "Payment credentials are handled by approved payment providers; sensitive information is access-controlled",
         "Minimum-privilege access control for all personnel",
         "Regular security audits and monitoring",
       ],
@@ -144,7 +135,7 @@ export const privacyPolicyData = {
       content: [
         "Essential cookies: Required for login and basic functions",
         "Preference cookies: Remember your settings",
-        "Analytics cookies: Help us improve services",
+        "Non-essential analytics and marketing cookies are disabled until approved",
         "You can control cookies in your browser settings",
       ],
     },

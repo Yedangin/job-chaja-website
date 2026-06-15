@@ -2,6 +2,8 @@
 
 import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { CURRENT_POLICY_VERSION } from '@/lib/legal';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,14 +24,13 @@ interface FormData {
   openDate: string;
   agreeTerms: boolean;
   agreePrivacy: boolean;
+  agreeInternationalTransfer: boolean;
   agreeMarketing: boolean;
 }
 
 export default function RegisterPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState<Step>(1);
-  const [isVerified, setIsVerified] = useState(false);
-  const [showAuthCode, setShowAuthCode] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [bizCheckLoading, setBizCheckLoading] = useState(false);
   const [bizCheckResult, setBizCheckResult] = useState<{
@@ -65,18 +66,19 @@ export default function RegisterPage() {
     openDate: '',
     agreeTerms: false,
     agreePrivacy: false,
+    agreeInternationalTransfer: false,
     agreeMarketing: false,
   });
 
   // 세션 확인 + 기업 인증 상태 조회
   useEffect(() => {
-    const sessionId = typeof window !== 'undefined' ? localStorage.getItem('sessionId') : null;
-    if (!sessionId) {
-      setAuthLoading(false);
-      return;
-    }
-
     const checkAuth = async () => {
+      const sessionId = localStorage.getItem('sessionId');
+      if (!sessionId) {
+        setAuthLoading(false);
+        return;
+      }
+
       try {
         const profileRes = await fetch('/api/auth/profile', {
           credentials: 'include',
@@ -115,15 +117,6 @@ export default function RegisterPage() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
-  };
-
-  const handleRequestAuthCode = () => {
-    setShowAuthCode(true);
-  };
-
-  const handleConfirmAuthCode = () => {
-    setIsVerified(true);
-    setShowAuthCode(false);
   };
 
   const handleCheckBizInfo = async () => {
@@ -249,7 +242,14 @@ export default function RegisterPage() {
 
   const handleNextStep = (e: FormEvent) => {
     e.preventDefault();
-    if (currentStep === 1 && isVerified && formData.agreeTerms && formData.agreePrivacy) {
+    if (
+      currentStep === 1
+      && formData.managerName.trim()
+      && formData.managerPhone.trim()
+      && formData.agreeTerms
+      && formData.agreePrivacy
+      && formData.agreeInternationalTransfer
+    ) {
       setCurrentStep(2);
     }
   };
@@ -274,6 +274,12 @@ export default function RegisterPage() {
           empCertDocPath: empCertDoc?.filePath || null,
           empCertDocOrigName: empCertDoc?.originalName || null,
           isCeoSelf,
+          termsConsent: formData.agreeTerms,
+          privacyConsent: formData.agreePrivacy,
+          internationalTransferConsent: formData.agreeInternationalTransfer,
+          marketingConsent: formData.agreeMarketing,
+          policyVersion: CURRENT_POLICY_VERSION,
+          consentChannel: 'WEB_CORPORATE_VERIFY',
         }),
       });
       if (res.ok) {
@@ -299,11 +305,18 @@ export default function RegisterPage() {
       ...prev,
       agreeTerms: checked,
       agreePrivacy: checked,
-      agreeMarketing: checked,
+      agreeInternationalTransfer: checked,
     }));
   };
 
-  const isAllAgreed = formData.agreeTerms && formData.agreePrivacy;
+  const toggleAgreement = (
+    agreement: 'agreeTerms' | 'agreePrivacy' | 'agreeInternationalTransfer' | 'agreeMarketing',
+    checked: boolean,
+  ) => {
+    setFormData(prev => ({ ...prev, [agreement]: checked }));
+  };
+
+  const isAllAgreed = formData.agreeTerms && formData.agreePrivacy && formData.agreeInternationalTransfer;
 
   // 로딩 중
   if (authLoading) {
@@ -453,86 +466,34 @@ export default function RegisterPage() {
               </div>
 
               <form onSubmit={handleNextStep}>
-                {/* Phone Verification */}
+                {/* Manager contact details. Phone identity verification is not enabled yet. */}
                 <div className="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-100 space-y-4">
                   <div className="flex justify-between items-center">
-                    <h3 className="font-bold text-slate-800">휴대폰 본인인증</h3>
+                    <h3 className="font-bold text-slate-800">담당자 연락처</h3>
                   </div>
+                  <p className="text-xs leading-relaxed text-amber-700">
+                    휴대폰 본인인증은 현재 제공되지 않습니다. 담당자 확인을 위해 정확한 연락처를 입력해 주세요.
+                  </p>
 
-                  {/* Name Input */}
                   <Input
                     type="text"
                     name="managerName"
                     value={formData.managerName}
                     onChange={handleInputChange}
                     placeholder="담당자 실명 입력"
-                    disabled={isVerified}
+                    required
                   />
 
-                  {/* Phone Input */}
-                  <div className="flex gap-3">
-                    <Input
-                      type="text"
-                      name="managerPhone"
-                      value={formData.managerPhone}
-                      onChange={handleInputChange}
-                      placeholder="휴대폰 번호 ('-' 없이 입력)"
-                      maxLength={11}
-                      inputMode="numeric"
-                      disabled={isVerified}
-                      className="flex-1"
-                    />
-                    {!isVerified && (
-                      <Button
-                        type="button"
-                        onClick={handleRequestAuthCode}
-                        className="bg-slate-800 hover:bg-slate-700 text-white font-bold w-28"
-                      >
-                        인증요청
-                      </Button>
-                    )}
-                  </div>
-
-                  {/* Auth Code Input */}
-                  {showAuthCode && !isVerified && (
-                    <div className="space-y-2 animate-in slide-in-from-top">
-                      <div className="flex gap-3">
-                        <div className="relative flex-1">
-                          <Input
-                            type="text"
-                            placeholder="인증번호 6자리"
-                            maxLength={6}
-                            inputMode="numeric"
-                            className="w-full"
-                          />
-                          <span className="absolute right-4 top-2.5 text-xs text-red-500 font-bold">
-                            02:59
-                          </span>
-                        </div>
-                        <Button
-                          type="button"
-                          onClick={handleConfirmAuthCode}
-                          className="bg-sky-600 hover:bg-sky-700 text-white font-bold w-20"
-                        >
-                          확인
-                        </Button>
-                      </div>
-                      <p className="text-xs text-slate-400 ml-1">
-                        인증번호가 도착하지 않았나요?{' '}
-                        <button type="button" className="underline text-slate-600 font-medium">
-                          재발송
-                        </button>
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Success Message */}
-                  {isVerified && (
-                    <div className="flex items-center gap-1 text-sm text-green-600 font-bold">
-                      <CheckCircle2 className="w-4 h-4" />
-                      인증되었습니다.
-                    </div>
-                  )}
+                  <Input
+                    type="text"
+                    name="managerPhone"
+                    value={formData.managerPhone}
+                    onChange={handleInputChange}
+                    placeholder="휴대폰 번호 ('-' 없이 입력)"
+                    maxLength={11}
+                    inputMode="numeric"
+                    required
+                  />
                 </div>
 
                 {/* Additional Info */}
@@ -582,14 +543,15 @@ export default function RegisterPage() {
                       htmlFor="all-agree"
                       className="ml-2 font-bold text-slate-900 cursor-pointer"
                     >
-                      약관 전체 동의
+                      필수 약관 모두 동의
                     </label>
                   </div>
                   <div className="space-y-4 pl-2">
                     {[
-                      { id: 'agreeTerms', label: '[필수] 기업회원 이용약관 동의' },
-                      { id: 'agreePrivacy', label: '[필수] 개인정보 수집 및 이용 동의' },
-                      { id: 'agreeMarketing', label: '[선택] 마케팅 정보 수신 및 활용 동의' },
+                      { id: 'agreeTerms', label: '[필수] 기업회원 이용약관 동의', href: '/terms-and-conditions' },
+                      { id: 'agreePrivacy', label: '[필수] 개인정보 수집 및 이용 동의', href: '/privacy-policy' },
+                      { id: 'agreeInternationalTransfer', label: '[필수] 개인정보 국외 이전 동의', href: '/privacy-policy#privacy-section-5' },
+                      { id: 'agreeMarketing', label: '[선택] 마케팅 정보 수신 및 활용 동의', href: '/privacy-policy' },
                     ].map(item => (
                       <div key={item.id}>
                         <div className="flex items-center justify-between">
@@ -598,15 +560,10 @@ export default function RegisterPage() {
                               id={item.id}
                               name={item.id}
                               checked={formData[item.id as keyof FormData] as boolean}
-                              onCheckedChange={(checked) =>
-                                handleInputChange({
-                                  target: {
-                                    name: item.id,
-                                    type: 'checkbox',
-                                    checked: checked as boolean,
-                                  } as any,
-                                } as ChangeEvent<HTMLInputElement>)
-                              }
+                              onCheckedChange={(checked) => toggleAgreement(
+                                item.id as 'agreeTerms' | 'agreePrivacy' | 'agreeInternationalTransfer' | 'agreeMarketing',
+                                checked as boolean,
+                              )}
                               className="w-4 h-4"
                             />
                             <label
@@ -616,9 +573,14 @@ export default function RegisterPage() {
                               {item.label}
                             </label>
                           </div>
-                          <a href="#" className="text-xs text-slate-400 underline">
+                          <Link
+                            href={item.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-slate-400 underline"
+                          >
                             보기
-                          </a>
+                          </Link>
                         </div>
                         {item.id === 'agreeMarketing' && (
                           <p className="text-xs text-slate-400 mt-1 ml-6 leading-relaxed">
@@ -633,7 +595,7 @@ export default function RegisterPage() {
                 <div className="mt-10 flex justify-end">
                   <Button
                     type="submit"
-                    disabled={!isVerified || !isAllAgreed}
+                      disabled={!formData.managerName.trim() || !formData.managerPhone.trim() || !isAllAgreed}
                     className="bg-sky-600 hover:bg-sky-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-12 py-4 rounded-xl font-bold text-lg flex items-center gap-2"
                   >
                     다음 단계 <ArrowRight className="w-4 h-4" />

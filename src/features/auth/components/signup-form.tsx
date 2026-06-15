@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/LanguageProvider';
 import { useSignup } from '../hooks/use-signup';
 import { useEmailVerification } from '../hooks/use-email-verification';
 import { EmailVerification } from './email-verification';
 import { TermsAgreementComponent } from './terms-agreement';
-import { TermsModal } from './terms-modal';
 import type { ViewType, MemberType } from '../types/auth.types';
 
 interface SignupFormProps {
@@ -28,8 +27,6 @@ export function SignupForm({ onSwitchView, memberType = 'seeker' }: SignupFormPr
   } = useSignup(memberType);
 
   const emailVerification = useEmailVerification();
-  const [activeModalTerm, setActiveModalTerm] = useState<string | null>(null);
-
   // form 객체에서 필요한 함수들 추출
   const { register, formState: { errors }, watch, setValue, clearErrors, setError } = form;
 
@@ -54,8 +51,6 @@ export function SignupForm({ onSwitchView, memberType = 'seeker' }: SignupFormPr
 
   return (
     <>
-      <TermsModal activeTerm={activeModalTerm} onClose={() => setActiveModalTerm(null)} />
-
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col h-full overflow-y-auto">
         <button
           type="button"
@@ -101,6 +96,23 @@ export function SignupForm({ onSwitchView, memberType = 'seeker' }: SignupFormPr
               )}
             </div>
 
+            <div>
+              <label className="text-xs font-bold text-slate-500 ml-1 mb-1 block">
+                생년월일 / Date of birth
+              </label>
+              <input
+                type="date"
+                max={new Date().toISOString().slice(0, 10)}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 outline-none transition-all text-sm"
+                {...register('birthDate')}
+              />
+              {errors.birthDate && (
+                <p className="text-xs text-red-500 ml-1 mt-1">
+                  {errors.birthDate.message}
+                </p>
+              )}
+            </div>
+
             {/* Email & Auth */}
             <div>
               <label className="text-xs font-bold text-slate-500 ml-1 mb-1 block">
@@ -127,7 +139,7 @@ export function SignupForm({ onSwitchView, memberType = 'seeker' }: SignupFormPr
               {/* React Hook Form 에러 메시지 */}
               {errors.email && (
                 <p className="text-xs text-red-500 ml-1 mt-1">
-                  {t(errors.email.message as any)}
+                  {t(errors.email.message as Parameters<typeof t>[0])}
                 </p>
               )}
             </div>
@@ -145,7 +157,7 @@ export function SignupForm({ onSwitchView, memberType = 'seeker' }: SignupFormPr
               />
               {errors.password && (
                 <p className="text-xs text-red-500 ml-1 mt-1">
-                  {t(errors.password.message as any)}
+                  {t(errors.password.message as Parameters<typeof t>[0])}
                 </p>
               )}
 
@@ -163,7 +175,7 @@ export function SignupForm({ onSwitchView, memberType = 'seeker' }: SignupFormPr
               {/* register의 validate에서 자동으로 검증된 에러 메시지 */}
               {errors.passwordConfirm && (
                 <p className="text-xs text-red-500 ml-1 mt-1">
-                  {t(errors.passwordConfirm.message as any)}
+                  {t(errors.passwordConfirm.message as Parameters<typeof t>[0])}
                 </p>
               )}
             </div>
@@ -175,7 +187,6 @@ export function SignupForm({ onSwitchView, memberType = 'seeker' }: SignupFormPr
               terms={terms}
               onTermChange={handleTermChange}
               onAllTermsChange={handleAllTermsChange}
-              onViewTerm={setActiveModalTerm}
               isAllChecked={isAllChecked}
             />
           </div>

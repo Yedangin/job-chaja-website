@@ -1,0 +1,22 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false,
+    "plugins": []
+  },
+  "include": [
+    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "messages/**/*.json",
+    "next.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    ".next",
+    "src/app/**/variants/**",
+    "src/app/diagnosis/designs/**",
+    "src/app/job-cards/**",
+    "src/components/example.tsx"
+  ]
+}
