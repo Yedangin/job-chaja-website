@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { MapPin, GraduationCap, Users, Building2, Info, X } from 'lucide-react';
 import type { FulltimeJobFormData, InstitutionType } from './fulltime-types';
+import { useFulltimeCopy } from '../copy';
 
 interface StepWorkConditionsProps {
   form: FulltimeJobFormData;
@@ -25,6 +26,7 @@ export default function StepWorkConditions({
   errors,
   updateForm,
 }: StepWorkConditionsProps) {
+  const copy = useFulltimeCopy();
   const [majorInput, setMajorInput] = useState('');
 
   // 시/도 목록 / Province list
@@ -88,11 +90,11 @@ export default function StepWorkConditions({
   const handleAddMajor = () => {
     if (!majorInput.trim()) return;
     if (form.preferredMajors.length >= 5) {
-      alert('우대 전공은 최대 5개까지 입력 가능합니다');
+      alert(copy.majorLimit);
       return;
     }
     if (form.preferredMajors.includes(majorInput.trim())) {
-      alert('이미 추가된 전공입니다');
+      alert(copy.majorDuplicate);
       return;
     }
     updateForm('preferredMajors', [...form.preferredMajors, majorInput.trim()]);
@@ -107,10 +109,10 @@ export default function StepWorkConditions({
 
   // 기관 유형 라벨 / Institution type labels
   const institutionLabels: Record<InstitutionType, string> = {
-    GENERAL: '일반 기업',
-    EDUCATION: '교육 기관',
-    RESEARCH: '연구 기관',
-    MEDICAL: '의료 기관',
+    GENERAL: copy.general,
+    EDUCATION: copy.educationInstitution,
+    RESEARCH: copy.research,
+    MEDICAL: copy.medical,
   };
 
   return (
@@ -119,7 +121,7 @@ export default function StepWorkConditions({
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <MapPin className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-bold text-gray-900">근무지 주소</h3>
+          <h3 className="text-lg font-bold text-gray-900">{copy.workAddress}</h3>
           <span className="text-red-500 text-sm">*</span>
         </div>
 
@@ -127,7 +129,7 @@ export default function StepWorkConditions({
           {/* 시/도 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              시/도
+              {copy.province}
             </label>
             <select
               value={form.address.sido}
@@ -140,7 +142,7 @@ export default function StepWorkConditions({
               }}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">시/도 선택</option>
+              <option value="">{copy.selectProvince}</option>
               {sidoList.map((sido) => (
                 <option key={sido} value={sido}>
                   {sido}
@@ -153,7 +155,7 @@ export default function StepWorkConditions({
           {form.address.sido && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                시/군/구
+                {copy.district}
               </label>
               <select
                 value={form.address.sigungu}
@@ -165,7 +167,7 @@ export default function StepWorkConditions({
                 }}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">시/군/구 선택</option>
+                <option value="">{copy.selectDistrict}</option>
                 {getSigunguList(form.address.sido).map((sigungu) => (
                   <option key={sigungu} value={sigungu}>
                     {sigungu}
@@ -178,7 +180,7 @@ export default function StepWorkConditions({
           {/* 상세 주소 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              상세 주소
+              {copy.detailAddress}
             </label>
             <input
               type="text"
@@ -189,19 +191,16 @@ export default function StepWorkConditions({
                   detail: e.target.value,
                 });
               }}
-              placeholder="예: 테헤란로 123, 서초빌딩 5층"
+              placeholder={copy.addressExample}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* 인구감소지역 안내 */}
           {form.address.isDepopulationArea && (
-            <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <Info className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-green-900">
-                이 지역은 <strong>인구감소지역</strong>입니다. D-2에서 E-7
-                전환 시 점수제 요건이 완화됩니다.
-              </p>
+          <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <Info className="w-5 h-5 text-[#0066FF] flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-950">{copy.depopulation}</p>
             </div>
           )}
         </div>
@@ -215,11 +214,11 @@ export default function StepWorkConditions({
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <GraduationCap className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-bold text-gray-900">우대 전공</h3>
-          <span className="text-gray-400 text-sm">(선택, 최대 5개)</span>
+          <h3 className="text-lg font-bold text-gray-900">{copy.preferredMajors}</h3>
+          <span className="text-gray-400 text-sm">({copy.optionalMax5})</span>
         </div>
 
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-col sm:flex-row gap-2 mb-4">
           <input
             type="text"
             value={majorInput}
@@ -230,7 +229,7 @@ export default function StepWorkConditions({
                 handleAddMajor();
               }
             }}
-            placeholder="전공명 입력 (예: 컴퓨터공학, 소프트웨어공학)"
+            placeholder={copy.majorPlaceholder}
             className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button
@@ -238,7 +237,7 @@ export default function StepWorkConditions({
             onClick={handleAddMajor}
             className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
           >
-            추가
+            {copy.add}
           </button>
         </div>
 
@@ -253,9 +252,10 @@ export default function StepWorkConditions({
                 <button
                   type="button"
                   onClick={() => handleRemoveMajor(index)}
+                  aria-label={`${copy.remove}: ${major}`}
                   className="text-blue-600 hover:text-blue-800"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
             ))}
@@ -263,7 +263,7 @@ export default function StepWorkConditions({
         )}
 
         <p className="mt-3 text-xs text-gray-500">
-          💡 전공 요건이 없는 경우 추가하지 않아도 됩니다
+          {copy.majorTip}
         </p>
       </div>
 
@@ -271,7 +271,7 @@ export default function StepWorkConditions({
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <Users className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-bold text-gray-900">모집 인원</h3>
+          <h3 className="text-lg font-bold text-gray-900">{copy.recruitCount}</h3>
           <span className="text-red-500 text-sm">*</span>
         </div>
 
@@ -283,7 +283,7 @@ export default function StepWorkConditions({
             onChange={(e) => updateForm('recruitCount', parseInt(e.target.value) || 1)}
             className="w-32 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <span className="text-gray-700">명</span>
+          <span className="text-gray-700">{copy.people}</span>
         </div>
 
         {errors.recruitCount && (
@@ -295,15 +295,15 @@ export default function StepWorkConditions({
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <Building2 className="w-5 h-5 text-gray-600" />
-          <h3 className="text-lg font-bold text-gray-900">회사 정보</h3>
-          <span className="text-gray-400 text-sm">(선택)</span>
+          <h3 className="text-lg font-bold text-gray-900">{copy.companyInfo}</h3>
+          <span className="text-gray-400 text-sm">({copy.optional})</span>
         </div>
 
         <div className="space-y-4">
           {/* 전체 직원 수 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              전체 직원 수
+              {copy.totalEmployees}
             </label>
             <div className="flex items-center gap-4">
               <input
@@ -319,14 +319,14 @@ export default function StepWorkConditions({
                 placeholder="100"
                 className="w-40 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <span className="text-gray-700">명</span>
+              <span className="text-gray-700">{copy.people}</span>
             </div>
           </div>
 
           {/* 외국인 직원 수 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              외국인 직원 수
+              {copy.foreignEmployees}
             </label>
             <div className="flex items-center gap-4">
               <input
@@ -342,14 +342,14 @@ export default function StepWorkConditions({
                 placeholder="10"
                 className="w-40 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <span className="text-gray-700">명</span>
+              <span className="text-gray-700">{copy.people}</span>
             </div>
           </div>
 
           {/* 기관 유형 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              기관 유형
+              {copy.institutionType}
             </label>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {(Object.keys(institutionLabels) as InstitutionType[]).map((type) => (
@@ -378,9 +378,7 @@ export default function StepWorkConditions({
         <div className="flex items-start gap-2 mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <p className="text-xs text-blue-900">
-            회사 정보는 <strong>E-7-2 외국인 고용비율 체크</strong> 및{' '}
-            <strong>E-1/E-2/E-3 기관유형 판별</strong>에 사용됩니다. 정확한 정보를
-            입력하면 더 정확한 비자 매칭 결과를 받을 수 있습니다.
+            {copy.companyInfoTip}
           </p>
         </div>
       </div>

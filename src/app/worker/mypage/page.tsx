@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/auth-context';
 import { useProfileCompletion } from '@/hooks/use-profile-completion';
 import Link from 'next/link';
-import { Briefcase, FileText, UserCircle2, ChevronRight, UserCircle, ArrowRight } from 'lucide-react';
+import { Briefcase, FileText, UserCircle2, ChevronRight, UserCircle, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 
 /**
  * 개인회원 마이페이지 (= 대시보드) / Worker my page (= dashboard)
@@ -15,9 +15,9 @@ export default function WorkerMyPage() {
   const { completion, resumeCount, isLoading } = useProfileCompletion();
 
   const summaryCards = [
-    { icon: Briefcase, label: '지원 현황', value: '0', href: '/worker/mypage/applications', color: 'blue', unit: '' },
+    { icon: Briefcase, label: '지원 현황', value: '0', href: '/worker/applications', color: 'blue', unit: '' },
     { icon: FileText, label: '이력서', value: String(resumeCount), href: '/worker/resume', color: 'green', unit: '' },
-    { icon: UserCircle2, label: '프로필 완성', value: String(completion), href: '/worker/wizard/variants/a', color: 'purple', unit: '%' },
+    { icon: UserCircle2, label: '프로필 완성', value: String(completion), href: '/worker/profile/setup', color: 'purple', unit: '%' },
   ];
 
   const colorMap: Record<string, string> = {
@@ -38,8 +38,8 @@ export default function WorkerMyPage() {
 
       {/* 프로필 작성 유도 배너 / Profile wizard banner */}
       <Link
-        href="/worker/wizard/variants/a"
-        className="block bg-linear-to-r from-blue-500 to-blue-600 rounded-2xl p-6 mb-6 hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-xl group"
+        href="/worker/profile/setup"
+        className="group mb-6 block rounded-lg bg-[#0066FF] p-5 shadow-sm transition hover:bg-[#0052CC]"
       >
         <div className="flex items-center justify-between text-white">
           <div className="flex items-start gap-4">
@@ -51,10 +51,10 @@ export default function WorkerMyPage() {
               <p className="text-sm text-blue-100 mb-2">
                 8단계 간편 입력으로 나에게 딱 맞는 일자리를 추천받을 수 있습니다
               </p>
-              <div className="flex items-center gap-2 text-xs font-medium flex-wrap">
-                <span className="bg-white/20 px-2 py-1 rounded">🎯 비자 맞춤</span>
-                <span className="bg-white/20 px-2 py-1 rounded">📝 이력서 자동</span>
-                <span className="bg-white/20 px-2 py-1 rounded">✨ 기업 제안</span>
+              <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
+                <span className="inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-1"><ShieldCheck className="size-3" />비자 맞춤</span>
+                <span className="inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-1"><FileText className="size-3" />이력서 자동</span>
+                <span className="inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-1"><Sparkles className="size-3" />기업 제안</span>
               </div>
             </div>
           </div>
@@ -63,7 +63,7 @@ export default function WorkerMyPage() {
       </Link>
 
       {/* 요약 카드 / Summary cards */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-3 sm:grid-cols-3">
         {summaryCards.map((card) => (
           <Link
             key={card.href}

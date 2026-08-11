@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '@/i18n/LanguageProvider';
+import BrandLogo from '@/components/brand-logo';
 import type { Review } from '../types/auth.types';
 
 interface AuthLayoutProps {
@@ -57,11 +58,8 @@ export function AuthLayout({ children, isSignupView = false }: AuthLayoutProps) 
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
 
           <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-10 h-10 bg-sky-500 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-lg">
-                ✈
-              </div>
-              <span className="text-xl font-bold tracking-tight">{t('brand')}</span>
+            <div className="mb-6">
+              <BrandLogo inverse />
             </div>
           </div>
 

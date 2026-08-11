@@ -8,7 +8,14 @@ export type BoardType = 'PART_TIME' | 'FULL_TIME';
 export type EmploymentSubType = 'CONTRACT' | 'PERMANENT' | 'INTERNSHIP';
 
 // ─── 공고 상태 / Job status ───
-export type PostStatus = 'DRAFT' | 'ACTIVE' | 'CLOSED' | 'EXPIRED' | 'SUSPENDED';
+export type PostStatus =
+  | 'DRAFT'
+  | 'SUBMITTED_REVIEW'
+  | 'REJECTED'
+  | 'ACTIVE'
+  | 'CLOSED'
+  | 'EXPIRED'
+  | 'SUSPENDED';
 
 // ─── 급여 유형 / Salary type (프론트 전용) ───
 export type SalaryType = 'HOURLY' | 'MONTHLY' | 'ANNUAL';
@@ -66,11 +73,21 @@ export interface JobCreateFormData {
 
 // ─── 비자 매칭 결과 / Visa match result ───
 export interface VisaMatchResult {
+  outcome?: 'EVALUATED' | 'REVIEW_REQUIRED';
   eligibleVisas: EligibleVisa[];
   blockedVisas: BlockedVisa[];
   summary: string;
   appliedRuleCount: number;
   evaluatedAt: string;
+  policy?: {
+    releaseId?: string;
+    version?: string;
+    asOf?: string;
+    effectiveFrom?: string;
+    reviewedAt?: string;
+    freshness?: 'CURRENT' | 'UPCOMING_CHANGE' | 'UNDER_REVIEW' | 'STALE' | 'UNKNOWN';
+  } | null;
+  disclaimer?: string;
 }
 
 export interface EligibleVisa {
@@ -150,14 +167,13 @@ export interface JobCreateApiPayload {
 
 // ─── API 응답 / API responses ───
 export interface JobCreateResponse {
-  id: number;
-  jobId: number;
+  id?: number;
+  jobId: number | string;
   status: PostStatus;
 }
 
-export interface JobActivateResponse {
-  id: number;
-  status: 'ACTIVE';
+export interface JobSubmitResponse {
+  status: 'SUBMITTED_REVIEW';
 }
 
 // ─── 주소 검색 결과 (다음 API) / Address search result ───

@@ -8,6 +8,7 @@ import { signupSchema, type SignupFormData } from '../schemas/auth.schema';
 import { toast } from '@/lib/toast';
 import type { TermsAgreement, MemberType } from '../types/auth.types';
 import { CURRENT_POLICY_VERSION } from '@/lib/legal';
+import { getPostAuthRoute } from '../lib/post-auth-route';
 
 /**
  * 회원가입 로직 및 상태 관리
@@ -80,7 +81,7 @@ export function useSignup(memberType: MemberType = 'seeker') {
     setError(null);
 
     try {
-      const response = await authApi.register({
+      await authApi.register({
         email: data.email,
         password: data.password,
         fullName: data.fullName,
@@ -95,16 +96,18 @@ export function useSignup(memberType: MemberType = 'seeker') {
         consentChannel: 'WEB_SIGNUP',
       });
 
-      console.log('[회원가입 성공]', response);
       toast.success(t('registerSuccess'));
 
-      // 메인 페이지로 이동
-      console.log('[리다이렉트] /으로 이동');
+      const params = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search);
+      const returnTo = getPostAuthRoute({
+        explicitPath: params?.get('returnTo') || params?.get('redirect'),
+        memberType,
+        isNewAccount: true,
+      });
       setTimeout(() => {
-        router.push('/');
+        router.push(returnTo);
       }, 100);
     } catch (err: unknown) {
-      console.error('[회원가입 실패]', err);
       const message = err instanceof Error ? err.message : t('registerFail');
       setError(message);
       toast.error(message);

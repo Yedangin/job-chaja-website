@@ -90,9 +90,12 @@ export function useProfileCompletion(): ProfileCompletionData {
     setData(prev => ({ ...prev, isLoading: true }));
 
     // 병렬 조회, 각 API 독립 실패 허용 / Parallel fetch, each can fail independently
+    const sensitiveDataEnabled = process.env.NEXT_PUBLIC_SENSITIVE_DATA_FEATURES_ENABLED === 'true';
     const [resumeResult, visaResult] = await Promise.allSettled([
       apiClient.get<ResumeData>('/resumes/me'),
-      apiClient.get<VisaVerificationData>('/visa-verification/me'),
+      sensitiveDataEnabled
+        ? apiClient.get<VisaVerificationData>('/visa-verification/me')
+        : Promise.resolve({ data: {} as VisaVerificationData }),
     ]);
 
     // 이력서 데이터 추출 / Extract resume data

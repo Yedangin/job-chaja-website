@@ -160,13 +160,7 @@ function extractAllowedVisas(matchResult: FulltimeVisaMatchingResponse | null): 
 export async function createFulltimeJob(
   form: FulltimeJobFormData,
   matchResult: FulltimeVisaMatchingResponse | null,
-): Promise<void> {
-  const sessionId = typeof window !== 'undefined'
-    ? localStorage.getItem('sessionId')
-    : null;
-
-  if (!sessionId) throw new Error('로그인이 필요합니다 / Login required');
-
+): Promise<{ jobId: string; status: 'DRAFT' }> {
   const fullAddress = [form.address.sido, form.address.sigungu, form.address.detail]
     .filter(Boolean)
     .join(' ');
@@ -198,19 +192,15 @@ export async function createFulltimeJob(
     fulltimeVisaResult: matchResult || undefined,
   };
 
-  const headers = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${sessionId}`,
-  };
-
-  // 1단계: 공고 생성 (DRAFT) / Step 1: Create job (DRAFT)
   const createRes = await fetch('/api/jobs/create', {
     method: 'POST',
-    headers,
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
 
   if (!createRes.ok) {
+    if (createRes.status === 401) throw new Error('로그인이 필요합니다 / Login required');
     const errorData = await createRes.json().catch(() => null);
     throw new Error(errorData?.message || '공고 등록 실패 / Job creation failed');
   }
@@ -218,16 +208,16 @@ export async function createFulltimeJob(
   const { jobId } = await createRes.json();
 
   // 2단계: 공고 활성화 (DRAFT → ACTIVE) / Step 2: Activate job (DRAFT → ACTIVE)
-  const activateRes = await fetch(`/api/jobs/${jobId}/activate`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({}),
-  });
+  return { jobId: String(jobId), status: 'DRAFT' as const };
+}
 
-  if (!activateRes.ok) {
-    const errorData = await activateRes.json().catch(() => null);
-    throw new Error(
-      errorData?.message || '공고 활성화 실패 / Job activation failed'
-    );
-  }
+export async function submitFulltimeJobForReview(jobId: string): Promise<void> {
+  const response = await fetch(`/api/jobs/${jobId}/submit`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  if (response.ok) return;
+  if (response.status === 401) throw new Error('로그인이 필요합니다 / Login required');
+  const errorData = await response.json().catch(() => null);
+  throw new Error(errorData?.message || '심사 요청에 실패했습니다 / Review submission failed');
 }

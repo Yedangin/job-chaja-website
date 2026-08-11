@@ -1,3 +1,5 @@
+import { COMPANY_INFO } from '@/constants/company-info';
+
 export const termsAndConditionsData = {
   header: {
     title: "Terms & Conditions",
@@ -175,11 +177,13 @@ export const termsAndConditionsData = {
       title: "Visa Matching & Disclaimer",
       type: "bullet-list",
       content: [
-        "Visa matching results are reference information only \u2014 not legally binding",
-        "Actual visa issuance/change depends on the Immigration Office's individual review",
+        "Visa assessments and journey plans are general information generated from user-provided facts and the policy version and effective date displayed with each result; they are not legal determinations",
+        "JobChaja does not guarantee visa issuance, status change, work authorization, processing time, or acceptance of any document, and does not file an application on the user's behalf",
+        "Users may use the self-service checklist and procedure guide to prepare and file their own application, but remain responsible for confirming the current official form, filing channel, deadline, fee, and supporting evidence",
+        "Accurate conclusions for an individual case require direct review by the Immigration Office (1345) or a properly qualified administrative agent or attorney; application-agency services are provided only through a separately contracted and registered professional",
         "E-9 (Non-professional) and H-2 (Working Visit) visa holders can ONLY be recruited through government employment centers per the Foreign Workers Employment Act. Jobchaja does NOT facilitate direct hiring for E-9/H-2 workers; visa information for these types is provided in the Visa Planner tool for reference only",
-        "We are not a government authority \u2014 always verify visa decisions with the Immigration Office or a qualified professional",
-        "Visa rules may change due to law amendments; updates are applied within a reasonable timeframe",
+        "Each result records its calculation time, policy effective date, rule version, and applied-rule history. A later policy change may require the result and preparation plan to be recalculated",
+        "When an official-source change is detected but professional review is incomplete, affected results may be marked as under review or unavailable instead of relying on the previous rule",
         "The platform operates as a Job Information Service Provider under the Employment Security Act",
       ],
     },
@@ -252,10 +256,10 @@ export const termsAndConditionsData = {
   ],
   footer: {
     operatorInfo: {
-      businessName: "Livsoft Inc. (주식회사 리브소프트) | Jobchaja (잡차자)",
-      representative: "Park Chanho (박찬호)",
-      address: "Republic of Korea",
-      bizRegNumber: "485-86-03274",
+      businessName: `${COMPANY_INFO.legalNameEn} (${COMPANY_INFO.legalNameKo}) | Jobchaja (잡차자)`,
+      representative: `${COMPANY_INFO.representativeEn} (${COMPANY_INFO.representativeKo})`,
+      address: `${COMPANY_INFO.addressEn} (${COMPANY_INFO.addressKo})`,
+      bizRegNumber: COMPANY_INFO.businessRegistrationNumber,
       ecommerceRegNumber: "To be registered (통신판매업 신고번호)",
       jobInfoRegNumber: "To be registered (직업정보제공사업 신고번호)",
     },
@@ -263,8 +267,8 @@ export const termsAndConditionsData = {
     supportLinks: [
       "Help Center",
       "Contact Support",
-      "Email: pch0675@naver.com",
-      "Phone: 070-8095-4474",
+      `Email: ${COMPANY_INFO.email}`,
+      `Phone: ${COMPANY_INFO.phone}`,
     ],
   },
 };

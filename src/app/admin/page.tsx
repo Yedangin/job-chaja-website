@@ -56,8 +56,11 @@ import {
   History,
   Crown,
   MinusCircle,
+  Menu,
 } from 'lucide-react';
 import EmptyState from '@/components/empty-state';
+import BrandLogo from '@/components/brand-logo';
+import { useAuth } from '@/contexts/auth-context';
 
 interface AdminStats {
   totalUsers: number;
@@ -170,9 +173,12 @@ const ACTION_TYPE_OPTIONS = [
 
 export default function AdminPage() {
   const router = useRouter();
+  const { user: authUser, isLoading: authLoading, logout } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [adminNavOpen, setAdminNavOpen] = useState(false);
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [statsUnavailable, setStatsUnavailable] = useState(false);
   const [activeMenu, setActiveMenu] = useState('dashboard');
 
   // Activity Logs state
@@ -199,35 +205,57 @@ export default function AdminPage() {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${sessionId}`,
+        ...(sessionId ? { Authorization: `Bearer ${sessionId}` } : {}),
         ...(options.headers || {}),
       },
     });
   };
 
   useEffect(() => {
-    const checkAuthAndLoadStats = async () => {
-      try {
-        if (!sessionId) { router.push('/login'); return; }
+    if (authLoading) return;
 
-        const profileRes = await fetchWithAuth('/api/auth/profile');
-        if (!profileRes.ok) { localStorage.removeItem('sessionId'); router.push('/login'); return; }
+    if (!authUser) {
+      setIsAuthorized(false);
+      setIsLoading(false);
+      router.replace('/login?redirect=/admin');
+      return;
+    }
 
-        const profileData = await profileRes.json();
-        if (profileData.user?.role !== 5) { router.push('/'); return; }
+    if (authUser.role !== 'ADMIN') {
+      setIsAuthorized(false);
+      setIsLoading(false);
+      router.replace('/');
+      return;
+    }
 
-        setIsAuthorized(true);
+    let cancelled = false;
+    setIsAuthorized(true);
 
-        const statsRes = await fetchWithAuth('/api/auth/admin/stats');
-        if (statsRes.ok) setStats(await statsRes.json());
-      } catch {
-        router.push('/login');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    checkAuthAndLoadStats();
-  }, [router]);
+    const adminRoutesEnabled = process.env.NEXT_PUBLIC_ADMIN_ROUTES_ENABLED === 'true';
+    if (!adminRoutesEnabled) {
+      setStatsUnavailable(true);
+      setIsLoading(false);
+      return;
+    }
+
+    fetch('/api/auth/admin/stats', {
+      credentials: 'include',
+      headers: sessionId ? { Authorization: `Bearer ${sessionId}` } : undefined,
+    })
+      .then(async (response) => {
+        if (cancelled) return;
+        if (response.ok) setStats(await response.json());
+        else setStatsUnavailable(true);
+      })
+      .catch(() => {
+        // Keep the dashboard available when non-critical statistics fail.
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [authLoading, authUser, router, sessionId]);
 
   // Load logs when switching to logs tab or changing filters
   useEffect(() => {
@@ -296,11 +324,7 @@ export default function AdminPage() {
   };
 
   const handleLogout = async () => {
-    try {
-      if (sessionId) await fetchWithAuth('/api/auth/logout', { method: 'POST' });
-    } catch { }
-    localStorage.removeItem('sessionId');
-    router.push('/login');
+    await logout();
   };
 
   if (isLoading) {
@@ -319,12 +343,27 @@ export default function AdminPage() {
   const getMenuLabel = () => sidebarMenus.find(m => m.id === activeMenu)?.label || '대시보드';
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="relative flex min-h-screen overflow-x-hidden bg-gray-50">
+      {adminNavOpen && (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-black/35 md:hidden"
+          onClick={() => setAdminNavOpen(false)}
+          aria-label="관리자 메뉴 닫기"
+        />
+      )}
       {/* Sidebar */}
-      <aside className="w-60 bg-white border-r border-gray-200 flex flex-col fixed h-full">
+      <aside className={`${adminNavOpen ? 'flex' : 'hidden'} fixed inset-y-0 left-0 z-50 w-60 flex-col border-r border-gray-200 bg-white md:flex`}>
         <div className="h-16 flex items-center px-5 border-b border-gray-100">
-          <span className="text-lg font-bold text-gray-900">JobChaja</span>
-          <span className="ml-2 text-[10px] font-semibold text-sky-600 bg-sky-50 px-1.5 py-0.5 rounded">ADMIN</span>
+          <BrandLogo admin />
+          <button
+            type="button"
+            className="ml-auto rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 md:hidden"
+            onClick={() => setAdminNavOpen(false)}
+            aria-label="관리자 메뉴 닫기"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         <nav className="flex-1 py-3 px-3 overflow-y-auto">
@@ -338,7 +377,7 @@ export default function AdminPage() {
                   return (
                     <li key={menu.id}>
                       <button
-                        onClick={() => { setActiveMenu(menu.id); setSelectedTicket(null); }}
+                        onClick={() => { setActiveMenu(menu.id); setSelectedTicket(null); setAdminNavOpen(false); }}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-sky-50 text-sky-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
                       >
                         <Icon size={18} className={isActive ? 'text-sky-600' : 'text-gray-400'} />
@@ -365,7 +404,7 @@ export default function AdminPage() {
             const isActive = activeMenu === sidebarBottomMenu.id;
             return (
               <button
-                onClick={() => { setActiveMenu(sidebarBottomMenu.id); setSelectedTicket(null); }}
+                onClick={() => { setActiveMenu(sidebarBottomMenu.id); setSelectedTicket(null); setAdminNavOpen(false); }}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-sky-50 text-sky-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
               >
                 <Icon size={18} className={isActive ? 'text-sky-600' : 'text-gray-400'} />
@@ -381,19 +420,29 @@ export default function AdminPage() {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 ml-60">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 sticky top-0 z-10">
-          <h1 className="text-lg font-bold text-gray-900">{getMenuLabel()}</h1>
+      <main className="min-w-0 w-full flex-1 md:ml-60">
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-8 sticky top-0 z-30">
+          <div className="flex min-w-0 items-center gap-2">
+            <button
+              type="button"
+              className="rounded-md p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800 md:hidden"
+              onClick={() => setAdminNavOpen(true)}
+              aria-label="관리자 메뉴 열기"
+            >
+              <Menu size={20} />
+            </button>
+            <h1 className="truncate text-lg font-bold text-gray-900">{getMenuLabel()}</h1>
+          </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500">관리자</span>
+            <span className="hidden text-sm text-gray-500 sm:inline">관리자</span>
             <div className="w-8 h-8 bg-sky-100 rounded-full flex items-center justify-center">
               <UserCheck size={16} className="text-sky-600" />
             </div>
           </div>
         </header>
 
-        <div className="p-8">
-          {activeMenu === 'dashboard' && <DashboardContent stats={stats} />}
+        <div className="p-4 md:p-8">
+          {activeMenu === 'dashboard' && <DashboardContent stats={stats} unavailable={statsUnavailable} />}
           {activeMenu === 'logs' && (
             <ActivityLogsContent
               logs={logs}
@@ -439,12 +488,24 @@ export default function AdminPage() {
 
 // --- Dashboard ---
 
-function DashboardContent({ stats }: { stats: AdminStats | null }) {
+function DashboardContent({ stats, unavailable }: { stats: AdminStats | null; unavailable: boolean }) {
   // 7일 추이 최대값 (차트 비율 계산용) / Max value for 7-day trend bar chart
   const trendMax = Math.max(
     ...(stats?.dailyTrends?.flatMap((d) => [d.newUsers, d.matchings, d.newJobs]) || [1]),
     1,
   );
+
+  if (unavailable && !stats) {
+    return (
+      <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900" role="status">
+        <AlertTriangle className="mt-0.5 size-5 shrink-0" />
+        <div>
+          <p className="text-sm font-bold">운영 통계가 비활성화되어 있습니다</p>
+          <p className="mt-1 text-sm text-amber-800">관리자 API 배포 게이트를 활성화한 뒤 실제 지표를 확인할 수 있습니다.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -7,9 +7,29 @@ import type {
   AlbaJobFormData,
   AlbaVisaMatchingResponse,
   AlbaCategoriesResponse,
+  DayOfWeek,
 } from './components/alba-types';
 
 const API_BASE = '/api';
+
+export type AlbaApiErrorCode =
+  | 'CATEGORIES_UNAVAILABLE'
+  | 'VISA_MATCH_FAILED'
+  | 'AUTH_REQUIRED'
+  | 'JOB_CREATE_FAILED'
+  | 'REVIEW_SUBMIT_FAILED';
+
+export class AlbaApiError extends Error {
+  readonly code: AlbaApiErrorCode;
+  readonly status?: number;
+
+  constructor(code: AlbaApiErrorCode, status?: number) {
+    super(code);
+    this.name = 'AlbaApiError';
+    this.code = code;
+    this.status = status;
+  }
+}
 
 /**
  * 알바 직종 목록 조회 (백엔드 API) / Fetch alba job categories from backend
@@ -26,9 +46,7 @@ export async function fetchAlbaCategories(): Promise<AlbaCategoriesResponse> {
   });
 
   if (!res.ok) {
-    throw new Error(
-      `알바 직종 목록 조회 실패 (${res.status}) / Alba categories fetch failed`,
-    );
+    throw new AlbaApiError('CATEGORIES_UNAVAILABLE', res.status);
   }
 
   return res.json();
@@ -65,10 +83,7 @@ export async function matchAlbaVisa(form: AlbaJobFormData): Promise<AlbaVisaMatc
   });
 
   if (!res.ok) {
-    const errData = await res.json().catch(() => null);
-    throw new Error(
-      errData?.message ?? `알바 비자 매칭 실패 (${res.status}) / Alba visa matching failed`,
-    );
+    throw new AlbaApiError(res.status === 401 ? 'AUTH_REQUIRED' : 'VISA_MATCH_FAILED', res.status);
   }
 
   return res.json();
@@ -92,9 +107,9 @@ function koreanLevelToNumber(level: AlbaJobFormData['koreanLevel']): number {
  * 월~일 순서 "1111100" 형태 / MON-SUN order "1111100" format
  */
 function scheduleToDaysMask(schedule: AlbaJobFormData['schedule']): string {
-  const dayOrder = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+  const dayOrder: DayOfWeek[] = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
   const activeDays = new Set(schedule.map((s) => s.dayOfWeek));
-  return dayOrder.map((d) => (activeDays.has(d as any) ? '1' : '0')).join('');
+  return dayOrder.map((day) => (activeDays.has(day) ? '1' : '0')).join('');
 }
 
 /**
@@ -113,20 +128,13 @@ function extractAllowedVisas(
  * 알바 공고 등록 (실제 백엔드 API 연동)
  * Create alba job posting via backend POST /api/jobs/create
  *
- * 정규직 createFulltimeJob()과 동일 패턴: 생성(DRAFT) → 활성화(ACTIVE)
- * Same pattern as fulltime createFulltimeJob(): create(DRAFT) → activate(ACTIVE)
+ * 정규직 createFulltimeJob()과 동일 패턴: 서버 초안 생성 후 별도 심사 요청.
+ * Same pattern as fulltime createFulltimeJob(): create a server-side DRAFT.
  */
 export async function createAlbaJob(
   form: AlbaJobFormData,
   matchResult?: AlbaVisaMatchingResponse | null,
 ): Promise<{ jobId: string }> {
-  const sessionId =
-    typeof window !== 'undefined'
-      ? localStorage.getItem('sessionId')
-      : null;
-
-  if (!sessionId) throw new Error('로그인이 필요합니다 / Login required');
-
   const fullAddress = [
     form.address.sido,
     form.address.sigungu,
@@ -164,41 +172,28 @@ export async function createAlbaJob(
     },
   };
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${sessionId}`,
-  };
-
-  // 1단계: 공고 생성 (DRAFT) / Step 1: Create job (DRAFT)
   const createRes = await fetch('/api/jobs/create', {
     method: 'POST',
-    headers,
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
 
   if (!createRes.ok) {
-    const errorData = await createRes.json().catch(() => null);
-    throw new Error(
-      errorData?.message || '알바 공고 등록 실패 / Alba job creation failed',
-    );
+    throw new AlbaApiError(createRes.status === 401 ? 'AUTH_REQUIRED' : 'JOB_CREATE_FAILED', createRes.status);
   }
 
   const { jobId } = await createRes.json();
 
-  // 2단계: 공고 활성화 (DRAFT → ACTIVE) / Step 2: Activate job (DRAFT → ACTIVE)
-  const activateRes = await fetch(`/api/jobs/${jobId}/activate`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({}),
-  });
-
-  if (!activateRes.ok) {
-    const errorData = await activateRes.json().catch(() => null);
-    throw new Error(
-      errorData?.message || '공고 활성화 실패 / Job activation failed',
-    );
-  }
-
   return { jobId: String(jobId) };
+}
+
+export async function submitAlbaJobForReview(jobId: string): Promise<void> {
+  const response = await fetch(`/api/jobs/${jobId}/submit`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  if (response.ok) return;
+  throw new AlbaApiError(response.status === 401 ? 'AUTH_REQUIRED' : 'REVIEW_SUBMIT_FAILED', response.status);
 }
 

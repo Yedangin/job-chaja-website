@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, AlertTriangle, Globe, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, AlertTriangle, Globe, Loader2, Scale } from 'lucide-react';
 import type { VisaMatchResult, WizardStep } from '../types/job-create.types';
 
 interface VisaResultCardProps {
@@ -22,7 +22,7 @@ export function VisaResultCard({ matchResult, isLoading, onGoToStep }: VisaResul
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
       <h2 className="text-base font-bold text-gray-900 mb-4 flex items-center gap-2">
-        <Globe className="w-5 h-5 text-blue-600" /> 비자 매칭 결과
+        <Globe className="w-5 h-5 text-blue-600" /> 비자 판단 보조 결과
       </h2>
 
       {/* 로딩 상태 / Loading state */}
@@ -36,6 +36,23 @@ export function VisaResultCard({ matchResult, isLoading, onGoToStep }: VisaResul
       {/* 결과 표시 / Results display */}
       {!isLoading && matchResult && (
         <div className="space-y-3">
+          <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs leading-5 text-blue-900">
+            <div className="flex flex-wrap gap-x-4 gap-y-1">
+              <span>판정 시점: {new Date(matchResult.evaluatedAt).toLocaleString('ko-KR')}</span>
+              {matchResult.policy?.asOf && <span>정책 기준: {new Date(matchResult.policy.asOf).toLocaleDateString('ko-KR')}</span>}
+              {matchResult.policy?.reviewedAt && <span>전문가 검토: {new Date(matchResult.policy.reviewedAt).toLocaleDateString('ko-KR')}</span>}
+              {matchResult.policy?.version && <span>버전: {matchResult.policy.version}</span>}
+            </div>
+          </div>
+          {matchResult.outcome === 'REVIEW_REQUIRED' && (
+            <div className="flex gap-2 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm leading-6 text-amber-950" role="alert">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+              <div>
+                <p className="font-bold">최신 정책 검토가 완료될 때까지 판정을 중단합니다.</p>
+                <p className="mt-1 text-xs">{matchResult.summary}</p>
+              </div>
+            </div>
+          )}
           {/* 적합 비자 / Eligible visas */}
           {matchResult.eligibleVisas.map(v => (
             <div key={v.code} className="border border-green-200 rounded-lg overflow-hidden">
@@ -49,7 +66,7 @@ export function VisaResultCard({ matchResult, isLoading, onGoToStep }: VisaResul
                   <span className="font-medium text-sm text-gray-900">{v.code}</span>
                   <span className="text-sm text-gray-600">{v.nameKo}</span>
                   <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
-                    채용 가능
+                    입력조건상 가능
                   </span>
                 </div>
                 {expandedVisa === v.code
@@ -122,7 +139,7 @@ export function VisaResultCard({ matchResult, isLoading, onGoToStep }: VisaResul
           )}
 
           {/* 매칭 없음 / No matches */}
-          {matchResult.eligibleVisas.length === 0 && matchResult.blockedVisas.length === 0 && (
+          {matchResult.outcome !== 'REVIEW_REQUIRED' && matchResult.eligibleVisas.length === 0 && matchResult.blockedVisas.length === 0 && (
             <div className="text-center py-6">
               <AlertTriangle className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
               <p className="text-sm text-gray-600">현재 조건에 매칭되는 비자가 없습니다.</p>
@@ -137,6 +154,13 @@ export function VisaResultCard({ matchResult, isLoading, onGoToStep }: VisaResul
               )}
             </div>
           )}
+
+          <div className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-950">
+            <Scale className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <p>
+              {matchResult.disclaimer || '이 결과는 입력정보와 표시된 정책 기준일에 따른 일반적인 판단 보조 정보입니다. 비자 발급·취업허가를 보장하거나 신청을 대리하지 않습니다. 개별 사실관계는 출입국·외국인청 1345 또는 자격 있는 행정사에게 직접 확인하세요.'}
+            </p>
+          </div>
         </div>
       )}
 

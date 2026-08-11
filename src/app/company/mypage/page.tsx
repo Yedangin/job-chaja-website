@@ -34,7 +34,7 @@ export default function CompanyMyPage() {
   };
 
   // 인증 상태 CTA 카드 / Verification CTA card
-  const VerificationCTA = () => {
+  const renderVerificationCTA = () => {
     if (verificationStatus === 'APPROVED') return null;
 
     if (verificationStatus === 'SUBMITTED') {
@@ -150,7 +150,7 @@ export default function CompanyMyPage() {
       </div>
 
       {/* 인증 상태 CTA / Verification CTA */}
-      <VerificationCTA />
+      {renderVerificationCTA()}
 
       {/* 요약 카드 / Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -180,7 +180,7 @@ export default function CompanyMyPage() {
       <div className="flex flex-wrap gap-3 mb-8">
         {/* 정규 채용관 공고 등록 (실시간 비자 분석) / Full-time job create with live visa analysis */}
         <Link
-          href="/company/fulltime/create"
+          href="/company/jobs/create?boardType=FULL_TIME"
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition"
         >
           <Plus className="w-4 h-4" />
@@ -192,7 +192,7 @@ export default function CompanyMyPage() {
         </Link>
         {/* 알바 채용관 공고 등록 / Part-time job create */}
         <Link
-          href="/company/alba/create"
+          href="/company/jobs/create?boardType=PART_TIME"
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-gray-700 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition"
         >
           <Plus className="w-4 h-4" />

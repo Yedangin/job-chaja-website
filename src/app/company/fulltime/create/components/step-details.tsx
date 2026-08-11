@@ -8,7 +8,8 @@
 'use client';
 
 import { FileText, Info } from 'lucide-react';
-import type { FulltimeJobFormData, BenefitType, BENEFIT_LABELS } from './fulltime-types';
+import type { FulltimeJobFormData, BenefitType } from './fulltime-types';
+import { useFulltimeCopy } from '../copy';
 
 interface StepDetailsProps {
   form: FulltimeJobFormData;
@@ -19,24 +20,18 @@ interface StepDetailsProps {
   ) => void;
 }
 
-const benefitLabels: Record<BenefitType, string> = {
-  MEAL: '식대 지원',
-  TRANSPORTATION: '교통비 지원',
-  ACCOMMODATION: '숙소 제공',
-  INSURANCE: '4대보험',
-  RETIREMENT: '퇴직금',
-  EDUCATION: '교육 지원',
-  CHILDCARE: '육아 지원',
-  ANNUAL_LEAVE: '연차',
-  HEALTH_CHECKUP: '건강검진',
-  VACATION: '휴가비',
-};
-
 export default function StepDetails({
   form,
   errors,
   updateForm,
 }: StepDetailsProps) {
+  const copy = useFulltimeCopy();
+  const benefitLabels: Record<BenefitType, string> = {
+    MEAL: copy.meal, TRANSPORTATION: copy.transportation, ACCOMMODATION: copy.accommodation,
+    INSURANCE: copy.insurance, RETIREMENT: copy.retirement, EDUCATION: copy.training,
+    CHILDCARE: copy.childcare, ANNUAL_LEAVE: copy.annualLeave, HEALTH_CHECKUP: copy.healthCheckup,
+    VACATION: copy.vacation,
+  };
   // 복리후생 토글 / Toggle benefit
   const toggleBenefit = (benefit: BenefitType) => {
     if (form.benefits.includes(benefit)) {
@@ -55,7 +50,7 @@ export default function StepDetails({
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <FileText className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-bold text-gray-900">공고 제목</h3>
+          <h3 className="text-lg font-bold text-gray-900">{copy.jobTitle}</h3>
           <span className="text-red-500 text-sm">*</span>
         </div>
 
@@ -63,7 +58,8 @@ export default function StepDetails({
           type="text"
           value={form.title}
           onChange={(e) => updateForm('title', e.target.value)}
-          placeholder="예: 시니어 백엔드 개발자 채용 (E-7 비자 스폰서 가능)"
+          placeholder={copy.titlePlaceholder}
+          aria-label={copy.jobTitle}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           maxLength={100}
         />
@@ -73,7 +69,7 @@ export default function StepDetails({
         )}
 
         <p className="mt-2 text-xs text-gray-500">
-          {form.title.length}/100자 • 지원자의 관심을 끄는 명확한 제목을 작성하세요
+          {form.title.length}/100 - {copy.titleHelp}
         </p>
       </div>
 
@@ -81,14 +77,15 @@ export default function StepDetails({
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <FileText className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-bold text-gray-900">상세 설명</h3>
+          <h3 className="text-lg font-bold text-gray-900">{copy.description}</h3>
           <span className="text-red-500 text-sm">*</span>
         </div>
 
         <textarea
           value={form.detailDescription}
           onChange={(e) => updateForm('detailDescription', e.target.value)}
-          placeholder={`회사 소개, 주요 업무, 필요 기술 등을 작성하세요.\n\n예시:\n• 회사 소개: 저희는 AI 기반 솔루션을 개발하는 스타트업입니다.\n• 주요 업무: 백엔드 API 설계 및 개발, 데이터베이스 최적화\n• 필요 기술: Node.js, TypeScript, PostgreSQL, AWS\n• 우대 사항: Docker, Kubernetes 경험자`}
+          placeholder={copy.descriptionPlaceholder}
+          aria-label={copy.description}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[300px] resize-y"
           maxLength={2000}
         />
@@ -98,7 +95,7 @@ export default function StepDetails({
         )}
 
         <p className="mt-2 text-xs text-gray-500">
-          {form.detailDescription.length}/2000자
+          {form.detailDescription.length}/2000
         </p>
       </div>
 
@@ -106,11 +103,11 @@ export default function StepDetails({
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <Info className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-bold text-gray-900">복리후생</h3>
-          <span className="text-gray-400 text-sm">(선택, 최대 10개)</span>
+          <h3 className="text-lg font-bold text-gray-900">{copy.benefits}</h3>
+          <span className="text-gray-400 text-sm">({copy.optionalMax5})</span>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {(Object.keys(benefitLabels) as BenefitType[]).map((benefit) => (
             <button
               key={benefit}
@@ -121,6 +118,7 @@ export default function StepDetails({
                   ? 'border-blue-600 bg-blue-50 text-blue-900'
                   : 'border-gray-200 hover:border-gray-300 text-gray-700'
               }`}
+              aria-pressed={form.benefits.includes(benefit)}
             >
               {form.benefits.includes(benefit) && (
                 <span className="mr-1">✓</span>
@@ -131,7 +129,7 @@ export default function StepDetails({
         </div>
 
         <p className="mt-3 text-xs text-gray-500">
-          💡 제공하는 복리후생을 모두 선택하세요
+          {copy.benefitTip}
         </p>
       </div>
     </div>

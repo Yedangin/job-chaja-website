@@ -10,6 +10,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import LanguageSwitcher from '@/components/language-switcher';
+import Footer from '@/components/footer';
 import {
   ArrowRight,
   Briefcase,
@@ -415,33 +416,7 @@ export default function InternationalPage() {
         </section>
       </main>
 
-      {/* ─── Footer ─── */}
-      <footer className="border-t border-gray-200 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm text-gray-400">
-            <div>
-              <p className="font-semibold text-gray-500">JobChaja</p>
-              <p className="mt-1 text-xs">
-                Global Talent Matching Platform for South Korea
-              </p>
-            </div>
-            <div className="flex items-center gap-4 text-xs">
-              <Link href="/terms-and-conditions" className="hover:text-gray-600">
-                Terms
-              </Link>
-              <Link href="/privacy-policy" className="hover:text-gray-600">
-                Privacy
-              </Link>
-              <a href="mailto:pch0675@naver.com" className="hover:text-gray-600">
-                Contact
-              </a>
-            </div>
-          </div>
-          <p className="text-[11px] text-gray-300 mt-4">
-            &copy; {new Date().getFullYear()} JobChaja. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

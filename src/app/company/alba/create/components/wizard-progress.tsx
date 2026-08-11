@@ -1,6 +1,8 @@
-'use client';
+ 'use client';
 
 import { Check } from 'lucide-react';
+import { useLanguage } from '@/i18n/LanguageProvider';
+import { getAlbaCopy } from '../copy';
 import type { WizardStep } from './alba-types';
 
 /**
@@ -8,61 +10,36 @@ import type { WizardStep } from './alba-types';
  * Wizard progress indicator (based on variant E style)
  */
 
-const steps = [
-  { num: 1 as WizardStep, label: '기본정보', labelEn: 'Basic Info' },
-  { num: 2 as WizardStep, label: '상세조건', labelEn: 'Details' },
-  { num: 3 as WizardStep, label: '미리보기', labelEn: 'Preview' },
-];
-
 interface Props {
   currentStep: WizardStep;
   onStepClick: (step: WizardStep) => void;
 }
 
 export default function WizardProgress({ currentStep, onStepClick }: Props) {
+  const { lang } = useLanguage();
+  const copy = getAlbaCopy(lang);
+
   return (
-    <div className="flex items-center justify-center gap-0">
-      {steps.map((s, i) => {
-        const isCompleted = s.num < currentStep;
-        const isCurrent = s.num === currentStep;
+    <nav aria-label={copy.progressLabel} className="w-full">
+      <ol className="grid grid-cols-3 items-start gap-1 sm:gap-3">
+        {copy.steps.map((label, index) => {
+          const step = (index + 1) as WizardStep;
+          const isCompleted = step < currentStep;
+          const isCurrent = step === currentStep;
 
-        return (
-          <div key={s.num} className="flex items-center">
-            {/* 스텝 버튼 / Step button */}
-            <button
-              type="button"
-              onClick={() => isCompleted && onStepClick(s.num)}
-              disabled={!isCompleted}
-              className="flex items-center gap-2"
-            >
-              {/* 원형 인디케이터 / Circle indicator */}
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
-                  isCompleted
-                    ? 'bg-green-500 text-white'
-                    : isCurrent
-                    ? 'bg-blue-600 text-white ring-4 ring-blue-100'
-                    : 'bg-gray-200 text-gray-400'
-                }`}
-              >
-                {isCompleted ? <Check className="w-4 h-4" /> : s.num}
-              </div>
-              {/* 라벨 / Label */}
-              <div className="text-left hidden sm:block">
-                <p className={`text-sm font-medium ${isCurrent ? 'text-blue-700' : isCompleted ? 'text-green-700' : 'text-gray-400'}`}>
-                  {s.label}
-                </p>
-                <p className="text-[10px] text-gray-400">{s.labelEn}</p>
-              </div>
-            </button>
-
-            {/* 연결선 / Connector line */}
-            {i < steps.length - 1 && (
-              <div className={`w-12 sm:w-16 h-0.5 mx-2 ${isCompleted ? 'bg-green-400' : 'bg-gray-200'}`} />
-            )}
-          </div>
-        );
-      })}
-    </div>
+          return (
+            <li key={label} className="relative min-w-0">
+              {index < copy.steps.length - 1 && <span aria-hidden="true" className={`absolute left-[calc(50%+1.25rem)] right-[-0.25rem] top-4 h-px sm:left-[calc(50%+1.5rem)] sm:right-[-0.75rem] ${isCompleted ? 'bg-[#0066FF]' : 'bg-gray-200'}`} />}
+              <button type="button" onClick={() => isCompleted && onStepClick(step)} disabled={!isCompleted} aria-current={isCurrent ? 'step' : undefined} aria-label={`${step}. ${label}`} className="relative z-10 flex min-w-0 w-full flex-col items-center gap-1.5 text-center disabled:cursor-default">
+                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors ${isCompleted ? 'bg-[#0066FF] text-white' : isCurrent ? 'bg-[#0066FF] text-white ring-4 ring-blue-100' : 'bg-gray-200 text-gray-500'}`}>
+                  {isCompleted ? <Check aria-hidden="true" className="h-4 w-4" /> : step}
+                </span>
+                <span className={`max-w-full break-words text-[11px] font-medium leading-tight sm:text-sm ${isCurrent ? 'text-[#0066FF]' : isCompleted ? 'text-[#191F28]' : 'text-gray-500'}`}>{label}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
   );
 }

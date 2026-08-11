@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import LanguageSwitcher from '@/components/language-switcher';
+import BrandLogo from '@/components/brand-logo';
+import { useLanguage } from '@/i18n/LanguageProvider';
+import { normalizeLocale } from '@/i18n/locales';
+import { LAYOUT_COPY, layoutLabel } from './layout-copy';
 import {
   // 공통 레이아웃 / Common layout
   LayoutDashboard, Home, Plus, Bell, User, Menu, X, LogOut, ChevronDown,
@@ -63,6 +67,10 @@ type NavSection = {
  */
 export default function CompanyLayout({ children }: { children: React.ReactNode }) {
   const { user, logout, verificationStatus } = useAuth();
+  const { lang } = useLanguage();
+  const locale = normalizeLocale(lang);
+  const copy = LAYOUT_COPY[locale];
+  const label = (value: string) => layoutLabel(locale, value);
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileDropdown, setProfileDropdown] = useState(false);
@@ -83,53 +91,53 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
     exact ? pathname === href : pathname.startsWith(href);
 
   // ── 기업인증 상태 배너 / Verification status banner ───────────────────
-  const VerificationBanner = () => {
+  const renderVerificationBanner = () => {
     if (verificationStatus === 'APPROVED') return null;
 
     if (!verificationStatus || verificationStatus === 'NONE' || verificationStatus === 'PENDING') {
       return (
-        <div className="shrink-0 bg-blue-50 border-b border-blue-200 px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-blue-200 bg-blue-50 px-4 py-3 sm:px-6">
+          <div className="flex min-w-0 items-center gap-2.5">
             <Shield className="w-4 h-4 text-blue-600 shrink-0" />
-            <span className="text-sm font-medium text-blue-900">기업인증을 완료하고 모든 서비스를 이용하세요</span>
+            <span className="min-w-0 break-words text-sm font-medium text-blue-900">{copy.verifyCompany}</span>
           </div>
           <Link
             href="/company/verification"
-            className="bg-blue-600 text-white px-3 py-1 rounded-md text-xs font-semibold hover:bg-blue-700 transition shrink-0 ml-4"
+            className="shrink-0 rounded-md bg-[#0066FF] px-3 py-2 text-center text-xs font-semibold leading-4 text-white transition hover:bg-blue-700"
           >
-            인증 시작 →
+            {copy.startVerification} →
           </Link>
         </div>
       );
     }
     if (verificationStatus === 'SUBMITTED') {
       return (
-        <div className="shrink-0 bg-yellow-50 border-b border-yellow-200 px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-yellow-200 bg-yellow-50 px-4 py-3 sm:px-6">
+          <div className="flex min-w-0 items-center gap-2.5">
             <Calendar className="w-4 h-4 text-yellow-600 shrink-0" />
-            <span className="text-sm font-medium text-yellow-900">기업인증 심사 중입니다 (영업일 1~2일 소요)</span>
+            <span className="min-w-0 break-words text-sm font-medium text-yellow-900">{copy.verificationReview}</span>
           </div>
           <Link
             href="/company/verification"
-            className="text-yellow-700 underline font-semibold text-xs shrink-0 ml-4"
+            className="shrink-0 text-center text-xs font-semibold leading-4 text-yellow-700 underline"
           >
-            제출 내역 확인
+            {copy.viewSubmission}
           </Link>
         </div>
       );
     }
     if (verificationStatus === 'REJECTED') {
       return (
-        <div className="shrink-0 bg-red-50 border-b border-red-200 px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-red-200 bg-red-50 px-4 py-3 sm:px-6">
+          <div className="flex min-w-0 items-center gap-2.5">
             <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-            <span className="text-sm font-medium text-red-900">기업인증이 반려되었습니다. 서류를 다시 제출해주세요.</span>
+            <span className="min-w-0 break-words text-sm font-medium text-red-900">{copy.verificationRejected}</span>
           </div>
           <Link
             href="/company/verification"
-            className="bg-red-600 text-white px-3 py-1 rounded-md text-xs font-semibold hover:bg-red-700 transition shrink-0 ml-4"
+            className="shrink-0 rounded-md bg-red-600 px-3 py-2 text-center text-xs font-semibold leading-4 text-white transition hover:bg-red-700"
           >
-            재제출하기
+            {copy.resubmit}
           </Link>
         </div>
       );
@@ -174,8 +182,8 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
           icon: FilePlus,
           label: '공고 작성',
           subItems: [
-            { href: '/company/fulltime/create', label: '정규 채용관' },
-            { href: '/company/alba/create', label: '알바 채용관' },
+            { href: '/company/jobs/create?boardType=FULL_TIME', label: '정규 채용관' },
+            { href: '/company/jobs/create?boardType=PART_TIME', label: '알바 채용관' },
           ],
         },
         { href: '/company/jobs', icon: ClipboardList, label: '공고 관리', exact: true },
@@ -238,14 +246,14 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
   const bottomTabs = [
     { href: '/company/mypage', icon: Home, label: '홈', isFab: false },
     { href: '/company/jobs', icon: ClipboardList, label: '공고관리', isFab: false },
-    { href: '/company/fulltime/create', icon: Plus, label: '등록', isFab: true },
+    { href: '/company/jobs/create', icon: Plus, label: '등록', isFab: true },
     { href: '/company/notifications', icon: Bell, label: '알림', isFab: false },
     { href: '/company/mypage', icon: User, label: 'MY', isFab: false },
   ];
 
   // ── 사이드바 컨텐츠 컴포넌트 (데스크톱/모바일 공용) ─────────────────
   // Shared sidebar content component (desktop & mobile)
-  const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
+  const renderSidebarContent = (onNavigate?: () => void) => (
     <>
       {/* ── 상단 프로필 카드 / TOP: profile card ──────────────────────── */}
       <div className="shrink-0 border-b border-gray-100 p-3">
@@ -259,7 +267,7 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-gray-900 truncate">
-              {user?.companyName || '기업'}
+              {user?.companyName || copy.company}
             </p>
             <p className="text-xs text-gray-400 truncate">{user?.email}</p>
           </div>
@@ -274,7 +282,7 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
             {section.title ? (
               <div className="px-4 pt-4 pb-1.5 border-t border-gray-100 mt-1">
                 <span className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">
-                  {section.title}
+                  {label(section.title)}
                 </span>
               </div>
             ) : null}
@@ -298,7 +306,7 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
                         }`}
                       >
                         <item.icon className="w-4 h-4 shrink-0" />
-                        <span className="flex-1 text-left">{item.label}</span>
+                        <span className="flex-1 text-left">{label(item.label)}</span>
                         <ChevronDown
                           className={`w-3.5 h-3.5 transition-transform duration-200 ${
                             jobCreateOpen ? 'rotate-180' : ''
@@ -320,7 +328,7 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
                               }`}
                             >
                               <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0 opacity-50" />
-                              {sub.label}
+                              {label(sub.label)}
                             </Link>
                           ))}
                         </div>
@@ -343,7 +351,7 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
                     }`}
                   >
                     <item.icon className="w-4 h-4 shrink-0" />
-                    {item.label}
+                    {label(item.label)}
                   </Link>
                 );
               })}
@@ -362,7 +370,7 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
             className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition"
           >
             <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-            기업인증 완료하기
+            {copy.finishVerification}
           </Link>
         )}
         {/* 로그아웃 / Logout */}
@@ -371,7 +379,7 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
           className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
         >
           <LogOut className="w-4 h-4 shrink-0" />
-          로그아웃
+          {copy.logout}
         </button>
       </div>
     </>
@@ -394,13 +402,13 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
             <button
               className="md:hidden p-1.5 text-gray-500 hover:text-gray-700 rounded-md"
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              aria-label="메뉴 열기"
+              aria-label={sidebarOpen ? copy.menuClose : copy.menuOpen}
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            <Link href="/" className="text-lg font-bold text-gray-900 hover:opacity-80 transition">
-              JobChaja
+            <Link href="/" className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] focus-visible:ring-offset-2" aria-label="JobChaja home">
+              <BrandLogo />
             </Link>
 
             <nav className="hidden md:flex items-center gap-1 text-sm">
@@ -414,7 +422,7 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
                       : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
                   }`}
                 >
-                  {item.label}
+                  {label(item.label)}
                 </Link>
               ))}
             </nav>
@@ -437,7 +445,7 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
                 className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-gray-700 hover:text-gray-900 transition rounded-md"
               >
                 <span className="hidden sm:inline font-medium truncate max-w-[120px]">
-                  {user?.companyName || '기업'}
+                  {user?.companyName || copy.company}
                 </span>
                 <ChevronDown className="w-3.5 h-3.5" />
               </button>
@@ -448,14 +456,14 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     onClick={() => setProfileDropdown(false)}
                   >
-                    MY 페이지
+                    {copy.myPage}
                   </Link>
                   <Link
                     href="/company/profile/edit"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     onClick={() => setProfileDropdown(false)}
                   >
-                    기업정보 수정
+                    {copy.editCompany}
                   </Link>
                   <hr className="my-1" />
                   <button
@@ -463,7 +471,7 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                   >
                     <LogOut className="w-3.5 h-3.5" />
-                    로그아웃
+                    {copy.logout}
                   </button>
                 </div>
               )}
@@ -477,7 +485,7 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
 
         {/* 데스크톱 고정 사이드바 / Desktop fixed sidebar */}
         <aside className="hidden md:flex flex-col w-64 shrink-0 bg-white border-r border-gray-200">
-          <SidebarContent />
+          {renderSidebarContent()}
         </aside>
 
         {/* 모바일 드로어 사이드바 / Mobile drawer sidebar */}
@@ -489,19 +497,20 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
               <div className="shrink-0 flex items-center justify-between px-4 h-14 border-b border-gray-100">
                 <Link
                   href="/"
-                  className="text-base font-bold text-gray-900"
+                  className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF]"
                   onClick={() => setSidebarOpen(false)}
                 >
-                  JobChaja
+                  <BrandLogo />
                 </Link>
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg"
+                  aria-label={copy.menuClose}
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <SidebarContent onNavigate={() => setSidebarOpen(false)} />
+              {renderSidebarContent(() => setSidebarOpen(false))}
             </div>
             {/* 배경 딤 오버레이 / Dim background overlay */}
             <div
@@ -512,9 +521,9 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
         )}
 
         {/* 메인 컨텐츠 (독립 스크롤) / Main content (independent scroll) */}
-        <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+        <main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto pb-20 md:pb-0">
           {/* ════ 기업인증 배너 / Verification banner ═══════════════════ */}
-          <VerificationBanner />
+          {renderVerificationBanner()}
           {children}
         </main>
       </div>
@@ -534,7 +543,7 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
                   <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition">
                     <Plus className="w-6 h-6 text-white" />
                   </div>
-                  <span className="text-[10px] mt-0.5 text-gray-500">{tab.label}</span>
+                  <span className="max-w-16 break-words text-center text-[10px] leading-3 mt-0.5 text-gray-500">{label(tab.label)}</span>
                 </Link>
               );
             }
@@ -548,7 +557,7 @@ export default function CompanyLayout({ children }: { children: React.ReactNode 
               >
                 <tab.icon className={`w-5 h-5 ${active ? 'text-blue-600' : 'text-gray-400'}`} />
                 <span className={`text-[10px] mt-0.5 ${active ? 'font-semibold' : ''}`}>
-                  {tab.label}
+                  {label(tab.label)}
                 </span>
               </Link>
             );

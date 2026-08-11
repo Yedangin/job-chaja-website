@@ -2,8 +2,12 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   devIndicators: false,
   reactCompiler: true,
+  turbopack: {
+    root: process.cwd(),
+  },
   // Next generates route types for development-only prototype pages. They are
   // blocked in production and validated separately from the launch scope.
   typescript: {

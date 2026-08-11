@@ -4,15 +4,22 @@ import ja from './ja';
 import vi from './vi';
 import th from './th';
 import tl from './tl';
+import fil from './fil';
+import type { LaunchLocale } from '../locales';
+import type { CatalogMessageKey } from '../catalogs';
 
 export const uiMessages = {
   ko,
   en,
-  ja,
   vi,
   th,
-  tl,
-};
+  fil,
+} satisfies Record<LaunchLocale, typeof en>;
 
-export type UILang = keyof typeof uiMessages;
-export type UIMessageKey = keyof typeof en;
+// Compatibility exports only. They are not release locales.
+export const legacyUiMessages = { kr: ko, tl, ja };
+export { ja, tl };
+
+export type UILang = LaunchLocale;
+export type LegacyUILang = keyof typeof legacyUiMessages;
+export type UIMessageKey = keyof typeof en | CatalogMessageKey;

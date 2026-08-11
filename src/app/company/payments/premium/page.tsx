@@ -4,10 +4,15 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft, Star, Clock, Check, Tag,
-  Loader2, AlertCircle, Crown, CreditCard,
-  Smartphone, Building2, ChevronRight, Shield,
+  Loader2, AlertCircle, CreditCard,
+  Smartphone, Building2, Shield,
 } from 'lucide-react';
 import * as PortOne from '@portone/browser-sdk/v2';
+import {
+  assertPortOnePaymentResponse,
+  getPortOnePaymentConfiguration,
+  getPortOnePaymentError,
+} from '@/lib/portone-payment';
 
 /* ================================================================
  * 상위노출 기간 옵션 / Premium listing duration options
@@ -68,6 +73,12 @@ interface JobInfo {
   allowedVisas?: string[];
 }
 
+interface CouponResult {
+  name: string;
+  type: 'FIXED_DISCOUNT' | 'PERCENT_DISCOUNT';
+  value: number;
+}
+
 /**
  * 상위노출권 구매 페이지 / Premium listing purchase page
  *
@@ -85,10 +96,11 @@ export default function PremiumPurchasePage() {
   const [selectedDays, setSelectedDays] = useState<number>(30);
   const [payMethod, setPayMethod] = useState<PayMethodType>('CARD');
   const [couponCode, setCouponCode] = useState('');
-  const [couponResult, setCouponResult] = useState<any>(null);
+  const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
   const [discount, setDiscount] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [jobLoading, setJobLoading] = useState(true);
+  const [jobLoading, setJobLoading] = useState(Boolean(jobId));
+  const [renderedAt] = useState(() => Date.now());
   const [error, setError] = useState('');
   const [agreedTerms, setAgreedTerms] = useState(false);
 
@@ -112,7 +124,7 @@ export default function PremiumPurchasePage() {
     }
 
     // 공고 정보 조회 / Fetch job info
-    if (!jobId) { setJobLoading(false); return; }
+    if (!jobId) return;
     fetch(`/api/jobs/${jobId}`, {
       credentials: 'include',
       headers: sessionId ? { 'Authorization': `Bearer ${sessionId}` } : {},
@@ -198,45 +210,26 @@ export default function PremiumPurchasePage() {
       });
       const order = await orderRes.json();
       if (!orderRes.ok) { setError(order.message || '주문 생성에 실패했습니다.'); setLoading(false); return; }
+      const paymentConfig = getPortOnePaymentConfiguration(order.checkout);
 
       // 2. 포트원 결제 수단 매핑 / Map pay method for PortOne V2
       const portoneMethod = payMethod === 'CARD' ? 'CARD'
         : payMethod === 'EASY_PAY' ? 'EASY_PAY'
         : 'TRANSFER';
 
-      // 3. 환경변수 확인 / Verify env vars
-      const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID;
-      const channelKey = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY;
-      if (!storeId || !channelKey) {
-        setError('결제 설정 오류: 포트원 키가 설정되지 않았습니다.');
-        setLoading(false);
-        return;
-      }
-
-      // 4. 포트원 V2 결제창 호출 / Open PortOne V2 checkout (KG이니시스)
+      // 3. 포트원 V2 결제창 호출 / Open PortOne V2 checkout
       const paymentResponse = await PortOne.requestPayment({
-        storeId,
-        channelKey,
-        paymentId: order.orderNo,
-        orderName: order.productName,
-        totalAmount: order.totalAmount,
-        currency: 'CURRENCY_KRW',
+        ...paymentConfig,
         payMethod: portoneMethod,
-        customer: {
-          fullName: '잡차자',
-          email: userEmail || 'customer@jobchaja.com',
-          phoneNumber: '01000000000',
-        },
+        customer: userEmail ? { email: userEmail } : undefined,
       });
 
       if (!paymentResponse || paymentResponse.code) {
-        const msg = paymentResponse?.code === 'USER_CANCEL'
-          ? '결제가 취소되었습니다.'
-          : `결제 실패: ${paymentResponse?.message || '알 수 없는 오류'}`;
-        setError(msg); setLoading(false); return;
+        setError(getPortOnePaymentError(paymentResponse)); setLoading(false); return;
       }
+      assertPortOnePaymentResponse(paymentResponse, paymentConfig.paymentId);
 
-      // 5. 결제 확인 / Confirm payment
+      // 4. 결제 확인 / Confirm payment
       const confirmRes = await fetch(`/api/payments/orders/${order.orderId}/confirm`, {
         method: 'POST',
         credentials: 'include',
@@ -244,14 +237,14 @@ export default function PremiumPurchasePage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${sessionId}`,
         },
-        body: JSON.stringify({ portonePaymentId: paymentResponse.paymentId }),
+        body: JSON.stringify({ portonePaymentId: paymentConfig.paymentId }),
       });
       if (!confirmRes.ok) {
         setError('결제 확인 중 문제가 발생했습니다. 고객센터에 문의해주세요.');
         setLoading(false); return;
       }
 
-      // 6. 성공 / Success
+      // 5. 성공 / Success
       const params = new URLSearchParams({
         orderId: String(order.orderId),
         productCode,
@@ -268,7 +261,7 @@ export default function PremiumPurchasePage() {
   /* 프리미엄 잔여일 계산 / Remaining premium days */
   const remainingDays = (() => {
     if (!job?.premiumEndAt) return null;
-    const diff = Math.ceil((new Date(job.premiumEndAt).getTime() - Date.now()) / 86400000);
+    const diff = Math.ceil((new Date(job.premiumEndAt).getTime() - renderedAt) / 86400000);
     return diff > 0 ? diff : null;
   })();
 

@@ -10,7 +10,7 @@
  * - 최근 사용 내역 / Recent usage history
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import * as PortOne from '@portone/browser-sdk/v2';
@@ -34,6 +34,11 @@ import {
   Shield,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  assertPortOnePaymentResponse,
+  getPortOnePaymentConfiguration,
+  getPortOnePaymentError,
+} from '@/lib/portone-payment';
 
 // ─── 타입 정의 / Type definitions ────────────────────────────────────────────
 
@@ -310,35 +315,43 @@ export default function CreditsPage() {
   const finalPrice = selectedPkg.price - discountAmount;
 
   // ── 잔여 열람권 로드 / Load credit balance ──
-  const loadBalance = useCallback(async () => {
-    try {
-      const res = await fetch('/api/payments/viewing-credits/balance', {
-        credentials: 'include',
-      });
-
-      if (res.status === 401) {
-        setIsLoggedIn(false);
-        return;
-      }
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setBalanceError((data as { message?: string }).message ?? '열람권 정보를 불러오는 데 실패했습니다.');
-        return;
-      }
-
-      const data = await res.json() as CreditBalance;
-      setBalance(data);
-    } catch {
-      setBalanceError('네트워크 오류가 발생했습니다.');
-    } finally {
-      setLoadingBalance(false);
-    }
-  }, []);
-
   useEffect(() => {
-    loadBalance();
-  }, [loadBalance]);
+    let active = true;
+    const loadBalance = async () => {
+      try {
+        const res = await fetch('/api/payments/viewing-credits/balance', {
+          credentials: 'include',
+        });
+
+        if (res.status === 401) {
+          if (active) setIsLoggedIn(false);
+          return;
+        }
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (active) {
+            setBalanceError(
+              (data as { message?: string }).message ??
+                '열람권 정보를 불러오는 데 실패했습니다.',
+            );
+          }
+          return;
+        }
+
+        const data = (await res.json()) as CreditBalance;
+        if (active) setBalance(data);
+      } catch {
+        if (active) setBalanceError('네트워크 오류가 발생했습니다.');
+      } finally {
+        if (active) setLoadingBalance(false);
+      }
+    };
+    void loadBalance();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // ── 쿠폰 처리 / Coupon handling ──
   const handleApplyCoupon = async () => {
@@ -409,38 +422,27 @@ export default function CreditsPage() {
         setPaying(false);
         return;
       }
+      const paymentConfig = getPortOnePaymentConfiguration(order.checkout);
 
       // 2. 포트원 결제창 호출 / Open PortOne checkout
       const payResponse = await PortOne.requestPayment({
-        storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID || 'store-a2a5e6a1-a425-4720-9c30-6340aca9964d',
-        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || 'channel-key-5d1a5927-000f-4dd0-a3e0-a8468182cab6',
-        paymentId: order.orderNo,
-        orderName: order.productName,
-        totalAmount: order.totalAmount,
-        currency: 'CURRENCY_KRW',
+        ...paymentConfig,
         payMethod: payMethod as 'CARD' | 'EASY_PAY' | 'TRANSFER',
-        customer: {
-          fullName: '잡차자',
-          email: 'customer@jobchaja.com',
-          phoneNumber: '01000000000',
-        },
       });
 
       if (!payResponse || payResponse.code) {
-        const msg = payResponse?.code === 'USER_CANCEL'
-          ? '결제가 취소되었습니다.'
-          : `결제 실패: ${payResponse?.message || '알 수 없는 오류'}`;
-        setPayError(msg);
+        setPayError(getPortOnePaymentError(payResponse));
         setPaying(false);
         return;
       }
+      assertPortOnePaymentResponse(payResponse, paymentConfig.paymentId);
 
       // 3. 결제 확인 / Confirm payment
       const confirmRes = await fetch(`/api/payments/orders/${order.orderId}/confirm`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ portonePaymentId: payResponse.paymentId }),
+        body: JSON.stringify({ portonePaymentId: paymentConfig.paymentId }),
       });
 
       if (!confirmRes.ok) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
+import { useState, useEffect, useCallback, FormEvent, ChangeEvent } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,8 @@ import {
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { CURRENT_POLICY_VERSION } from '@/lib/legal';
+import { IdentityVerificationPanel } from '@/components/identity-verification-panel';
+import type { IdentitySummary } from '@/lib/identity-verification-client';
 
 type Step = 1 | 2 | 3;
 
@@ -53,8 +55,7 @@ export default function CompanyVerificationPage() {
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
   const [lastRejectionReason, setLastRejectionReason] = useState<string | null>(null);
 
-  // Real PASS verification is not integrated, so CEO identity exemption stays disabled.
-  const [verifiedName] = useState<string | null>(null);
+  const [verifiedName, setVerifiedName] = useState<string | null>(null);
 
   // 서류 업로드 상태 / Document upload state
   const [bizRegDoc, setBizRegDoc] = useState<{ filePath: string; originalName: string } | null>(null);
@@ -103,6 +104,9 @@ export default function CompanyVerificationPage() {
           if (data.bizRegNumber) setFormData(prev => ({ ...prev, bizNo: data.bizRegNumber }));
           if (data.companyNameOfficial) setFormData(prev => ({ ...prev, companyName: data.companyNameOfficial }));
           if (data.ceoName) setFormData(prev => ({ ...prev, repName: data.ceoName }));
+          if (data.identityVerification?.verified && data.identityVerification.name) {
+            setVerifiedName(data.identityVerification.name);
+          }
         }
       } catch { /* ignore */ }
       finally { setPageLoading(false); }
@@ -114,6 +118,12 @@ export default function CompanyVerificationPage() {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
+
+  const handleIdentityVerified = useCallback((identity: IdentitySummary) => {
+    if (!identity.verified || !identity.name) return;
+    setVerifiedName(identity.name);
+    setFormData(prev => ({ ...prev, managerName: identity.name || prev.managerName }));
+  }, []);
 
   // 사업자 진위확인 / Business number verification
   const handleCheckBizInfo = async () => {
@@ -198,7 +208,9 @@ export default function CompanyVerificationPage() {
     }
   };
 
-  const canShowCeoSelfCheckbox = verifiedName !== null && verifiedName === formData.repName;
+  const normalizeName = (value: string) => value.normalize('NFKC').replace(/\s+/g, '').toLocaleLowerCase('ko');
+  const canShowCeoSelfCheckbox = verifiedName !== null
+    && normalizeName(verifiedName) === normalizeName(formData.repName);
   const canSubmit = bizCheckResult?.isValid && bizRegDoc !== null
     && ((canShowCeoSelfCheckbox && isCeoSelf) || empCertDoc !== null);
 
@@ -208,6 +220,7 @@ export default function CompanyVerificationPage() {
       currentStep === 1
       && formData.managerName.trim()
       && formData.managerPhone.trim()
+      && verifiedName !== null
       && formData.agreeTerms
       && formData.agreePrivacy
       && formData.agreeInternationalTransfer
@@ -237,6 +250,7 @@ export default function CompanyVerificationPage() {
           empCertDocPath: empCertDoc?.filePath || null,
           empCertDocOrigName: empCertDoc?.originalName || null,
           isCeoSelf,
+          openDate: formData.openDate,
           termsConsent: formData.agreeTerms,
           privacyConsent: formData.agreePrivacy,
           internationalTransferConsent: formData.agreeInternationalTransfer,
@@ -379,11 +393,15 @@ export default function CompanyVerificationPage() {
             <p className="text-sm text-gray-500 mt-1">채용 공고 관리 및 지원자 연락을 위한 정보를 입력해주세요.</p>
           </div>
 
-          {/* Manager contact details. Phone identity verification is not enabled yet. */}
+          <IdentityVerificationPanel
+            returnPath="/company/verification"
+            onVerified={handleIdentityVerified}
+          />
+
           <div className="bg-gray-50 rounded-xl p-5 border border-gray-100 space-y-4">
             <h3 className="font-bold text-gray-800 text-sm">담당자 연락처</h3>
-            <p className="text-xs leading-relaxed text-amber-700">
-              휴대폰 본인인증은 현재 제공되지 않습니다. 담당자 확인을 위해 정확한 연락처를 입력해 주세요.
+            <p className="text-xs leading-relaxed text-gray-600">
+              본인인증된 실명은 담당자 정보로 자동 반영되며 임의로 변경할 수 없습니다.
             </p>
 
             <Input
@@ -392,6 +410,7 @@ export default function CompanyVerificationPage() {
               value={formData.managerName}
               onChange={handleInputChange}
               placeholder="담당자 실명 입력"
+              readOnly={verifiedName !== null}
               required
             />
 
@@ -480,7 +499,7 @@ export default function CompanyVerificationPage() {
           <div className="flex justify-end pt-2">
             <Button
               type="submit"
-              disabled={!formData.managerName.trim() || !formData.managerPhone.trim() || !isAllAgreed}
+              disabled={!verifiedName || !formData.managerPhone.trim() || !isAllAgreed}
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2"
             >
               다음 단계 <ArrowRight className="w-4 h-4" />
@@ -517,7 +536,7 @@ export default function CompanyVerificationPage() {
                 </label>
                 <Input
                   type="text" name="companyName" value={formData.companyName}
-                  onChange={(e) => { handleInputChange(e); setBizCheckResult(null); }}
+                  onChange={(e) => { handleInputChange(e); setBizCheckResult(null); setIsCeoSelf(false); }}
                   placeholder="기업명 입력" disabled={bizCheckResult?.isValid}
                 />
               </div>
@@ -527,7 +546,7 @@ export default function CompanyVerificationPage() {
                 </label>
                 <Input
                   type="text" name="repName" value={formData.repName}
-                  onChange={(e) => { handleInputChange(e); setBizCheckResult(null); }}
+                  onChange={(e) => { handleInputChange(e); setBizCheckResult(null); setIsCeoSelf(false); }}
                   placeholder="대표자 성명 입력" disabled={bizCheckResult?.isValid}
                 />
               </div>

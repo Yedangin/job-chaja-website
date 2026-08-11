@@ -493,7 +493,7 @@ export default function SeekerWizardVariantAPage() {
             setShowCompletion(false);
             goToStep(step);
           }}
-          onGoToDashboard={() => router.push('/worker/dashboard')}
+          onGoToDashboard={() => router.push('/worker/visa-journey')}
         />
       );
     }

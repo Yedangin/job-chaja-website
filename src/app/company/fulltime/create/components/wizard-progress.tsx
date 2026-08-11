@@ -7,32 +7,32 @@
 
 import { Check } from 'lucide-react';
 import type { WizardStep } from './fulltime-types';
+import { useFulltimeCopy } from '../copy';
 
 interface WizardProgressProps {
   currentStep: WizardStep;
   onStepClick?: (step: WizardStep) => void;
 }
 
-const steps = [
-  { step: 1 as WizardStep, label: '기본 정보' },
-  { step: 2 as WizardStep, label: '근무 조건' },
-  { step: 3 as WizardStep, label: '상세 내용' },
-  { step: 4 as WizardStep, label: '비자 매칭' },
-  { step: 5 as WizardStep, label: '미리보기' },
-];
-
 export default function WizardProgress({
   currentStep,
   onStepClick,
 }: WizardProgressProps) {
+  const copy = useFulltimeCopy();
+  const steps = [
+    { step: 1 as WizardStep, label: copy.stepBasic }, { step: 2 as WizardStep, label: copy.stepConditions },
+    { step: 3 as WizardStep, label: copy.stepDetails }, { step: 4 as WizardStep, label: copy.stepVisa },
+    { step: 5 as WizardStep, label: copy.stepPreview },
+  ];
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-start justify-between gap-0 overflow-x-auto pb-1">
       {steps.map((s, index) => (
         <div key={s.step} className="flex items-center flex-1">
           <button
             type="button"
             onClick={() => onStepClick?.(s.step)}
             disabled={s.step > currentStep}
+            aria-label={s.label}
             className={`flex flex-col items-center gap-1 ${
               onStepClick && s.step <= currentStep
                 ? 'cursor-pointer'
@@ -55,7 +55,7 @@ export default function WizardProgress({
               )}
             </div>
             <span
-              className={`text-[11px] font-medium whitespace-nowrap ${
+              className={`hidden min-[460px]:block text-[11px] font-medium whitespace-nowrap ${
                 s.step === currentStep
                   ? 'text-blue-600'
                   : s.step < currentStep

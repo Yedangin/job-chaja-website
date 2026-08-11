@@ -67,6 +67,12 @@ export function SignupForm({ onSwitchView, memberType = 'seeker' }: SignupFormPr
           {memberType === 'company' ? '기업 회원으로 가입합니다. 가입 후 기업 인증을 진행해주세요.' : t('createSub')}
         </p>
 
+        <div className="mb-5 rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-xs leading-5 text-sky-950">
+          {memberType === 'company'
+            ? '가입 후 기업 인증을 완료하면 공고 조건을 기준으로 비자 판단 보조 결과와 정책 기준일을 확인할 수 있습니다.'
+            : '가입 후 체류·학력·경력 정보를 입력하면 자격조건 판단부터 조건충족, 서류 준비, 셀프 수속까지 하나의 비자 여정으로 안내합니다.'}
+        </div>
+
         <form
           onSubmit={(e) => {
             e.preventDefault();

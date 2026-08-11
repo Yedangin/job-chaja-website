@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/i18n/LanguageProvider';
+import { normalizeLocale } from '@/i18n/locales';
 import { authApi } from '../api/auth.api';
 
 interface SocialLoginButtonsProps {
@@ -12,14 +13,21 @@ interface SocialLoginButtonsProps {
  * 소셜 로그인 버튼 (카카오, 구글)
  */
 export function SocialLoginButtons({ memberType, redirectTo }: SocialLoginButtonsProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const disabledCopy = {
+    ko: '소셜 로그인은 동의 기록 연동 완료 후 제공됩니다. 현재는 이메일 로그인을 이용해 주세요.',
+    en: 'Social sign-in will be available after consent records are connected. Please use email sign-in for now.',
+    vi: 'Đăng nhập mạng xã hội sẽ khả dụng sau khi kết nối hồ sơ đồng ý. Hiện tại, vui lòng đăng nhập bằng email.',
+    th: 'การเข้าสู่ระบบด้วยโซเชียลจะเปิดใช้หลังเชื่อมต่อบันทึกความยินยอม โปรดใช้อีเมลในขณะนี้',
+    fil: 'Magiging available ang social sign-in kapag nakakonekta na ang consent records. Email sign-in muna ang gamitin.',
+  }[normalizeLocale(lang)];
   const userType = memberType === 'company' ? 'CORPORATE' : 'INDIVIDUAL';
   const socialLoginEnabled = process.env.NEXT_PUBLIC_SOCIAL_LOGIN_ENABLED === 'true';
 
   if (!socialLoginEnabled) {
     return (
       <p className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-center text-xs text-amber-800">
-        소셜 로그인은 동의 기록 연동 완료 후 제공됩니다. 현재는 이메일 로그인을 이용해 주세요.
+        {disabledCopy}
       </p>
     );
   }

@@ -135,7 +135,7 @@ export default function WorkerProfilePage() {
 
       {/* 8단계 프로필 위저드 진입 카드 / 8-step wizard entry card */}
       <div className="mb-6">
-        <Link href="/worker/wizard/variants/a">
+        <Link href="/worker/profile/setup">
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-5 text-white hover:from-blue-700 hover:to-indigo-700 transition-all cursor-pointer shadow-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">

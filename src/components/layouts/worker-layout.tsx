@@ -5,6 +5,10 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import LanguageSwitcher from '@/components/language-switcher';
 import Footer from '@/components/footer';
+import BrandLogo from '@/components/brand-logo';
+import { useLanguage } from '@/i18n/LanguageProvider';
+import { normalizeLocale } from '@/i18n/locales';
+import { LAYOUT_COPY, layoutLabel } from './layout-copy';
 import {
   Home,
   Search,
@@ -25,6 +29,7 @@ import {
   UserX,
   MessageSquare,
   BookOpen,
+  Route,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -50,6 +55,10 @@ interface SidebarSection {
  */
 export default function WorkerLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const { lang } = useLanguage();
+  const locale = normalizeLocale(lang);
+  const copy = LAYOUT_COPY[locale];
+  const label = (value: string) => layoutLabel(locale, value);
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileDropdown, setProfileDropdown] = useState(false);
@@ -62,7 +71,8 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
     if (!sessionId) return;
 
     fetch('/api/notifications/unread-count', {
-      headers: { Authorization: `Bearer ${sessionId}` },
+      credentials: 'include',
+      headers: sessionId ? { Authorization: `Bearer ${sessionId}` } : undefined,
     })
       .then((res) => {
         if (res.ok) return res.json() as Promise<{ count: number }>;
@@ -80,7 +90,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
   // Active check: 대시보드는 정확히 일치, 나머지는 startsWith
   // Dashboard uses exact match; others use prefix match
   const isItemActive = (href: string) => {
-    if (href === '/worker/mypage') return pathname === '/worker/mypage';
+    if (href === '/worker/mypage' || href === '/worker/visa') return pathname === href;
     return pathname.startsWith(href);
   };
 
@@ -116,6 +126,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
       items: [
         { href: '/worker/resume', icon: FileText, label: '이력서 관리' },
         { href: '/worker/visa', icon: Shield, label: '비자 정보 수정' },
+        { href: '/worker/visa-journey', icon: Route, label: locale === 'ko' ? '비자 여정' : 'Visa journey' },
       ],
     },
     // 계정 설정 섹션 / Account settings section
@@ -157,12 +168,13 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
             <button
               className="md:hidden mr-2 p-1.5 text-gray-500 hover:text-gray-700"
               onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label={sidebarOpen ? copy.menuClose : copy.menuOpen}
             >
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
-            <Link href="/" className="text-lg font-bold text-gray-900 hover:opacity-80 transition">
-              JobChaja
+            <Link href="/" className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] focus-visible:ring-offset-2" aria-label="JobChaja home">
+              <BrandLogo />
             </Link>
 
             <nav className="hidden md:flex items-center ml-8 gap-1 text-sm">
@@ -176,7 +188,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
                       : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
                   }`}
                 >
-                  {item.label}
+                  {label(item.label)}
                 </Link>
               ))}
             </nav>
@@ -201,7 +213,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
               >
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline font-medium truncate max-w-[120px]">
-                  {user?.fullName || '프로필'}
+                  {user?.fullName || copy.profile}
                 </span>
                 <ChevronDown className="w-3.5 h-3.5" />
               </button>
@@ -212,14 +224,14 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
                     className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     onClick={() => setProfileDropdown(false)}
                   >
-                    <User className="w-3.5 h-3.5" /> MY 페이지
+                    <User className="w-3.5 h-3.5" /> {copy.myPage}
                   </Link>
                   <Link
                     href="/worker/resume"
                     className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     onClick={() => setProfileDropdown(false)}
                   >
-                    <FileText className="w-3.5 h-3.5" /> 이력서 관리
+                    <FileText className="w-3.5 h-3.5" /> {label('이력서 관리')}
                   </Link>
                   <hr className="my-1" />
                   <button
@@ -227,7 +239,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
                     className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                   >
                     <LogOut className="w-3.5 h-3.5" />
-                    로그아웃
+                    {copy.logout}
                   </button>
                 </div>
               )}
@@ -257,7 +269,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
                 <User className="w-4 h-4 text-blue-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-gray-900 truncate">{user?.fullName || '사용자'}</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">{user?.fullName || copy.user}</p>
                 <p className="text-[11px] text-gray-400 truncate">{user?.email}</p>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-gray-400 -rotate-90 shrink-0" />
@@ -278,7 +290,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
                 {/* 섹션 헤더 레이블 / Section header label */}
                 {section.title && (
                   <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest px-3 mb-1.5">
-                    {section.title}
+                    {label(section.title)}
                   </p>
                 )}
 
@@ -298,7 +310,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
                       }`}
                     >
                       <item.icon className="w-4 h-4 shrink-0" />
-                      {item.label}
+                      {label(item.label)}
                     </Link>
                   ))}
                 </div>
@@ -313,7 +325,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
               className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition"
             >
               <LogOut className="w-4 h-4 shrink-0" />
-              로그아웃
+              {copy.logout}
             </button>
           </div>
         </aside>
@@ -329,19 +341,19 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
         {/* === 메인 컨텐츠 / Main content ===
             md:ml-64: fixed 사이드바(256px) 너비만큼 좌측 여백 확보
             md:ml-64: offset for fixed sidebar width (256px = w-64) */}
-        <main className="flex-1 pb-20 md:pb-0 md:ml-64">
+        <main className="min-w-0 w-full flex-1 overflow-x-hidden pb-20 md:pb-0 md:ml-64">
           {/* 프로필 작성 유도 배너 (main 안으로 이동 → 사이드바 높이 계산 영향 없음)
               Profile CTA banner moved inside main to not affect sidebar height */}
-          <div className="bg-blue-50 border-b border-blue-200 px-6 py-3.5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-3 border-b border-blue-200 bg-blue-50 px-4 py-3.5 sm:px-6">
+            <div className="flex min-w-0 items-center gap-3">
               <UserCircle className="w-5 h-5 text-blue-600 shrink-0" />
-              <span className="text-base font-medium text-blue-900">프로필을 완성하여 나에게 맞는 공고를 만나보세요</span>
+              <span className="min-w-0 break-words text-sm font-medium text-blue-900 sm:text-base">{copy.completeWorkerProfile}</span>
             </div>
             <Link
               href="/worker/wizard/variants/a"
-              className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-700 transition shrink-0 ml-4"
+              className="shrink-0 rounded-lg bg-[#0066FF] px-3 py-2 text-center text-xs font-semibold leading-4 text-white hover:bg-blue-700 sm:px-4 sm:text-sm"
             >
-              프로필 등록 →
+              {copy.registerProfile} →
             </Link>
           </div>
           {children}
@@ -379,7 +391,7 @@ export default function WorkerLayout({ children }: { children: React.ReactNode }
                     </span>
                   )}
                 </div>
-                <span className={`text-[10px] mt-0.5 ${active ? 'font-semibold' : ''}`}>{tab.label}</span>
+                <span className={`max-w-16 break-words text-center text-[10px] leading-3 mt-0.5 ${active ? 'font-semibold' : ''}`}>{label(tab.label)}</span>
               </Link>
             );
           })}

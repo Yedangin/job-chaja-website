@@ -42,7 +42,7 @@ const banners: Banner[] = [
     title: '2026 상반기 무료 한국어교육',
     desc: '서울글로벌센터 주관 · 초급~중급반 모집중',
     cta: '신청하기',
-    href: '#',
+    href: '/notice',
   },
   {
     bg: 'bg-gradient-to-r from-[#1A1A2E] to-[#16213E]',
@@ -54,7 +54,7 @@ const banners: Banner[] = [
     title: '외국인 채용 박람회 개최',
     desc: '서울 COEX · 03.15 · 50개 기업 참가',
     cta: '참가 신청',
-    href: '#',
+    href: '/notice',
   },
   {
     bg: 'bg-gradient-to-r from-[#0D4F3C] to-[#03B26C]',
@@ -66,7 +66,7 @@ const banners: Banner[] = [
     title: '제89회 TOPIK 시험 접수',
     desc: '접수기간 04.12~04.13 · 전국 시험장',
     cta: '접수 안내',
-    href: '#',
+    href: '/notice',
   },
   {
     bg: 'bg-gradient-to-r from-[#5B21B6] to-[#7C3AED]',
@@ -78,7 +78,7 @@ const banners: Banner[] = [
     title: '2026년 E-9 쿼터 확대 안내',
     desc: '제조·건설·농업 분야 외국인 채용 쿼터 변경',
     cta: '상세보기',
-    href: '#',
+    href: '/notice',
   },
   {
     bg: 'bg-gradient-to-r from-[#B91C1C] to-[#DC2626]',

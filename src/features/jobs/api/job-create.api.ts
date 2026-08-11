@@ -2,7 +2,7 @@ import { apiClient } from '@/lib/api-client';
 import type {
   JobCreateApiPayload,
   JobCreateResponse,
-  JobActivateResponse,
+  JobSubmitResponse,
   VisaEvaluateRequest,
   VisaMatchResult,
   CorpProfileForMatching,
@@ -26,10 +26,9 @@ export const jobCreateApi = {
   /**
    * 공고 활성화 / Activate job posting (DRAFT → ACTIVE)
    */
-  activate: async (jobId: number, orderId?: string): Promise<JobActivateResponse> => {
-    const response = await apiClient.post<JobActivateResponse>(
-      `/jobs/${jobId}/activate`,
-      orderId ? { orderId } : {}
+  submit: async (jobId: number | string): Promise<JobSubmitResponse> => {
+    const response = await apiClient.post<JobSubmitResponse>(
+      `/jobs/${jobId}/submit`,
     );
     return response.data;
   },

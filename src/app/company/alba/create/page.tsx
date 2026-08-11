@@ -2,17 +2,19 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Save, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
 import WizardProgress from './components/wizard-progress';
 import StepBasicInfo from './components/step-basic-info';
 import StepDetails from './components/step-details';
 import StepPreview from './components/step-preview';
-import { matchAlbaVisa, createAlbaJob } from './api';
+import { AlbaApiError, matchAlbaVisa, createAlbaJob, submitAlbaJobForReview } from './api';
 import type { AlbaJobFormData, AlbaVisaMatchingResponse, WizardStep } from './components/alba-types';
 import CompanyAuthGuard from '@/components/guards/company-auth-guard';
 import { useMinimumHourlyWage } from '@/hooks/use-minimum-wage';
 import { useAuth } from '@/contexts/auth-context';
 import { apiClient } from '@/lib/api-client';
+import { useLanguage } from '@/i18n/LanguageProvider';
+import { getAlbaCopy } from './copy';
 
 /**
  * 알바 공고 등록 위자드 (최종 버전)
@@ -45,6 +47,8 @@ const INITIAL_FORM: AlbaJobFormData = {
 };
 
 export default function AlbaCreatePage() {
+  const { lang } = useLanguage();
+  const copy = getAlbaCopy(lang);
   const { user } = useAuth();
   const minimumWage = useMinimumHourlyWage();
   const [step, setStep] = useState<WizardStep>(1);
@@ -70,7 +74,6 @@ export default function AlbaCreatePage() {
     }).catch(() => {
       // 실패 시 수동 입력 / Manual input on failure
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   // 폼 업데이트 / Update form field
@@ -90,10 +93,10 @@ export default function AlbaCreatePage() {
   // Step 1 유효성 검증 / Step 1 validation
   const validateStep1 = (): boolean => {
     const errs: Record<string, string> = {};
-    if (!form.jobCategoryCode) errs.jobCategoryCode = '직종을 선택해주세요';
-    if (form.hourlyWage < minimumWage) errs.hourlyWage = '최저시급 이상이어야 합니다';
-    if (form.schedule.length === 0) errs.schedule = '근무일을 선택해주세요';
-    if (!form.workPeriod.startDate) errs.workPeriod = '시작일을 입력해주세요';
+    if (!form.jobCategoryCode) errs.jobCategoryCode = copy.validation.category;
+    if (form.hourlyWage < minimumWage) errs.hourlyWage = copy.validation.wage;
+    if (form.schedule.length === 0) errs.schedule = copy.validation.schedule;
+    if (!form.workPeriod.startDate) errs.workPeriod = copy.validation.startDate;
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -101,8 +104,8 @@ export default function AlbaCreatePage() {
   // Step 2 유효성 검증 / Step 2 validation
   const validateStep2 = (): boolean => {
     const errs: Record<string, string> = {};
-    if (!form.title.trim()) errs.title = '공고 제목을 입력해주세요';
-    if (!form.address.sido.trim()) errs.address = '시/도를 입력해주세요';
+    if (!form.title.trim()) errs.title = copy.validation.title;
+    if (!form.address.sido.trim()) errs.address = copy.validation.address;
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -129,27 +132,24 @@ export default function AlbaCreatePage() {
     try {
       const result = await matchAlbaVisa(form);
       setMatchResult(result);
-    } catch (err) {
+    } catch (error) {
       setMatchResult(null);
-      setMatchError(
-        err instanceof Error
-          ? err.message
-          : '비자 매칭 분석에 실패했습니다. 다시 시도해주세요.',
-      );
+      setMatchError(error instanceof AlbaApiError && error.code === 'AUTH_REQUIRED' ? copy.errors.auth : copy.errors.matching);
     } finally {
       setIsMatchLoading(false);
     }
-  }, [form, isMatchLoading]);
+  }, [form, isMatchLoading, copy.errors.auth, copy.errors.matching]);
 
   // 공고 등록 / Submit job
   const handleSubmit = async () => {
     if (submitting) return;
     setSubmitting(true);
     try {
-      await createAlbaJob(form, matchResult);
+      const draft = await createAlbaJob(form, matchResult);
+      await submitAlbaJobForReview(draft.jobId);
       setCompleted(true);
-    } catch {
-      alert('공고 등록에 실패했습니다. 다시 시도해주세요.');
+    } catch (error) {
+      alert(error instanceof AlbaApiError && error.code === 'AUTH_REQUIRED' ? copy.errors.auth : copy.errors.submit);
     } finally {
       setSubmitting(false);
     }
@@ -160,19 +160,19 @@ export default function AlbaCreatePage() {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16">
         <div className="bg-white border border-gray-200 rounded-xl p-8 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-9 h-9 text-green-600" />
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-9 h-9 text-[#0066FF]" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">알바 공고가 등록되었습니다!</h2>
+          <h2 className="text-xl font-bold text-[#191F28] mb-2">{copy.completionTitle}</h2>
           <p className="text-sm text-gray-500 mb-8">
-            비자 매칭 결과: {matchResult?.summary.totalEligible ?? 0}개 가능, {matchResult?.summary.totalConditional ?? 0}개 조건부
+            {copy.completionBody(matchResult?.summary.totalEligible ?? 0, matchResult?.summary.totalConditional ?? 0)}
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link
               href="/company/alba"
               className="px-6 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition"
             >
-              공고 관리로 이동
+              {copy.manageJobs}
             </Link>
             <Link
               href="/company/alba/create"
@@ -184,7 +184,7 @@ export default function AlbaCreatePage() {
                 setCompleted(false);
               }}
             >
-              새 공고 등록
+              {copy.newJob}
             </Link>
           </div>
         </div>
@@ -196,21 +196,14 @@ export default function AlbaCreatePage() {
     <CompanyAuthGuard requiredAccess="draft">
     <div className="min-h-screen bg-gray-50">
       {/* 상단 헤더 / Top header */}
-      <div className="sticky top-14 z-30 bg-white border-b border-gray-200">
+      <div className="sticky top-0 z-30 bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/company/alba" className="p-1.5 text-gray-500 hover:text-gray-700">
-              <ArrowLeft className="w-5 h-5" />
+            <Link href="/company/alba" aria-label={copy.back} className="p-1.5 text-gray-500 hover:text-gray-700">
+              <ArrowLeft aria-hidden="true" className="w-5 h-5" />
             </Link>
-            <h1 className="text-base font-bold text-gray-900">알바 공고 등록</h1>
+            <h1 className="text-base font-bold text-[#191F28]">{copy.headerTitle}</h1>
           </div>
-          <button
-            type="button"
-            className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
-          >
-            <Save className="w-4 h-4" />
-            <span className="hidden sm:inline">임시저장</span>
-          </button>
         </div>
       </div>
 
@@ -220,7 +213,7 @@ export default function AlbaCreatePage() {
       </div>
 
       {/* 스텝 컨텐츠 / Step content */}
-      <div className="max-w-4xl mx-auto px-4 pb-32">
+      <div className="max-w-4xl mx-auto px-4 pb-44 md:pb-32">
         {step === 1 && (
           <StepBasicInfo form={form} errors={errors} updateForm={updateForm} />
         )}
@@ -240,7 +233,7 @@ export default function AlbaCreatePage() {
       </div>
 
       {/* 하단 네비게이션 / Bottom navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 md:bottom-0">
+      <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 z-40 md:bottom-0">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           {step > 1 ? (
             <button
@@ -248,7 +241,7 @@ export default function AlbaCreatePage() {
               onClick={handlePrev}
               className="px-5 py-2.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
             >
-              이전
+              {copy.previous}
             </button>
           ) : (
             <div />
@@ -260,7 +253,7 @@ export default function AlbaCreatePage() {
               onClick={handleNext}
               className="px-8 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition min-w-[120px]"
             >
-              다음
+              {copy.next}
             </button>
           ) : (
             <button
@@ -272,10 +265,10 @@ export default function AlbaCreatePage() {
               {submitting ? (
                 <>
                   <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  등록 중...
+                  {copy.submitting}
                 </>
               ) : (
-                '최종 등록하기'
+                copy.submit
               )}
             </button>
           )}

@@ -4,6 +4,24 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import * as PortOne from '@portone/browser-sdk/v2';
+import {
+  assertPortOnePaymentResponse,
+  getPortOnePaymentConfiguration,
+  getPortOnePaymentError,
+} from '@/lib/portone-payment';
+
+interface PaymentProduct {
+  name: string;
+  description?: string;
+  price: number;
+  category?: string;
+}
+
+interface CouponResult {
+  name: string;
+  type: 'FIXED_DISCOUNT' | 'PERCENT_DISCOUNT';
+  value: number;
+}
 
 /**
  * 공통 결제 페이지 / Common payment checkout page
@@ -18,9 +36,9 @@ export default function PaymentCheckoutPage() {
   const productCode = searchParams.get('productCode') || '';
   const targetJobId = searchParams.get('targetJobId') || '';
 
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<PaymentProduct | null>(null);
   const [couponCode, setCouponCode] = useState('');
-  const [couponResult, setCouponResult] = useState<any>(null);
+  const [couponResult, setCouponResult] = useState<CouponResult | null>(null);
   const [finalAmount, setFinalAmount] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -33,8 +51,8 @@ export default function PaymentCheckoutPage() {
     if (!productCode) return;
     fetch(`/api/payments/products/${productCode}`)
       .then((r) => r.json())
-      .then((data) => {
-        if (data.error) {
+      .then((data: PaymentProduct & { error?: string }) => {
+        if (data.error || !data.name || !Number.isFinite(data.price)) {
           setError('상품 정보를 불러올 수 없습니다.');
           return;
         }
@@ -49,9 +67,9 @@ export default function PaymentCheckoutPage() {
     if (!couponCode.trim()) return;
     try {
       const res = await fetch(
-        `/api/payments/coupons/validate?code=${couponCode}&product=${product?.category || ''}`,
+        `/api/payments/coupons/validate?code=${encodeURIComponent(couponCode.trim())}&product=${encodeURIComponent(product?.category || '')}`,
       );
-      const data = await res.json();
+      const data = (await res.json()) as CouponResult & { message?: string };
       if (!res.ok) {
         setCouponResult(null);
         setDiscount(0);
@@ -99,39 +117,29 @@ export default function PaymentCheckoutPage() {
         setLoading(false);
         return;
       }
+      const paymentConfig = getPortOnePaymentConfiguration(order.checkout);
 
       // 2. 포트원 V2 결제창 호출 / Open PortOne V2 checkout
       const paymentResponse = await PortOne.requestPayment({
-        storeId: process.env.NEXT_PUBLIC_PORTONE_STORE_ID || '',
-        channelKey: process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || '',
-        paymentId: order.orderNo,
-        orderName: order.productName,
-        totalAmount: order.totalAmount,
-        currency: 'CURRENCY_KRW',
+        ...paymentConfig,
         payMethod: 'CARD',
       });
 
       if (!paymentResponse || paymentResponse.code) {
-        // 사용자 취소 또는 결제 실패 / User cancelled or payment failed
-        const msg =
-          paymentResponse?.code === 'USER_CANCEL'
-            ? '결제가 취소되었습니다.'
-            : '결제에 실패했습니다. 다시 시도해주세요.';
-        setError(msg);
+        setError(getPortOnePaymentError(paymentResponse));
         setLoading(false);
         return;
       }
+      assertPortOnePaymentResponse(paymentResponse, paymentConfig.paymentId);
 
       // 3. 결제 확인 / Confirm payment
       const confirmRes = await fetch(`/api/payments/orders/${order.orderId}/confirm`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          portonePaymentId: paymentResponse.paymentId,
+          portonePaymentId: paymentConfig.paymentId,
         }),
       });
-      const confirmData = await confirmRes.json();
-
       if (!confirmRes.ok) {
         setError(
           '결제 확인 중 문제가 발생했습니다. 고객센터에 문의해주세요.',
@@ -147,7 +155,7 @@ export default function PaymentCheckoutPage() {
         productName: order.productName || '',
       });
       router.push(`/company/payments/success?${successParams.toString()}`);
-    } catch (err) {
+    } catch {
       setError('결제 처리 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);

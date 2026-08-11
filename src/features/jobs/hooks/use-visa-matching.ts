@@ -24,11 +24,16 @@ export function useVisaMatching() {
   useEffect(() => {
     const load = async () => {
       setIsProfileLoading(true);
-      const profile = await jobCreateApi.getCorporateProfile();
-      setCorpProfile(profile);
-      setIsProfileLoading(false);
+      try {
+        const profile = await jobCreateApi.getCorporateProfile();
+        setCorpProfile(profile);
+      } catch {
+        setCorpProfile(null);
+      } finally {
+        setIsProfileLoading(false);
+      }
     };
-    load();
+    void load();
   }, []);
 
   // 비자 매칭 실행 / Run visa matching
@@ -43,6 +48,11 @@ export function useVisaMatching() {
       return null;
     }
 
+    if (!corpProfile.ksicCode || !corpProfile.addressRoad || !corpProfile.companySizeType) {
+      toast.error('정확한 판단을 위해 기업 인증 정보의 업종·주소·규모를 먼저 입력해주세요.');
+      return null;
+    }
+
     const offeredSalary = calculateOfferedSalary(salaryType, salaryAmount);
     if (offeredSalary <= 0) {
       toast.error('급여 정보를 입력해주세요.');
@@ -52,16 +62,20 @@ export function useVisaMatching() {
     setIsLoading(true);
     try {
       const result = await jobCreateApi.evaluateVisas({
-        ksicCode: corpProfile.ksicCode || 'G4711',
-        companySizeType: corpProfile.companySizeType || 'SME',
-        employeeCountKorean: corpProfile.employeeCountKorean || 5,
-        employeeCountForeign: corpProfile.employeeCountForeign || 0,
-        annualRevenue: corpProfile.annualRevenue || 10000,
-        addressRoad: corpProfile.addressRoad || address || '서울',
+        ksicCode: corpProfile.ksicCode,
+        companySizeType: corpProfile.companySizeType,
+        employeeCountKorean: corpProfile.employeeCountKorean,
+        employeeCountForeign: corpProfile.employeeCountForeign,
+        annualRevenue: corpProfile.annualRevenue,
+        addressRoad: corpProfile.addressRoad || address,
         jobType: boardType,
         offeredSalary,
       });
       setMatchResult(result);
+      if (result.outcome === 'REVIEW_REQUIRED') {
+        toast.error('검토 완료된 최신 정책이 준비되지 않아 비자 판단을 진행할 수 없습니다.');
+        return null;
+      }
       return result;
     } catch {
       toast.error('비자 매칭 분석에 실패했습니다.');

@@ -7,6 +7,7 @@
 
 import { Edit2 } from 'lucide-react';
 import type { FulltimeJobFormData, WizardStep } from './fulltime-types';
+import { useFulltimeCopy } from '../copy';
 
 interface StepPreviewProps {
   form: FulltimeJobFormData;
@@ -14,57 +15,76 @@ interface StepPreviewProps {
 }
 
 export default function StepPreview({ form, onGoToStep }: StepPreviewProps) {
+  const copy = useFulltimeCopy();
+  const employmentLabel = {
+    REGULAR: copy.regular, CONTRACT: copy.contract, INTERN: copy.intern, ALBA: copy.partTime,
+  }[form.employmentType] || '-';
+  const experienceLabel = {
+    ENTRY: copy.entry, JUNIOR: copy.junior, SENIOR: copy.senior, EXPERT: copy.expert,
+  }[form.experienceLevel] || '-';
+  const educationLabel = {
+    HIGH_SCHOOL: copy.highSchool, ASSOCIATE: copy.associate, BACHELOR: copy.bachelor,
+    MASTER: copy.master, DOCTORATE: copy.doctorate,
+  }[form.educationLevel] || '-';
+  const benefitLabel: Record<string, string> = {
+    MEAL: copy.meal, TRANSPORTATION: copy.transportation, ACCOMMODATION: copy.accommodation,
+    INSURANCE: copy.insurance, RETIREMENT: copy.retirement, EDUCATION: copy.training,
+    CHILDCARE: copy.childcare, ANNUAL_LEAVE: copy.annualLeave, HEALTH_CHECKUP: copy.healthCheckup, VACATION: copy.vacation,
+  };
+  const applicationLabel = {
+    PLATFORM: copy.online, EMAIL: copy.email, PHONE: copy.phone, VISIT: copy.visit,
+  }[form.applicationMethod] || '-';
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6">
+      <div className="bg-[#F9FAFB] border border-blue-200 rounded-xl p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-2">
-          ✨ 공고 미리보기
+          {copy.previewTitle}
         </h2>
         <p className="text-sm text-gray-600">
-          등록 전 입력한 정보를 최종 확인하세요
+          {copy.previewHelp}
         </p>
       </div>
 
       {/* Step 1 미리보기 */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-gray-900">기본 정보</h3>
+          <h3 className="font-bold text-gray-900">{copy.stepBasic}</h3>
           <button
             type="button"
             onClick={() => onGoToStep(1)}
             className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
           >
-            <Edit2 className="w-4 h-4" />
-            수정
+            <Edit2 className="w-4 h-4" aria-hidden="true" />
+            {copy.edit}
           </button>
         </div>
         <div className="space-y-2 text-sm">
-          <div className="flex">
-            <span className="w-32 text-gray-600">직종:</span>
-            <span className="font-semibold">{form.jobCategoryCode || '-'}</span>
+          <div className="grid grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)] gap-2">
+            <span className="text-gray-600">{copy.jobCategory}:</span>
+            <span className="font-semibold break-words">{form.jobCategoryCode || '-'}</span>
           </div>
-          <div className="flex">
-            <span className="w-32 text-gray-600">고용 형태:</span>
-            <span className="font-semibold">{form.employmentType}</span>
+          <div className="grid grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)] gap-2">
+            <span className="text-gray-600">{copy.employmentType}:</span>
+            <span className="font-semibold break-words">{employmentLabel}</span>
           </div>
-          <div className="flex">
-            <span className="w-32 text-gray-600">연봉:</span>
-            <span className="font-semibold">
-              {form.salaryMin.toLocaleString()}원 ~ {form.salaryMax.toLocaleString()}원
+          <div className="grid grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)] gap-2">
+            <span className="text-gray-600">{copy.salary}:</span>
+            <span className="font-semibold break-words">
+              {form.salaryMin.toLocaleString()} {copy.wonYear} - {form.salaryMax.toLocaleString()} {copy.wonYear}
             </span>
           </div>
-          <div className="flex">
-            <span className="w-32 text-gray-600">경력:</span>
-            <span className="font-semibold">{form.experienceLevel}</span>
+          <div className="grid grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)] gap-2">
+            <span className="text-gray-600">{copy.experience}:</span>
+            <span className="font-semibold break-words">{experienceLabel}</span>
           </div>
-          <div className="flex">
-            <span className="w-32 text-gray-600">학력:</span>
-            <span className="font-semibold">{form.educationLevel}</span>
+          <div className="grid grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)] gap-2">
+            <span className="text-gray-600">{copy.education}:</span>
+            <span className="font-semibold break-words">{educationLabel}</span>
           </div>
-          <div className="flex">
-            <span className="w-32 text-gray-600">해외 채용:</span>
+          <div className="grid grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)] gap-2">
+            <span className="text-gray-600">{copy.overseas}:</span>
             <span className="font-semibold">
-              {form.overseasHireWilling ? '가능' : '불가능'}
+              {form.overseasHireWilling ? copy.yes : copy.no}
             </span>
           </div>
         </div>
@@ -73,34 +93,34 @@ export default function StepPreview({ form, onGoToStep }: StepPreviewProps) {
       {/* Step 2 미리보기 */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-gray-900">근무 조건</h3>
+          <h3 className="font-bold text-gray-900">{copy.stepConditions}</h3>
           <button
             type="button"
             onClick={() => onGoToStep(2)}
             className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
           >
             <Edit2 className="w-4 h-4" />
-            수정
+            {copy.edit}
           </button>
         </div>
         <div className="space-y-2 text-sm">
-          <div className="flex">
-            <span className="w-32 text-gray-600">주소:</span>
-            <span className="font-semibold">
+          <div className="grid grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)] gap-2">
+            <span className="text-gray-600">{copy.address}:</span>
+            <span className="font-semibold break-words">
               {form.address.sido} {form.address.sigungu} {form.address.detail}
             </span>
           </div>
-          <div className="flex">
-            <span className="w-32 text-gray-600">우대 전공:</span>
-            <span className="font-semibold">
+          <div className="grid grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)] gap-2">
+            <span className="text-gray-600">{copy.preferredMajors}:</span>
+            <span className="font-semibold break-words">
               {form.preferredMajors.length > 0
                 ? form.preferredMajors.join(', ')
-                : '없음'}
+                : copy.none}
             </span>
           </div>
-          <div className="flex">
-            <span className="w-32 text-gray-600">모집 인원:</span>
-            <span className="font-semibold">{form.recruitCount}명</span>
+          <div className="grid grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)] gap-2">
+            <span className="text-gray-600">{copy.recruitCount}:</span>
+            <span className="font-semibold">{form.recruitCount} {copy.people}</span>
           </div>
         </div>
       </div>
@@ -108,36 +128,36 @@ export default function StepPreview({ form, onGoToStep }: StepPreviewProps) {
       {/* Step 3 미리보기 */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-gray-900">상세 내용</h3>
+          <h3 className="font-bold text-gray-900">{copy.stepDetails}</h3>
           <button
             type="button"
             onClick={() => onGoToStep(3)}
             className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
           >
             <Edit2 className="w-4 h-4" />
-            수정
+            {copy.edit}
           </button>
         </div>
         <div className="space-y-3 text-sm">
           <div>
-            <span className="text-gray-600">제목:</span>
+            <span className="text-gray-600">{copy.title}:</span>
             <p className="font-semibold mt-1">{form.title}</p>
           </div>
           <div>
-            <span className="text-gray-600">설명:</span>
+            <span className="text-gray-600">{copy.description}:</span>
             <p className="mt-1 text-gray-700 whitespace-pre-wrap">
               {form.detailDescription}
             </p>
           </div>
           <div>
-            <span className="text-gray-600">복리후생:</span>
+            <span className="text-gray-600">{copy.benefitsLabel}:</span>
             <div className="flex flex-wrap gap-2 mt-2">
               {form.benefits.map((benefit) => (
                 <span
                   key={benefit}
                   className="px-3 py-1 bg-blue-50 text-blue-900 rounded-full text-xs font-semibold"
                 >
-                  {benefit}
+                  {benefitLabel[benefit] || benefit}
                 </span>
               ))}
             </div>
@@ -148,26 +168,26 @@ export default function StepPreview({ form, onGoToStep }: StepPreviewProps) {
       {/* Step 4 미리보기 */}
       <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-gray-900">접수 설정</h3>
+          <h3 className="font-bold text-gray-900">{copy.applicationSettings}</h3>
           <button
             type="button"
             onClick={() => onGoToStep(4)}
             className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
           >
             <Edit2 className="w-4 h-4" />
-            수정
+            {copy.edit}
           </button>
         </div>
         <div className="space-y-2 text-sm">
-          <div className="flex">
-            <span className="w-32 text-gray-600">접수 방법:</span>
-            <span className="font-semibold">{form.applicationMethod}</span>
+          <div className="grid grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)] gap-2">
+            <span className="text-gray-600">{copy.application}:</span>
+            <span className="font-semibold break-words">{applicationLabel}</span>
           </div>
-          <div className="flex">
-            <span className="w-32 text-gray-600">마감일:</span>
+          <div className="grid grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)] gap-2">
+            <span className="text-gray-600">{copy.deadline}:</span>
             <span className="font-semibold">
               {form.isOpenEnded
-                ? '채용 시까지'
+                ? copy.openEnded
                 : form.applicationDeadline || '-'}
             </span>
           </div>
@@ -176,8 +196,7 @@ export default function StepPreview({ form, onGoToStep }: StepPreviewProps) {
 
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
         <p className="text-sm text-blue-900">
-          💡 모든 정보를 확인하셨나요? 하단의 <strong>&quot;최종 등록하기&quot;</strong> 버튼을
-          눌러 공고를 게시하세요.
+          {copy.reviewTip}
         </p>
       </div>
     </div>

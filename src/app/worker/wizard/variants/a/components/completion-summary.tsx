@@ -291,7 +291,7 @@ export default function CompletionSummary({
         </div>
       </div>
 
-      {/* 대시보드 이동 버튼 / Go to dashboard button */}
+      {/* 비자 여정 이동 버튼 / Go to visa journey button */}
       {isComplete && (
         <div className="pt-2">
           <Button
@@ -299,7 +299,7 @@ export default function CompletionSummary({
             onClick={onGoToDashboard}
             className="w-full min-h-[52px] rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold"
           >
-            대시보드로 이동 / Go to Dashboard
+            비자 여정 확인 / Review Visa Journey
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </div>

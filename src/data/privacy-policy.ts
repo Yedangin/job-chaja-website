@@ -1,7 +1,7 @@
 export const privacyPolicyData = {
   header: {
     title: "Privacy Policy",
-    lastUpdated: "March 2, 2026",
+    lastUpdated: "August 4, 2026",
     description: "Easy to understand privacy practices.",
     disclaimer:
       "We protect your privacy. This policy explains how we handle your information in simple terms.",
@@ -18,20 +18,20 @@ export const privacyPolicyData = {
             "Profile Info: Name, email, nationality, visa type",
             "Job Seeker: Resume, education, work experience, qualifications",
             "Employer: Company name, business registration number, industry, workforce size",
+            "Employer identity verification: verified name, mobile number, CI and DI (collected with separate consent for manager verification and duplicate-account prevention)",
           ],
         },
         {
           subtitle: "Payment Info",
           bullets: [
             "Payment provider transaction IDs, product, amount, currency, payment status, and refund records",
-            "Card and bank-account credentials are processed by the payment provider and are not stored directly by JobChaja",
+            "Card and bank-account credentials are processed by PortOne and the selected payment provider and are not stored directly by JobChaja",
           ],
         },
         {
           subtitle: "Sensitive Information (Separate Consent)",
           bullets: [
-            "Sensitive-information collection is disabled until separate consent, retention, deletion, and access controls are approved",
-            "Sensitive information is collected only when needed for the feature you choose",
+            "Visa documents and other sensitive information are collected only for a feature the user chooses and only after the required separate consent and access controls are applied",
           ],
         },
         {
@@ -62,7 +62,7 @@ export const privacyPolicyData = {
       type: "bullet-list",
       content: [
         "Job application info shared with the employer you apply to",
-        "Payment and OAuth providers when you choose the related payment or social-login feature",
+        "PortOne, Danal, payment providers, and OAuth providers when you choose the related identity, payment, or social-login feature",
         "Cloud hosting: AWS (Seoul region server + Lightsail)",
         "Email delivery: AWS SES",
         "Notifications: Kakao Corp. (KakaoTalk Alimtalk, Phase 2)",
@@ -94,11 +94,12 @@ export const privacyPolicyData = {
         "After withdrawal: Account recoverable for 90 days (soft delete); minimal identifiers (email hash, activity logs) retained up to 6 months for fraud prevention, then permanently deleted",
         "Visa diagnosis results: 1 year after completion",
         "Payment/transaction records: 5 years (e-commerce law)",
+        "Verified identity information (name, mobile number, encrypted CI/DI): until account withdrawal or consent withdrawal; deleted immediately when account deletion is requested unless another law requires retention",
+        "Identity verification attempt records: 30 days, then automatically deleted",
         "Consumer complaint records: 3 years",
         "Login records: 3 months (telecommunications law)",
         "System logs (request/error logs): 90\u2013180 days for security monitoring",
         "Inactive accounts: Separated after 1 year of inactivity",
-        "Sensitive-information collection remains disabled until approved controls are implemented",
         "You can request deletion of your data anytime",
       ],
     },
@@ -123,7 +124,7 @@ export const privacyPolicyData = {
       content: [
         "Encrypted data transmission (SSL/TLS) and storage (AES-256)",
         "Passwords hashed with bcrypt (one-way encryption)",
-        "Payment credentials are handled by approved payment providers; sensitive information is access-controlled",
+        "Payment credentials are handled by approved payment providers; CI and DI are encrypted with AES-256-GCM and never returned to the client or application logs",
         "Minimum-privilege access control for all personnel",
         "Regular security audits and monitoring",
       ],
@@ -145,6 +146,7 @@ export const privacyPolicyData = {
       type: "bullet-list",
       content: [
         "Our visa matching engine automatically evaluates which visa holders can be hired for each job posting. This affects which jobs you see and which candidates employers can access",
+        "For explanation, correction, and audit, each assessment records its calculation time, policy and rule versions, applied rule identifiers, minimum necessary input categories, outcome, and reasons; unique identification numbers, passport numbers, raw OCR text, and document file paths are excluded from the decision log",
         "You have the right to know that automated visa matching is being used",
         "You have the right to request an explanation of how the matching decision was made",
         "You have the right to request human review of an automated decision",

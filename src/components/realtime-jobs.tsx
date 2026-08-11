@@ -144,7 +144,7 @@ function JobRow({ job, faded }: { job: JobPosting; faded: boolean }) {
               채용 가능 비자 {visas.length}종
             </span>
             <Link
-              href={job.id !== '0' ? `/jobs/${job.id}` : '#'}
+              href={job.id !== '0' ? `/jobs/${job.id}` : '/jobs'}
               className={`text-[11px] font-semibold px-4 py-1.5 rounded-lg transition-colors ${
                 isClosed
                   ? 'bg-slate-200 text-slate-400 pointer-events-none'

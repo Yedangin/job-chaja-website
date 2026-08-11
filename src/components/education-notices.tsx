@@ -32,42 +32,42 @@ const notices: EducationNotice[] = [
   {
     tag: '모집중', category: '교육', featured: true,
     title: '2026 상반기 무료 한국어교육 과정',
-    organizer: '서울글로벌센터', location: '서울 종로구', date: '03.03 ~ 03.28', href: '#',
+    organizer: '서울글로벌센터', location: '서울 종로구', date: '03.03 ~ 03.28', href: '/notice',
   },
   {
     tag: '접수예정', category: '시험',
     title: '제89회 TOPIK 시험 접수 안내',
-    organizer: '국립국제교육원', location: '전국', date: '04.12 ~ 04.13', href: '#',
+    organizer: '국립국제교육원', location: '전국', date: '04.12 ~ 04.13', href: '/notice',
   },
   {
     tag: '모집중', category: '훈련',
     title: '외국인 근로자 직업훈련 프로그램',
-    organizer: '한국산업인력공단', location: '경기 안산시', date: '03.10 ~ 06.30', href: '#',
+    organizer: '한국산업인력공단', location: '경기 안산시', date: '03.10 ~ 06.30', href: '/notice',
   },
   {
     tag: '마감임박', category: '행사',
     title: '외국인 채용 박람회 참가자 모집',
-    organizer: '고용노동부', location: '서울 COEX', date: '03.15', href: '#',
+    organizer: '고용노동부', location: '서울 COEX', date: '03.15', href: '/notice',
   },
   {
     tag: '상시', category: '교육',
     title: '세종학당 한국어 온라인 강좌',
-    organizer: '세종학당재단', location: '온라인', date: '상시', href: '#',
+    organizer: '세종학당재단', location: '온라인', date: '상시', href: '/guide/5',
   },
   {
     tag: '모집중', category: '교육',
     title: '외국인 주민 생활 정착 교육',
-    organizer: '출입국·외국인청', location: '서울 양천구', date: '03.05 ~ 03.20', href: '#',
+    organizer: '출입국·외국인청', location: '서울 양천구', date: '03.05 ~ 03.20', href: '/notice',
   },
   {
     tag: '접수예정', category: '훈련',
     title: '제조업 안전교육 특별과정',
-    organizer: '안전보건공단', location: '인천 남동구', date: '04.01 ~ 04.15', href: '#',
+    organizer: '안전보건공단', location: '인천 남동구', date: '04.01 ~ 04.15', href: '/notice',
   },
   {
     tag: '모집중', category: '행사',
     title: '다문화 취업 설명회',
-    organizer: '여성가족부', location: '서울 영등포구', date: '03.22', href: '#',
+    organizer: '여성가족부', location: '서울 영등포구', date: '03.22', href: '/notice',
   },
 ];
 

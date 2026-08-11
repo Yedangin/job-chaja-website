@@ -21,10 +21,9 @@ const LANGUAGES: {
 }[] = [
   { code: "en", label: "English", flag: "us" }, // 영어 (미국 국기 사용, 필요시 gb로 변경)
   { code: "ko", label: "한국어", flag: "kr" },
-  { code: "ja", label: "日本語", flag: "jp" },
   { code: "vi", label: "Tiếng Việt", flag: "vn" },
   { code: "th", label: "ภาษาไทย", flag: "th" },
-  { code: "tl", label: "Tagalog", flag: "ph" }, // Filipino -> Tagalog (자국어 표기)
+  { code: "fil", label: "Filipino", flag: "ph" },
 ];
 
 /* =====================
@@ -49,7 +48,7 @@ function FlagIcon({ code, className = "w-5 h-5" }: { code: string; className?: s
  * Language Switcher
  * ===================== */
 
-export default function LanguageSwitcher() {
+export default function LanguageSwitcher({ compactOnMobile = false }: { compactOnMobile?: boolean } = {}) {
   const { lang, setLang } = useLanguage();
 
   // 현재 선택된 언어 객체 찾기
@@ -61,19 +60,19 @@ export default function LanguageSwitcher() {
         <Button
           variant="outline"
           size="sm"
-          className="h-9 pl-2 pr-3 bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-full shadow-sm transition-all duration-200 flex items-center gap-2 group"
+          className={`h-9 bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300 rounded-full shadow-sm transition-all duration-200 flex items-center group ${compactOnMobile ? 'w-9 px-0 justify-center gap-0 sm:w-auto sm:pl-2 sm:pr-3 sm:gap-2' : 'pl-2 pr-3 gap-2'}`}
           aria-label="Change language"
         >
           {/* 현재 선택된 국기 */}
           <FlagIcon code={currentLang.flag} />
           
           {/* 언어 이름 */}
-          <span className="text-xs font-bold text-slate-700 group-hover:text-slate-900 pt-0.5">
+          <span className={`text-xs font-bold text-slate-700 group-hover:text-slate-900 pt-0.5 ${compactOnMobile ? 'hidden sm:inline' : ''}`}>
             {currentLang.label}
           </span>
 
           {/* 화살표 아이콘 */}
-          <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+          <ChevronDown className={`w-3 h-3 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 group-data-[state=open]:rotate-180 ${compactOnMobile ? 'hidden sm:block' : ''}`} />
         </Button>
       </DropdownMenuTrigger>
 

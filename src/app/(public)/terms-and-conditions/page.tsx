@@ -4,6 +4,8 @@
  * 카카오페이·KG이니시스 심사 요건 충족 포함
  */
 
+import { COMPANY_INFO } from '@/constants/company-info';
+
 export const metadata = {
   title: '이용약관 | 잡차자',
   description: '잡차자 서비스 이용약관',
@@ -265,13 +267,13 @@ export default function TermsAndConditionsPage() {
             <h2 className="text-base font-bold text-gray-900 mb-3">사업자 정보</h2>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               {[
-                ['상호', '주식회사 리브소프트'],
+                ['상호', COMPANY_INFO.legalNameKo],
                 ['서비스명', '잡차자 (JobChaja)'],
-                ['사업자등록번호', '485-86-03274'],
-                ['대표자', '박찬호'],
-                ['주소', '서울특별시 중구 퇴계로 15 519호 (남대문로5가)'],
-                ['고객센터', '070-8095-4474'],
-                ['이메일', 'pch0675@naver.com'],
+                ['사업자등록번호', COMPANY_INFO.businessRegistrationNumber],
+                ['대표자', COMPANY_INFO.representativeKo],
+                ['주소', COMPANY_INFO.addressKo],
+                ['고객센터', COMPANY_INFO.phone],
+                ['이메일', COMPANY_INFO.email],
                 ['운영시간', '평일 09:00 ~ 18:00 (주말·공휴일 휴무)'],
               ].map(([label, value]) => (
                 <div key={label} className="flex gap-2">

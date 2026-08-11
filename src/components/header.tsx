@@ -4,15 +4,16 @@ import { useState, useRef, useEffect } from 'react';
 import { User, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth, getRoleHomePath } from '@/contexts/auth-context';
+import { useAuth } from '@/contexts/auth-context';
 import LanguageSwitcher from '@/components/language-switcher';
+import BrandLogo from '@/components/brand-logo';
 
 /**
  * 공용 헤더 (메인 페이지, 로그인 전 등에서 사용) / Public header
  * 로그인 후에는 역할별 레이아웃 헤더가 사용됨
  */
 export default function Header() {
-  const { user, isLoggedIn, isLoading, role, logout } = useAuth();
+  const { isLoggedIn, isLoading, role, logout } = useAuth();
   const pathname = usePathname();
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -40,8 +41,8 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center">
         {/* 좌측: 로고 + 네비 / Left: Logo + Nav */}
         <div className="flex items-center" ref={dropdownRef}>
-          <Link href="/" className="text-lg font-bold text-gray-900 hover:opacity-80 transition">
-            JobChaja
+          <Link href="/" className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0066FF] focus-visible:ring-offset-2" aria-label="JobChaja home">
+            <BrandLogo />
           </Link>
 
           <nav className="hidden md:flex items-center ml-8 gap-1 text-sm">
@@ -61,7 +62,7 @@ export default function Header() {
               </button>
               {openDropdown === 'worker' && (
                 <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border py-1 z-50">
-                  <Link href="/worker/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
+                  <Link href="/worker/mypage" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     대시보드
                   </Link>
                   <Link href="/worker/jobs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
@@ -106,10 +107,10 @@ export default function Header() {
                   <Link href="/company/alba" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     알바채용관
                   </Link>
-                  <Link href="/company/alba/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
+                  <Link href="/company/jobs/create?boardType=PART_TIME" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     알바 공고등록
                   </Link>
-                  <Link href="/company/fulltime/create" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
+                  <Link href="/company/jobs/create?boardType=FULL_TIME" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
                     정규직 공고등록
                   </Link>
                   <Link href="/company/jobs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
@@ -146,107 +147,12 @@ export default function Header() {
               )}
             </div>
 
-            {/* 시안 모음 드롭다운 / Design Mockups dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => toggleDropdown('designs')}
-                className="px-3 py-2 text-orange-500 hover:text-orange-600 font-medium transition flex items-center gap-1"
-              >
-                시안 모음
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${openDropdown === 'designs' ? 'rotate-180' : ''}`} />
-              </button>
-              {openDropdown === 'designs' && (
-                <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border py-1 z-50 max-h-[70vh] overflow-y-auto">
-                  <p className="px-4 py-1.5 text-xs text-gray-400 font-semibold uppercase">기업 대시보드</p>
-                  <div className="flex gap-1 px-4 py-1.5">
-                    {['e'].map((v) => (
-                      <Link
-                        key={v}
-                        href={`/company/dashboard/variants/${v}`}
-                        className="px-2 py-1 text-xs bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100 font-medium"
-                        onClick={closeDropdown}
-                      >
-                        {v.toUpperCase()}
-                      </Link>
-                    ))}
-                  </div>
-                  <p className="px-4 py-1.5 text-xs text-gray-400 font-semibold uppercase mt-1">알바채용관</p>
-                  <div className="flex gap-1 px-4 py-1.5">
-                    {['a', 'b', 'c', 'd', 'e'].map((v) => (
-                      <Link
-                        key={v}
-                        href={`/company/alba/variants/${v}`}
-                        className="px-2 py-1 text-xs bg-blue-50 text-blue-600 rounded hover:bg-blue-100 font-medium"
-                        onClick={closeDropdown}
-                      >
-                        {v.toUpperCase()}
-                      </Link>
-                    ))}
-                  </div>
-                  <p className="px-4 py-1.5 text-xs text-gray-400 font-semibold uppercase mt-1">알바 공고등록</p>
-                  <div className="flex gap-1 px-4 py-1.5">
-                    {['a', 'b', 'c', 'd', 'e'].map((v) => (
-                      <Link
-                        key={v}
-                        href={`/company/alba/create/variants/${v}`}
-                        className="px-2 py-1 text-xs bg-green-50 text-green-600 rounded hover:bg-green-100 font-medium"
-                        onClick={closeDropdown}
-                      >
-                        {v.toUpperCase()}
-                      </Link>
-                    ))}
-                  </div>
-                  <p className="px-4 py-1.5 text-xs text-gray-400 font-semibold uppercase mt-1">개인 알바채용관</p>
-                  <div className="flex gap-1 px-4 py-1.5">
-                    {['a', 'b', 'c', 'd', 'e'].map((v) => (
-                      <Link
-                        key={v}
-                        href={`/worker/alba/variants/${v}`}
-                        className="px-2 py-1 text-xs bg-purple-50 text-purple-600 rounded hover:bg-purple-100 font-medium"
-                        onClick={closeDropdown}
-                      >
-                        {v.toUpperCase()}
-                      </Link>
-                    ))}
-                  </div>
-                  <hr className="my-1" />
-                  <Link href="/job-cards/designs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
-                    채용카드 디자인 시안
-                  </Link>
-                  <Link href="/job-cards/designs-gemini" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
-                    채용카드 Gemini 시안
-                  </Link>
-                  <Link href="/diagnosis/designs" className="block px-4 py-2 text-sm text-gray-700 hover:bg-sky-50 hover:text-sky-600" onClick={closeDropdown}>
-                    비자진단 디자인 시안
-                  </Link>
-                  <hr className="my-1" />
-                  <p className="px-4 py-1.5 text-xs text-gray-400 font-semibold uppercase">개인 프로필 위자드</p>
-                  <div className="flex gap-1 px-4 py-1.5">
-                    {['a', 'b', 'c', 'd', 'e'].map((v) => (
-                      <Link
-                        key={v}
-                        href={`/worker/wizard/variants/${v}`}
-                        className="px-2 py-1 text-xs bg-orange-50 text-orange-600 rounded hover:bg-orange-100 font-medium"
-                        onClick={closeDropdown}
-                      >
-                        {v.toUpperCase()}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 관리자 / Admin */}
-            <Link href="/admin" className="px-3 py-2 text-gray-600 hover:text-sky-600 font-medium transition">
-              관리자
-            </Link>
           </nav>
         </div>
 
         {/* 우측: 액션 / Right: Actions */}
         <div className="ml-auto flex items-center gap-2 text-sm">
-          <LanguageSwitcher />
+          <LanguageSwitcher compactOnMobile />
 
           {isLoading ? (
             <div className="w-20 h-8" />
@@ -261,7 +167,7 @@ export default function Header() {
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">마이페이지</span>
               </Link>
-              <Link href="/worker/dashboard" className="px-2 py-1.5 text-gray-600 hover:text-sky-600 font-medium transition">대시보드</Link>
+              <Link href="/worker/mypage" className="px-2 py-1.5 text-gray-600 hover:text-sky-600 font-medium transition">대시보드</Link>
               <button onClick={logout} className="px-2 py-1.5 text-gray-400 hover:text-gray-600 transition">로그아웃</button>
             </>
           ) : role === 'CORPORATE' ? (

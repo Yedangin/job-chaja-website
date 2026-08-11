@@ -89,7 +89,7 @@ export default function CompanyJobDetailPage() {
       setLoading(true);
       try {
         const sessionId = localStorage.getItem('sessionId');
-        const res = await fetch(`/api/jobs/${id}`, {
+        const res = await fetch(`/api/jobs/my/${id}`, {
           credentials: 'include',
           headers: sessionId ? { 'Authorization': `Bearer ${sessionId}` } : {},
         });

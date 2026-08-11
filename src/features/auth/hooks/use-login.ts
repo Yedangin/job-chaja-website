@@ -8,6 +8,7 @@ import { authApi } from '../api/auth.api';
 import { loginSchema, type LoginFormData } from '../schemas/auth.schema';
 import { toast } from '@/lib/toast';
 import type { MemberType } from '../types/auth.types';
+import { getPostAuthRoute } from '../lib/post-auth-route';
 
 /**
  * 로그인 로직 및 상태 관리 / Login logic and state management
@@ -64,19 +65,11 @@ export function useLogin() {
 
       // redirect 파라미터가 있으면 해당 경로로, 없으면 role 기반 기본 경로로 이동
       // If redirect param exists, use it; otherwise fall back to role-based default
-      const redirectTo = searchParams.get('redirect');
-      // 상대 경로만 허용, '/'는 무시 (메인은 기본 경로) / Only allow relative paths, ignore '/' (main is default)
-      if (redirectTo && redirectTo !== '/' && redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
-        router.push(redirectTo);
-      } else {
-        // 관리자만 관리자 페이지, 나머지는 메인페이지 / Admin → admin page, others → main
-        const userRole = loginUser?.role;
-        if (userRole === 5) {
-          router.push('/admin');
-        } else {
-          router.push('/');
-        }
-      }
+      router.push(getPostAuthRoute({
+        explicitPath: searchParams.get('redirect'),
+        role: loginUser?.role,
+        memberType,
+      }));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t('loginFail');
       setError(message);

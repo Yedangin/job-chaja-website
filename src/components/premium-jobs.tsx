@@ -176,7 +176,7 @@ function PremiumCard({ job, imageIndex }: { job: JobPosting; imageIndex: number 
               <div className="flex items-center gap-1.5 text-white/50 text-[10px]">
                 <Briefcase size={10} /> {job.boardType === 'FULL_TIME' ? '정규직 · 4대보험' : '파트타임 · 시급제'}
               </div>
-              <Link href={job.id !== '0' ? `/jobs/${job.id}` : '#'} className="block text-[10px] text-center bg-sky-500 hover:bg-sky-400 text-white rounded-md py-1.5 font-semibold transition-colors" onClick={e => e.stopPropagation()}>상세보기</Link>
+              <Link href={job.id !== '0' ? `/jobs/${job.id}` : '/jobs'} className="block text-[10px] text-center bg-sky-500 hover:bg-sky-400 text-white rounded-md py-1.5 font-semibold transition-colors" onClick={e => e.stopPropagation()}>상세보기</Link>
             </div>
           </div>
         </div>

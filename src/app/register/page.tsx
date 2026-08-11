@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
+import { useState, useEffect, useCallback, FormEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CURRENT_POLICY_VERSION } from '@/lib/legal';
@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AlertCircle, CheckCircle2, ArrowRight, ArrowLeft, Loader2, Clock, Upload, X, FileText } from 'lucide-react';
 import { toast } from 'sonner';
+import { IdentityVerificationPanel } from '@/components/identity-verification-panel';
+import type { IdentitySummary } from '@/lib/identity-verification-client';
 
 type Step = 1 | 2 | 3;
 
@@ -45,8 +47,7 @@ export default function RegisterPage() {
   const [verificationStatus, setVerificationStatus] = useState<string | null>(null);
   const [lastRejectionReason, setLastRejectionReason] = useState<string | null>(null);
 
-  // PASS 본인인증 (다날) - 아직 미연동, 연동 시 인증된 이름으로 설정
-  const [verifiedName] = useState<string | null>(null);
+  const [verifiedName, setVerifiedName] = useState<string | null>(null);
 
   // 서류 업로드 상태
   const [bizRegDoc, setBizRegDoc] = useState<{ filePath: string; originalName: string } | null>(null);
@@ -104,6 +105,9 @@ export default function RegisterPage() {
           if (data.bizRegNumber) setFormData(prev => ({ ...prev, bizNo: data.bizRegNumber }));
           if (data.companyNameOfficial) setFormData(prev => ({ ...prev, companyName: data.companyNameOfficial }));
           if (data.ceoName) setFormData(prev => ({ ...prev, repName: data.ceoName }));
+          if (data.identityVerification?.verified && data.identityVerification.name) {
+            setVerifiedName(data.identityVerification.name);
+          }
         }
       } catch { /* ignore */ }
       finally { setAuthLoading(false); }
@@ -118,6 +122,12 @@ export default function RegisterPage() {
       [name]: type === 'checkbox' ? checked : value,
     }));
   };
+
+  const handleIdentityVerified = useCallback((identity: IdentitySummary) => {
+    if (!identity.verified || !identity.name) return;
+    setVerifiedName(identity.name);
+    setFormData(prev => ({ ...prev, managerName: identity.name || prev.managerName }));
+  }, []);
 
   const handleCheckBizInfo = async () => {
     const cleanNo = formData.bizNo.replace(/[^0-9]/g, '');
@@ -233,7 +243,9 @@ export default function RegisterPage() {
   };
 
   // 대표자 본인 체크 가능 여부
-  const canShowCeoSelfCheckbox = verifiedName !== null && verifiedName === formData.repName;
+  const normalizeName = (value: string) => value.normalize('NFKC').replace(/\s+/g, '').toLocaleLowerCase('ko');
+  const canShowCeoSelfCheckbox = verifiedName !== null
+    && normalizeName(verifiedName) === normalizeName(formData.repName);
 
   // 신청 완료 버튼 활성화 조건
   const canSubmit = bizCheckResult?.isValid
@@ -246,6 +258,7 @@ export default function RegisterPage() {
       currentStep === 1
       && formData.managerName.trim()
       && formData.managerPhone.trim()
+      && verifiedName !== null
       && formData.agreeTerms
       && formData.agreePrivacy
       && formData.agreeInternationalTransfer
@@ -274,6 +287,7 @@ export default function RegisterPage() {
           empCertDocPath: empCertDoc?.filePath || null,
           empCertDocOrigName: empCertDoc?.originalName || null,
           isCeoSelf,
+          openDate: formData.openDate,
           termsConsent: formData.agreeTerms,
           privacyConsent: formData.agreePrivacy,
           internationalTransferConsent: formData.agreeInternationalTransfer,
@@ -466,13 +480,19 @@ export default function RegisterPage() {
               </div>
 
               <form onSubmit={handleNextStep}>
-                {/* Manager contact details. Phone identity verification is not enabled yet. */}
+                <div className="mb-6">
+                  <IdentityVerificationPanel
+                    returnPath="/register"
+                    onVerified={handleIdentityVerified}
+                  />
+                </div>
+
                 <div className="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-100 space-y-4">
                   <div className="flex justify-between items-center">
                     <h3 className="font-bold text-slate-800">담당자 연락처</h3>
                   </div>
-                  <p className="text-xs leading-relaxed text-amber-700">
-                    휴대폰 본인인증은 현재 제공되지 않습니다. 담당자 확인을 위해 정확한 연락처를 입력해 주세요.
+                  <p className="text-xs leading-relaxed text-slate-600">
+                    본인인증된 실명은 담당자 정보로 자동 반영되며 임의로 변경할 수 없습니다.
                   </p>
 
                   <Input
@@ -481,6 +501,7 @@ export default function RegisterPage() {
                     value={formData.managerName}
                     onChange={handleInputChange}
                     placeholder="담당자 실명 입력"
+                    readOnly={verifiedName !== null}
                     required
                   />
 
@@ -595,7 +616,7 @@ export default function RegisterPage() {
                 <div className="mt-10 flex justify-end">
                   <Button
                     type="submit"
-                      disabled={!formData.managerName.trim() || !formData.managerPhone.trim() || !isAllAgreed}
+                      disabled={!verifiedName || !formData.managerPhone.trim() || !isAllAgreed}
                     className="bg-sky-600 hover:bg-sky-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-12 py-4 rounded-xl font-bold text-lg flex items-center gap-2"
                   >
                     다음 단계 <ArrowRight className="w-4 h-4" />
@@ -628,6 +649,7 @@ export default function RegisterPage() {
                       onChange={(e) => {
                         handleInputChange(e);
                         setBizCheckResult(null);
+                        setIsCeoSelf(false);
                       }}
                       placeholder="10자리 숫자 입력"
                       maxLength={10}
@@ -664,6 +686,7 @@ export default function RegisterPage() {
                       onChange={(e) => {
                         handleInputChange(e);
                         setBizCheckResult(null);
+                        setIsCeoSelf(false);
                       }}
                       placeholder="대표자 성명 입력"
                       disabled={bizCheckResult?.isValid}

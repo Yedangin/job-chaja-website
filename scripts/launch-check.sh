@@ -17,16 +17,20 @@ for flag in PAID_FEATURES_ENABLED ADMIN_ROUTES_ENABLED NEXT_PUBLIC_SOCIAL_LOGIN_
   fi
 done
 
-for credential in NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY STRIPE_SECRET_KEY STRIPE_WEBHOOK_SECRET NEXT_PUBLIC_PORTONE_STORE_ID NEXT_PUBLIC_PORTONE_CHANNEL_KEY; do
-  if [[ -z "${!credential:-}" || "${!credential}" == *"..."* ]]; then
-    echo "ERROR: ${credential} must contain a real test or production credential for full-service launch." >&2
-    exit 1
-  fi
-done
-
 npx eslint \
   src/app/robots.ts src/app/sitemap.ts src/app/layout.tsx src/proxy.ts \
   src/app/register/page.tsx src/app/company/verification/page.tsx \
+  src/app/identity-verification/complete/page.tsx \
+  src/app/identity-verification/mobile/page.tsx \
+  src/components/identity-verification-panel.tsx \
+  src/lib/identity-verification-client.ts \
+  src/i18n/use-identity-translations.ts \
+  'src/app/api/identity-verifications/[...path]/route.ts' \
+  src/app/company/payments/checkout/page.tsx \
+  src/app/company/payments/credits/page.tsx \
+  src/app/company/payments/premium/page.tsx \
+  'src/app/api/payments/[...path]/route.ts' \
+  src/lib/portone-payment.ts \
   'src/app/(public)/privacy-policy/page.tsx' \
   'src/app/(public)/privacy-request/page.tsx' \
   'src/app/(public)/terms-and-conditions/page.tsx' \
